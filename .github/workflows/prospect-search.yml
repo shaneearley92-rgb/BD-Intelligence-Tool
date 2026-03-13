@@ -1,0 +1,71 @@
+name: Prospect Search
+
+on:
+  workflow_dispatch:
+    inputs:
+      company_name:
+        description: 'Target company name (e.g. Travelers)'
+        required: true
+        type: string
+      company_domain:
+        description: 'Company domain (e.g. travelers.com)'
+        required: false
+        type: string
+        default: ''
+      max_contacts:
+        description: 'Maximum contacts to return'
+        required: false
+        type: string
+        default: '50'
+      search_titles:
+        description: 'Comma-separated titles to search (leave empty for defaults)'
+        required: false
+        type: string
+        default: ''
+      search_keywords:
+        description: 'Comma-separated keywords (leave empty for defaults)'
+        required: false
+        type: string
+        default: ''
+
+  repository_dispatch:
+    types: [prospect-search]
+
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run prospect search
+        env:
+          COMPANY_NAME: ${{ github.event.inputs.company_name || github.event.client_payload.company_name }}
+          COMPANY_DOMAIN: ${{ github.event.inputs.company_domain || github.event.client_payload.company_domain || '' }}
+          MAX_CONTACTS: ${{ github.event.inputs.max_contacts || github.event.client_payload.max_contacts || '50' }}
+          SEARCH_TITLES: ${{ github.event.inputs.search_titles || github.event.client_payload.search_titles || '' }}
+          SEARCH_KEYWORDS: ${{ github.event.inputs.search_keywords || github.event.client_payload.search_keywords || '' }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          APOLLO_API_KEY: ${{ secrets.APOLLO_API_KEY }}
+        run: node scripts/prospect-search.js
+
+      - name: Report status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✓ Prospect search completed for ${{ github.event.inputs.company_name || github.event.client_payload.company_name }}"
+          else
+            echo "✗ Prospect search failed for ${{ github.event.inputs.company_name || github.event.client_payload.company_name }}"
+          fi
