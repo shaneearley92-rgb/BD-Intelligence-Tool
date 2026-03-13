@@ -229,7 +229,7 @@ async function researchCompany(companyName, contacts = []) {
 
     // Search for specific contacts
     for (const contact of contacts.slice(0, 2)) { // Limit to 2 to control API usage
-        const contactName = `${contact.first_name} ${contact.last_name}`;
+        const contactName = contact.name;
         try {
             const contactVideos = await searchVideos(
                 `"${contactName}" ${companyName} interview presentation`,
