@@ -126,144 +126,175 @@ class ExaEnrichmentProvider extends BaseEnrichmentProvider {
 }
 
 // ============================================
-// APOLLO PROVIDER (placeholder - uncomment when ready)
+// APOLLO PROVIDER
 // ============================================
 
-/*
 class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
     constructor() {
         super('apollo');
         this.apiKey = process.env.APOLLO_API_KEY;
-        this.baseUrl = 'https://api.apollo.io/v1';
+        this.baseUrl = 'https://api.apollo.io/api/v1';
     }
 
     async enrichContact(contact, companyName) {
         const contactName = contact.name;
+        const nameParts = contactName.trim().split(/\s+/);
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(' ');
 
-        const res = await fetch(`${this.baseUrl}/people/match`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache'
-            },
-            body: JSON.stringify({
-                api_key: this.apiKey,
-                first_name: contact.first_name,
-                last_name: contact.last_name,
-                organization_name: companyName,
-                // domain: companyDomain  // even better if you have it
-            })
-        });
+        try {
+            const res = await fetch(`${this.baseUrl}/people/match`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache',
+                    'X-Api-Key': this.apiKey
+                },
+                body: JSON.stringify({
+                    first_name: firstName,
+                    last_name: lastName,
+                    organization_name: companyName,
+                })
+            });
 
-        if (!res.ok) {
-            throw new Error(`Apollo API error: ${res.status}`);
-        }
+            if (!res.ok) {
+                throw new Error(`Apollo API error: ${res.status}`);
+            }
 
-        const data = await res.json();
-        const person = data.person;
+            const data = await res.json();
+            const person = data.person;
 
-        if (!person) {
+            if (!person) {
+                return {
+                    ...contact,
+                    enrichment_data: { found: false },
+                    enrichment_source: 'apollo'
+                };
+            }
+
             return {
                 ...contact,
-                enrichment_data: { found: false },
+                email: person.email || contact.email,
+                phone: person.phone_numbers?.[0]?.sanitized_number || contact.phone,
+                linkedin_url: person.linkedin_url || contact.linkedin_url,
+                title: person.title || contact.title,
+                seniority: person.seniority || contact.seniority,
+                enrichment_data: {
+                    apolloId: person.id,
+                    headline: person.headline,
+                    departments: person.departments,
+                    employmentHistory: person.employment_history,
+                    enrichedAt: new Date().toISOString()
+                },
                 enrichment_source: 'apollo'
             };
+        } catch (err) {
+            console.error(`[Enrichment/Apollo] Failed for ${contactName}:`, err.message);
+            return {
+                ...contact,
+                enrichment_data: { error: err.message, enrichedAt: new Date().toISOString() },
+                enrichment_source: 'apollo_failed'
+            };
         }
-
-        return {
-            ...contact,
-            email: person.email || contact.email,
-            phone: person.phone_numbers?.[0]?.sanitized_number || contact.phone,
-            linkedin_url: person.linkedin_url || contact.linkedin_url,
-            title: person.title || contact.title,
-            seniority: person.seniority || contact.seniority,
-            enrichment_data: {
-                apolloId: person.id,
-                headline: person.headline,
-                departments: person.departments,
-                employmentHistory: person.employment_history,
-                enrichedAt: new Date().toISOString()
-            },
-            enrichment_source: 'apollo'
-        };
     }
 
     async searchContacts(criteria) {
         const {
             titles = [],
             companyName,
-            industry,
-            employeeRange,
-            geography = ['United States']
+            keywords = [],
+            seniorities = ['vp', 'c_suite', 'director', 'manager'],
+            geography = ['United States'],
+            perPage = 25,
+            page = 1
         } = criteria;
+
+        const body = {
+            person_titles: titles.length > 0 ? titles : undefined,
+            q_organization_name: companyName || undefined,
+            person_seniorities: seniorities,
+            person_locations: geography,
+            q_keywords: keywords.length > 0 ? keywords.join(' ') : undefined,
+            page,
+            per_page: perPage
+        };
 
         const res = await fetch(`${this.baseUrl}/mixed_people/search`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache'
+                'Cache-Control': 'no-cache',
+                'X-Api-Key': this.apiKey
             },
-            body: JSON.stringify({
-                api_key: this.apiKey,
-                person_titles: titles,
-                q_organization_name: companyName || undefined,
-                person_seniorities: ['vp', 'c_suite', 'director'],
-                organization_industry_tag_ids: industry ? [industry] : undefined,
-                organization_num_employees_ranges: employeeRange
-                    ? [`${employeeRange[0]},${employeeRange[1]}`]
-                    : undefined,
-                person_locations: geography,
-                page: 1,
-                per_page: 25
-            })
+            body: JSON.stringify(body)
         });
 
         if (!res.ok) {
-            throw new Error(`Apollo search error: ${res.status}`);
+            const errText = await res.text();
+            throw new Error(`Apollo search error ${res.status}: ${errText}`);
         }
 
         const data = await res.json();
-        return (data.people || []).map(p => ({
-            firstName: p.first_name,
-            lastName: p.last_name,
-            title: p.title,
-            company: p.organization?.name,
-            email: p.email,
-            linkedinUrl: p.linkedin_url,
-            seniority: p.seniority,
-            source: 'apollo'
-        }));
+        return {
+            people: (data.people || []).map(p => ({
+                firstName: p.first_name,
+                lastName: p.last_name,
+                name: `${p.first_name} ${p.last_name}`,
+                title: p.title,
+                company: p.organization?.name,
+                companyDomain: p.organization?.website_url,
+                email: p.email,
+                linkedinUrl: p.linkedin_url,
+                seniority: p.seniority,
+                departments: p.departments,
+                headline: p.headline,
+                city: p.city,
+                state: p.state,
+                country: p.country,
+                source: 'apollo'
+            })),
+            totalEntries: data.pagination?.total_entries || 0,
+            page: data.pagination?.page || page,
+            totalPages: data.pagination?.total_pages || 1
+        };
     }
 
     async getCompanyTechStack(companyDomain) {
-        const res = await fetch(`${this.baseUrl}/organizations/enrich`, {
-            method: 'GET',
-            headers: { 'Cache-Control': 'no-cache' },
-            // Apollo uses query params for this endpoint
-        });
+        try {
+            const res = await fetch(`${this.baseUrl}/organizations/enrich?domain=${encodeURIComponent(companyDomain)}`, {
+                method: 'GET',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'X-Api-Key': this.apiKey
+                },
+            });
 
-        // Apollo returns structured technographics data
-        // including security vendors, cloud providers, etc.
-        const data = await res.json();
-        return {
-            source: 'apollo',
-            structured: true,
-            technologies: data.organization?.current_technologies || [],
-            techCategories: data.organization?.technology_names || []
-        };
+            if (!res.ok) {
+                throw new Error(`Apollo org enrich error: ${res.status}`);
+            }
+
+            const data = await res.json();
+            return {
+                source: 'apollo',
+                structured: true,
+                technologies: data.organization?.current_technologies || [],
+                techCategories: data.organization?.technology_names || []
+            };
+        } catch (err) {
+            console.error('[Enrichment/Apollo] Tech stack failed:', err.message);
+            return { source: 'apollo', structured: true, technologies: [], techCategories: [] };
+        }
     }
 }
-*/
 
 // ============================================
 // PROVIDER FACTORY
 // ============================================
 
 function getProvider() {
-    // When Apollo is ready, uncomment this:
-    // if (process.env.APOLLO_API_KEY) {
-    //     return new ApolloEnrichmentProvider();
-    // }
+    if (process.env.APOLLO_API_KEY) {
+        return new ApolloEnrichmentProvider();
+    }
 
     return new ExaEnrichmentProvider();
 }
@@ -310,5 +341,6 @@ module.exports = {
     getCompanyTechStack,
     getProvider,
     BaseEnrichmentProvider,
-    ExaEnrichmentProvider
+    ExaEnrichmentProvider,
+    ApolloEnrichmentProvider
 };

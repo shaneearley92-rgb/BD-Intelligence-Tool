@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "research": "node scripts/research-agent.js",
-    "batch": "node scripts/batch-runner.js"
+    "batch": "node scripts/batch-runner.js",
+    "prospect": "node scripts/prospect-search.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
