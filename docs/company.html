@@ -254,8 +254,19 @@
             SUPABASE_ANON_KEY: 'sb_publishable_cqrID5e3KxU2YONXLzTlCA_QK__Lim3',
             GITHUB_OWNER: 'shaneearley92-rgb',
             GITHUB_REPO: 'BD-Intelligence-Tool',
-            GITHUB_PAT: '',
+            GITHUB_PAT: localStorage.getItem('bd_github_pat') || '',
         };
+
+        function getGitHubPAT() {
+            if (CONFIG.GITHUB_PAT) return CONFIG.GITHUB_PAT;
+            const pat = prompt('Enter your GitHub Personal Access Token (Fine-grained, with Actions:write permission).\n\nThis will be saved in your browser localStorage.');
+            if (pat) {
+                localStorage.setItem('bd_github_pat', pat);
+                CONFIG.GITHUB_PAT = pat;
+                return pat;
+            }
+            return null;
+        }
 
         const COMPANY_ID = new URLSearchParams(window.location.search).get('id');
 
@@ -516,7 +527,7 @@
         // ===========================================
 
         async function runResearch() {
-            if (!CONFIG.GITHUB_PAT) { showToast('Set GITHUB_PAT in CONFIG', true); return; }
+            if (!getGitHubPAT()) { showToast('GitHub PAT is required to trigger research.', true); return; }
             try {
                 await triggerWorkflow('research.yml', { company_id: COMPANY_ID });
                 showToast('Research started. Check GitHub Actions for progress.');

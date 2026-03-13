@@ -421,8 +421,19 @@
             SUPABASE_ANON_KEY: 'sb_publishable_cqrID5e3KxU2YONXLzTlCA_QK__Lim3',
             GITHUB_OWNER: 'shaneearley92-rgb',
             GITHUB_REPO: 'BD-Intelligence-Tool',
-            GITHUB_PAT: '',         // Fine-grained PAT with Actions:write
+            GITHUB_PAT: localStorage.getItem('bd_github_pat') || '',
         };
+
+        function getGitHubPAT() {
+            if (CONFIG.GITHUB_PAT) return CONFIG.GITHUB_PAT;
+            const pat = prompt('Enter your GitHub Personal Access Token (Fine-grained, with Actions:write permission).\n\nThis will be saved in your browser localStorage.');
+            if (pat) {
+                localStorage.setItem('bd_github_pat', pat);
+                CONFIG.GITHUB_PAT = pat;
+                return pat;
+            }
+            return null;
+        }
 
         // ===========================================
         // SUPABASE CLIENT (lightweight, no SDK needed)
@@ -590,8 +601,8 @@
         }
 
         async function runResearch(companyId, companyName) {
-            if (!CONFIG.GITHUB_PAT) {
-                showToast('Set GITHUB_PAT in CONFIG to trigger research runs.', true);
+            if (!getGitHubPAT()) {
+                showToast('GitHub PAT is required to trigger research runs.', true);
                 return;
             }
             try {
@@ -626,8 +637,8 @@
         }
 
         async function runBatch() {
-            if (!CONFIG.GITHUB_PAT) {
-                showToast('Set GITHUB_PAT in CONFIG to trigger batch runs.', true);
+            if (!getGitHubPAT()) {
+                showToast('GitHub PAT is required to trigger batch runs.', true);
                 return;
             }
             try {
@@ -663,8 +674,8 @@
             const companyName = document.getElementById('prospect-company').value.trim();
             if (!companyName) { showToast('Company name is required.', true); return; }
 
-            if (!CONFIG.GITHUB_PAT) {
-                showToast('Set GITHUB_PAT in CONFIG to trigger prospect searches.', true);
+            if (!getGitHubPAT()) {
+                showToast('GitHub PAT is required to trigger prospect searches.', true);
                 return;
             }
 
