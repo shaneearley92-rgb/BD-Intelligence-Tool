@@ -1,0 +1,259 @@
+/**
+ * YouTube Data API Fetcher
+ *
+ * Searches for and extracts content from YouTube videos related to target companies.
+ * Free tier: ~10,000 units/day (search = 100 units, video details = 1 unit).
+ *
+ * Key content types:
+ * - Earnings calls and investor presentations
+ * - Executive keynotes and conference talks
+ * - Industry analyst coverage
+ * - Cybersecurity-related interviews
+ */
+
+const YT_API_BASE = 'https://www.googleapis.com/youtube/v3';
+
+/**
+ * Search YouTube for videos about a company or person
+ */
+async function searchVideos(query, options = {}) {
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey) {
+        throw new Error('YOUTUBE_API_KEY environment variable not set');
+    }
+
+    const {
+        maxResults = 5,
+        publishedAfter = getDateMonthsAgo(12),
+        order = 'relevance',     // 'relevance', 'date', 'viewCount'
+        videoDuration = 'any'    // 'short' (<4min), 'medium' (4-20min), 'long' (>20min)
+    } = options;
+
+    const params = new URLSearchParams({
+        part: 'snippet',
+        q: query,
+        type: 'video',
+        maxResults: String(maxResults),
+        order,
+        videoDuration,
+        key: apiKey
+    });
+
+    if (publishedAfter) {
+        params.set('publishedAfter', new Date(publishedAfter).toISOString());
+    }
+
+    const res = await fetch(`${YT_API_BASE}/search?${params}`);
+
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`YouTube API error ${res.status}: ${errText}`);
+    }
+
+    const data = await res.json();
+
+    return (data.items || []).map(item => ({
+        videoId: item.id.videoId,
+        title: item.snippet.title,
+        description: item.snippet.description,
+        channelTitle: item.snippet.channelTitle,
+        publishedAt: item.snippet.publishedAt,
+        thumbnail: item.snippet.thumbnails?.medium?.url,
+        url: `https://www.youtube.com/watch?v=${item.id.videoId}`
+    }));
+}
+
+/**
+ * Get detailed video statistics
+ */
+async function getVideoDetails(videoIds) {
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey) {
+        throw new Error('YOUTUBE_API_KEY environment variable not set');
+    }
+
+    const params = new URLSearchParams({
+        part: 'statistics,contentDetails',
+        id: videoIds.join(','),
+        key: apiKey
+    });
+
+    const res = await fetch(`${YT_API_BASE}/videos?${params}`);
+
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`YouTube API error ${res.status}: ${errText}`);
+    }
+
+    const data = await res.json();
+
+    return (data.items || []).reduce((acc, item) => {
+        acc[item.id] = {
+            viewCount: parseInt(item.statistics.viewCount || '0'),
+            likeCount: parseInt(item.statistics.likeCount || '0'),
+            commentCount: parseInt(item.statistics.commentCount || '0'),
+            duration: item.contentDetails.duration // ISO 8601 duration
+        };
+        return acc;
+    }, {});
+}
+
+/**
+ * Fetch auto-generated captions/transcript for a video.
+ * Uses the community transcript approach since official API requires OAuth.
+ */
+async function getTranscript(videoId) {
+    try {
+        // Fetch the video page to find caption tracks
+        const pageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+        });
+
+        const pageHtml = await pageRes.text();
+
+        // Extract captions URL from the page data
+        const captionMatch = pageHtml.match(/"captionTracks":\[(\{.*?\})\]/);
+        if (!captionMatch) {
+            return { available: false, text: null, reason: 'No captions found' };
+        }
+
+        // Parse the caption track data
+        let captionData;
+        try {
+            captionData = JSON.parse(`[${captionMatch[1]}]`);
+        } catch {
+            return { available: false, text: null, reason: 'Failed to parse caption data' };
+        }
+
+        // Prefer English auto-generated captions
+        const track = captionData.find(t =>
+            t.languageCode === 'en' || t.vssId?.includes('.en')
+        ) || captionData[0];
+
+        if (!track?.baseUrl) {
+            return { available: false, text: null, reason: 'No usable caption track' };
+        }
+
+        // Fetch the transcript XML
+        const captionRes = await fetch(track.baseUrl);
+        const captionXml = await captionRes.text();
+
+        // Parse XML to plain text
+        const text = captionXml
+            .replace(/<\/?[^>]+(>|$)/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&#39;/g, "'")
+            .replace(/&quot;/g, '"')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        return {
+            available: true,
+            text: text.substring(0, 15000), // Cap at 15k chars for LLM processing
+            language: track.languageCode,
+            isAutoGenerated: track.vssId?.startsWith('a.')
+        };
+    } catch (err) {
+        console.error(`[YouTube] Transcript fetch failed for ${videoId}:`, err.message);
+        return { available: false, text: null, reason: err.message };
+    }
+}
+
+/**
+ * Main entry point: Research a company via YouTube
+ */
+async function researchCompany(companyName, contacts = []) {
+    console.log(`[YouTube] Researching: ${companyName}`);
+
+    const results = {
+        source: 'youtube',
+        earningsCalls: [],
+        executiveContent: [],
+        industryAnalysis: [],
+        contactVideos: {}
+    };
+
+    // Search for earnings calls and investor presentations
+    try {
+        const earningsVideos = await searchVideos(
+            `${companyName} earnings call investor presentation`,
+            { maxResults: 3, order: 'date', videoDuration: 'long' }
+        );
+
+        // Get transcripts for earnings calls (high-value content)
+        for (const video of earningsVideos) {
+            const transcript = await getTranscript(video.videoId);
+            results.earningsCalls.push({
+                ...video,
+                transcript: transcript.available ? transcript.text : null,
+                transcriptAvailable: transcript.available
+            });
+        }
+    } catch (err) {
+        console.error('[YouTube] Earnings search failed:', err.message);
+    }
+
+    // Search for executive keynotes and conference talks
+    try {
+        const execVideos = await searchVideos(
+            `${companyName} CEO CTO keynote conference cybersecurity`,
+            { maxResults: 3, videoDuration: 'medium' }
+        );
+
+        for (const video of execVideos) {
+            const transcript = await getTranscript(video.videoId);
+            results.executiveContent.push({
+                ...video,
+                transcript: transcript.available ? transcript.text : null,
+                transcriptAvailable: transcript.available
+            });
+        }
+    } catch (err) {
+        console.error('[YouTube] Executive search failed:', err.message);
+    }
+
+    // Search for industry analyst coverage
+    try {
+        const analysisVideos = await searchVideos(
+            `${companyName} analysis review cybersecurity market`,
+            { maxResults: 3 }
+        );
+        results.industryAnalysis = analysisVideos;
+    } catch (err) {
+        console.error('[YouTube] Industry analysis search failed:', err.message);
+    }
+
+    // Search for specific contacts
+    for (const contact of contacts.slice(0, 2)) { // Limit to 2 to control API usage
+        const contactName = `${contact.first_name} ${contact.last_name}`;
+        try {
+            const contactVideos = await searchVideos(
+                `"${contactName}" ${companyName} interview presentation`,
+                { maxResults: 2 }
+            );
+
+            // Get transcripts for contact-specific videos
+            for (const video of contactVideos) {
+                const transcript = await getTranscript(video.videoId);
+                video.transcript = transcript.available ? transcript.text : null;
+                video.transcriptAvailable = transcript.available;
+            }
+
+            results.contactVideos[contactName] = contactVideos;
+        } catch (err) {
+            console.error(`[YouTube] Contact search failed for ${contactName}:`, err.message);
+            results.contactVideos[contactName] = [];
+        }
+    }
+
+    const totalVideos = results.earningsCalls.length + results.executiveContent.length + results.industryAnalysis.length;
+    console.log(`[YouTube] Found ${totalVideos} videos total`);
+
+    return results;
+}
+
+module.exports = { researchCompany, searchVideos, getVideoDetails, getTranscript };

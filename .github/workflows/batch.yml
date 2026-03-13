@@ -1,0 +1,62 @@
+name: Batch Company Research
+
+on:
+  # Manual trigger from GitHub UI
+  workflow_dispatch:
+    inputs:
+      company_ids:
+        description: 'Comma-separated company UUIDs, or "all_pending" / "all_active"'
+        required: true
+        type: string
+        default: 'all_pending'
+      delay_seconds:
+        description: 'Delay between research runs (seconds)'
+        required: false
+        type: string
+        default: '30'
+      max_companies:
+        description: 'Maximum companies to process in this batch'
+        required: false
+        type: string
+        default: '10'
+
+  # API trigger
+  repository_dispatch:
+    types: [run-batch]
+
+jobs:
+  batch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Run batch research
+        env:
+          COMPANY_IDS: ${{ github.event.inputs.company_ids || github.event.client_payload.company_ids || 'all_pending' }}
+          DELAY_SECONDS: ${{ github.event.inputs.delay_seconds || github.event.client_payload.delay_seconds || '30' }}
+          MAX_COMPANIES: ${{ github.event.inputs.max_companies || github.event.client_payload.max_companies || '10' }}
+          TRIGGER_SOURCE: batch
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: node scripts/batch-runner.js
+
+      - name: Report summary
+        if: always()
+        run: |
+          echo "Batch research run completed with status: ${{ job.status }}"

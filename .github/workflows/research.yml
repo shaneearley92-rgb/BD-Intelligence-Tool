@@ -1,0 +1,53 @@
+name: Run Company Research
+
+on:
+  # Manual trigger from GitHub UI or API
+  workflow_dispatch:
+    inputs:
+      company_id:
+        description: 'Supabase company UUID to research'
+        required: true
+        type: string
+
+  # API trigger (from dashboard or external tools)
+  repository_dispatch:
+    types: [run-research]
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Run research agent
+        env:
+          COMPANY_ID: ${{ github.event.inputs.company_id || github.event.client_payload.company_id }}
+          TRIGGER_SOURCE: ${{ github.event_name == 'workflow_dispatch' && 'manual' || 'api' }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: node scripts/research-agent.js
+
+      - name: Report status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✓ Research completed successfully for company ${{ github.event.inputs.company_id || github.event.client_payload.company_id }}"
+          else
+            echo "✗ Research failed for company ${{ github.event.inputs.company_id || github.event.client_payload.company_id }}"
+          fi

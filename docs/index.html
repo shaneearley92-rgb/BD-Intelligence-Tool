@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BD Intelligence Tool</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0e17;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-bottom: 1px solid #1e3a5f;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #38bdf8;
+            letter-spacing: 0.5px;
+        }
+
+        .header-actions { display: flex; gap: 0.75rem; }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn:hover { background: #334155; border-color: #475569; }
+
+        .btn-primary {
+            background: #0369a1;
+            border-color: #0284c7;
+            color: white;
+        }
+
+        .btn-primary:hover { background: #0284c7; }
+
+        .btn-success {
+            background: #065f46;
+            border-color: #047857;
+        }
+
+        .btn-success:hover { background: #047857; }
+
+        .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+
+        /* Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 1.25rem;
+        }
+
+        .stat-card .label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .stat-card .sub {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        /* Table */
+        .panel {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h2 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+            border-bottom: 1px solid #334155;
+            background: #0f172a;
+        }
+
+        td {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #1e3a5f22;
+        }
+
+        tr:hover td { background: #1e3a5f22; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active { background: #064e3b; color: #34d399; }
+        .status-prospect { background: #1e3a5f; color: #38bdf8; }
+        .status-archived { background: #374151; color: #9ca3af; }
+        .status-completed { background: #064e3b; color: #34d399; }
+        .status-running { background: #78350f; color: #fbbf24; }
+        .status-failed { background: #7f1d1d; color: #f87171; }
+        .status-pending { background: #374151; color: #9ca3af; }
+
+        .company-link {
+            color: #38bdf8;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .company-link:hover { text-decoration: underline; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .modal h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 0.35rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 0.875rem;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #0284c7;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 1.25rem;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 0.75rem 1.25rem;
+            background: #065f46;
+            border: 1px solid #047857;
+            border-radius: 8px;
+            color: #d1fae5;
+            font-size: 0.85rem;
+            z-index: 200;
+            display: none;
+        }
+
+        .toast.error { background: #7f1d1d; border-color: #991b1b; color: #fecaca; }
+        .toast.active { display: block; }
+
+        /* Loading */
+        .loading { text-align: center; padding: 3rem; color: #64748b; }
+
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .container { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>BD Intelligence Tool</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="openAddCompany()">+ Add Company</button>
+            <button class="btn btn-success" onclick="openBatchRun()">Run Batch Research</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="label">Companies</div>
+                <div class="value" id="stat-companies">-</div>
+                <div class="sub" id="stat-companies-sub">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Contacts</div>
+                <div class="value" id="stat-contacts">-</div>
+                <div class="sub" id="stat-contacts-sub">Across all companies</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Research Runs</div>
+                <div class="value" id="stat-runs">-</div>
+                <div class="sub" id="stat-runs-sub">Total completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Content Generated</div>
+                <div class="value" id="stat-content">-</div>
+                <div class="sub" id="stat-content-sub">Outreach pieces</div>
+            </div>
+        </div>
+
+        <!-- Companies Table -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Target Companies</h2>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <select id="filter-status" class="btn btn-sm" onchange="loadCompanies()">
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="prospect">Prospect</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                </div>
+            </div>
+            <div id="companies-table">
+                <div class="loading">Loading companies...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Company Modal -->
+    <div class="modal-overlay" id="modal-add-company">
+        <div class="modal">
+            <h3>Add Target Company</h3>
+            <div class="form-group">
+                <label>Company Name *</label>
+                <input type="text" id="add-name" placeholder="e.g. Acme Corp">
+            </div>
+            <div class="form-group">
+                <label>Domain</label>
+                <input type="text" id="add-domain" placeholder="e.g. acmecorp.com">
+            </div>
+            <div class="form-group">
+                <label>Industry</label>
+                <input type="text" id="add-industry" placeholder="e.g. Financial Services">
+            </div>
+            <div class="form-group">
+                <label>Ticker Symbol (for SEC filings)</label>
+                <input type="text" id="add-ticker" placeholder="e.g. ACME">
+            </div>
+            <div class="form-group">
+                <label>Employee Count</label>
+                <input type="number" id="add-employees" placeholder="e.g. 5000">
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="add-status">
+                    <option value="prospect">Prospect</option>
+                    <option value="active">Active</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('modal-add-company')">Cancel</button>
+                <button class="btn btn-primary" onclick="addCompany()">Add Company</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch Run Modal -->
+    <div class="modal-overlay" id="modal-batch">
+        <div class="modal">
+            <h3>Run Batch Research</h3>
+            <div class="form-group">
+                <label>Target</label>
+                <select id="batch-target">
+                    <option value="all_pending">All Prospect Companies</option>
+                    <option value="all_active">All Active Companies</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Max Companies</label>
+                <input type="number" id="batch-max" value="10" min="1" max="50">
+            </div>
+            <div class="form-group">
+                <label>Delay Between Runs (seconds)</label>
+                <input type="number" id="batch-delay" value="30" min="10" max="120">
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('modal-batch')">Cancel</button>
+                <button class="btn btn-success" onclick="runBatch()">Start Batch</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ===========================================
+        // CONFIGURATION — Fill these in
+        // ===========================================
+        const CONFIG = {
+            SUPABASE_URL: '',       // e.g. https://abcxyz.supabase.co
+            SUPABASE_ANON_KEY: '',  // anon/public key from Supabase dashboard
+            GITHUB_OWNER: 'shaneearley92-rgb',
+            GITHUB_REPO: 'BD-Intelligence-Tool',
+            GITHUB_PAT: '',         // Fine-grained PAT with Actions:write
+        };
+
+        // ===========================================
+        // SUPABASE CLIENT (lightweight, no SDK needed)
+        // ===========================================
+        async function supabaseQuery(table, options = {}) {
+            let url = `${CONFIG.SUPABASE_URL}/rest/v1/${table}`;
+            const params = new URLSearchParams();
+
+            if (options.select) params.set('select', options.select);
+            if (options.filter) {
+                for (const [key, val] of Object.entries(options.filter)) {
+                    params.set(key, val);
+                }
+            }
+            if (options.order) params.set('order', options.order);
+            if (options.limit) params.set('limit', String(options.limit));
+
+            const queryStr = params.toString();
+            if (queryStr) url += `?${queryStr}`;
+
+            const headers = {
+                'apikey': CONFIG.SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+            };
+
+            if (options.count) {
+                headers['Prefer'] = 'count=exact';
+            }
+
+            const resp = await fetch(url, {
+                method: options.method || 'GET',
+                headers,
+                body: options.body ? JSON.stringify(options.body) : undefined,
+            });
+
+            if (!resp.ok) {
+                const errText = await resp.text();
+                throw new Error(`Supabase error ${resp.status}: ${errText}`);
+            }
+
+            const data = await resp.json();
+            if (options.count) {
+                const contentRange = resp.headers.get('content-range');
+                const total = contentRange ? parseInt(contentRange.split('/')[1]) : data.length;
+                return { data, count: total };
+            }
+            return data;
+        }
+
+        async function supabaseInsert(table, record) {
+            const url = `${CONFIG.SUPABASE_URL}/rest/v1/${table}`;
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'apikey': CONFIG.SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation',
+                },
+                body: JSON.stringify(record),
+            });
+            if (!resp.ok) {
+                const errText = await resp.text();
+                throw new Error(`Insert error: ${errText}`);
+            }
+            return resp.json();
+        }
+
+        // ===========================================
+        // GITHUB ACTIONS TRIGGER
+        // ===========================================
+        async function triggerWorkflow(workflowFile, inputs = {}) {
+            const url = `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/${workflowFile}/dispatches`;
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${CONFIG.GITHUB_PAT}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ref: 'main',
+                    inputs,
+                }),
+            });
+            if (!resp.ok) {
+                const errText = await resp.text();
+                throw new Error(`GitHub API error ${resp.status}: ${errText}`);
+            }
+            return true;
+        }
+
+        // ===========================================
+        // PAGE LOGIC
+        // ===========================================
+
+        async function loadStats() {
+            try {
+                const [companies, contacts, runs, content] = await Promise.all([
+                    supabaseQuery('companies', { select: 'id', count: true }),
+                    supabaseQuery('contacts', { select: 'id', count: true }),
+                    supabaseQuery('research_runs', { select: 'id', filter: { status: 'eq.completed' }, count: true }),
+                    supabaseQuery('outreach_content', { select: 'id', count: true }),
+                ]);
+                document.getElementById('stat-companies').textContent = companies.count;
+                document.getElementById('stat-contacts').textContent = contacts.count;
+                document.getElementById('stat-runs').textContent = runs.count;
+                document.getElementById('stat-content').textContent = content.count;
+            } catch (e) {
+                console.error('Failed to load stats:', e);
+            }
+        }
+
+        async function loadCompanies() {
+            const filter = {};
+            const statusVal = document.getElementById('filter-status').value;
+            if (statusVal) filter.status = `eq.${statusVal}`;
+
+            try {
+                const companies = await supabaseQuery('companies', {
+                    select: 'id,name,domain,industry,employee_count,status,created_at',
+                    filter,
+                    order: 'created_at.desc',
+                    limit: 100,
+                });
+
+                if (!companies.length) {
+                    document.getElementById('companies-table').innerHTML =
+                        '<div class="loading">No companies found. Add one to get started.</div>';
+                    return;
+                }
+
+                let html = `<table>
+                    <thead><tr>
+                        <th>Company</th>
+                        <th>Industry</th>
+                        <th>Employees</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr></thead><tbody>`;
+
+                for (const c of companies) {
+                    html += `<tr>
+                        <td>
+                            <a class="company-link" href="company.html?id=${c.id}">${c.name}</a>
+                            ${c.domain ? `<br><span style="font-size:0.75rem;color:#64748b">${c.domain}</span>` : ''}
+                        </td>
+                        <td>${c.industry || '-'}</td>
+                        <td>${c.employee_count ? c.employee_count.toLocaleString() : '-'}</td>
+                        <td><span class="status-badge status-${c.status}">${c.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="runResearch('${c.id}', '${c.name}')">Research</button>
+                        </td>
+                    </tr>`;
+                }
+
+                html += '</tbody></table>';
+                document.getElementById('companies-table').innerHTML = html;
+            } catch (e) {
+                console.error('Failed to load companies:', e);
+                document.getElementById('companies-table').innerHTML =
+                    `<div class="loading" style="color:#f87171">Error loading companies. Check your Supabase config.</div>`;
+            }
+        }
+
+        async function runResearch(companyId, companyName) {
+            if (!CONFIG.GITHUB_PAT) {
+                showToast('Set GITHUB_PAT in CONFIG to trigger research runs.', true);
+                return;
+            }
+            try {
+                await triggerWorkflow('research.yml', { company_id: companyId });
+                showToast(`Research started for ${companyName}. Check GitHub Actions for progress.`);
+            } catch (e) {
+                showToast(`Failed to start research: ${e.message}`, true);
+            }
+        }
+
+        async function addCompany() {
+            const name = document.getElementById('add-name').value.trim();
+            if (!name) { showToast('Company name is required.', true); return; }
+
+            try {
+                const record = {
+                    name,
+                    domain: document.getElementById('add-domain').value.trim() || null,
+                    industry: document.getElementById('add-industry').value.trim() || null,
+                    ticker_symbol: document.getElementById('add-ticker').value.trim() || null,
+                    employee_count: parseInt(document.getElementById('add-employees').value) || null,
+                    status: document.getElementById('add-status').value,
+                };
+                await supabaseInsert('companies', record);
+                closeModal('modal-add-company');
+                showToast(`Added ${name}`);
+                loadCompanies();
+                loadStats();
+            } catch (e) {
+                showToast(`Failed to add company: ${e.message}`, true);
+            }
+        }
+
+        async function runBatch() {
+            if (!CONFIG.GITHUB_PAT) {
+                showToast('Set GITHUB_PAT in CONFIG to trigger batch runs.', true);
+                return;
+            }
+            try {
+                await triggerWorkflow('batch.yml', {
+                    company_ids: document.getElementById('batch-target').value,
+                    max_companies: document.getElementById('batch-max').value,
+                    delay_seconds: document.getElementById('batch-delay').value,
+                });
+                closeModal('modal-batch');
+                showToast('Batch research started. Check GitHub Actions for progress.');
+            } catch (e) {
+                showToast(`Failed to start batch: ${e.message}`, true);
+            }
+        }
+
+        // ===========================================
+        // UI HELPERS
+        // ===========================================
+
+        function openAddCompany() {
+            document.getElementById('modal-add-company').classList.add('active');
+        }
+
+        function openBatchRun() {
+            document.getElementById('modal-batch').classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast active${isError ? ' error' : ''}`;
+            setTimeout(() => toast.classList.remove('active'), 4000);
+        }
+
+        // Close modals on backdrop click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.classList.remove('active');
+            });
+        });
+
+        // ===========================================
+        // INIT
+        // ===========================================
+        if (CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY) {
+            loadStats();
+            loadCompanies();
+        } else {
+            document.getElementById('companies-table').innerHTML =
+                '<div class="loading">Configure SUPABASE_URL and SUPABASE_ANON_KEY in the CONFIG object to connect.</div>';
+        }
+    </script>
+</body>
+</html>
