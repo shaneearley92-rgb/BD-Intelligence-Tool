@@ -233,7 +233,7 @@ async function researchCompany(companyName, contacts = []) {
 
     // Search for each contact individually
     for (const contact of contacts.slice(0, 3)) { // Limit to 3 contacts to control costs
-        const contactName = `${contact.first_name} ${contact.last_name}`;
+        const contactName = contact.name;
         try {
             const personResults = await searchPersonContent(contactName, companyName);
             results.contactContent[contactName] = personResults.map(formatResult);
