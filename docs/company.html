@@ -211,12 +211,8 @@
         <div class="modal">
             <h3>Add Contact</h3>
             <div class="form-group">
-                <label>First Name *</label>
-                <input type="text" id="contact-first">
-            </div>
-            <div class="form-group">
-                <label>Last Name *</label>
-                <input type="text" id="contact-last">
+                <label>Full Name *</label>
+                <input type="text" id="contact-name" placeholder="e.g. Jane Smith">
             </div>
             <div class="form-group">
                 <label>Title</label>
@@ -345,16 +341,15 @@
                             <p><strong>Domain:</strong> ${companyData.domain || 'N/A'}</p>
                             <p><strong>Industry:</strong> ${companyData.industry || 'N/A'}</p>
                             <p><strong>Employees:</strong> ${companyData.employee_count ? companyData.employee_count.toLocaleString() : 'N/A'}</p>
-                            <p><strong>Ticker:</strong> ${companyData.ticker_symbol || 'N/A'}</p>
-                            <p><strong>Status:</strong> <span class="status-badge status-${companyData.status}">${companyData.status}</span></p>
+                            <p><strong>Ticker:</strong> ${companyData.ticker || 'N/A'}</p>
+                            <p><strong>Status:</strong> <span class="status-badge status-${companyData.research_status}">${companyData.research_status || 'N/A'}</span></p>
                         </div>
                     </div>
                     <div class="panel">
-                        <div class="panel-header"><h3>Tech Stack</h3></div>
+                        <div class="panel-header"><h3>Additional Info</h3></div>
                         <div class="panel-body">
-                            ${companyData.tech_stack && companyData.tech_stack.length
-                                ? companyData.tech_stack.map(t => `<span class="content-type-badge" style="margin: 0.15rem">${t}</span>`).join(' ')
-                                : '<span style="color:#64748b">No tech stack data yet. Run research or add Apollo integration.</span>'}
+                            <p><strong>Public:</strong> ${companyData.is_public ? 'Yes' : 'No'}</p>
+                            <p><strong>Last Researched:</strong> ${companyData.last_researched_at ? new Date(companyData.last_researched_at).toLocaleString() : 'Never'}</p>
                         </div>
                     </div>`;
             } catch (e) {
@@ -367,7 +362,7 @@
                 const contacts = await supabaseQuery('contacts', {
                     select: '*',
                     filter: { company_id: `eq.${COMPANY_ID}` },
-                    order: 'is_primary.desc,created_at.asc',
+                    order: 'created_at.asc',
                 });
                 if (!contacts.length) {
                     document.getElementById('contacts-list').innerHTML = '<div class="loading">No contacts yet. Add one above.</div>';
@@ -375,7 +370,7 @@
                 }
                 document.getElementById('contacts-list').innerHTML = contacts.map(c => `
                     <div class="contact-card">
-                        <div class="contact-name">${c.first_name} ${c.last_name} ${c.is_primary ? '(Primary)' : ''}</div>
+                        <div class="contact-name">${c.name}</div>
                         <div class="contact-title">${c.title || 'No title'} ${c.seniority ? `| ${c.seniority}` : ''}</div>
                         <div class="contact-meta">
                             ${c.email ? `<span>Email: ${c.email}</span>` : ''}
@@ -390,27 +385,29 @@
 
         async function loadIntelligence() {
             try {
-                const runs = await supabaseQuery('research_runs', {
-                    select: 'company_summary,key_signals,pain_points,competitive_landscape',
-                    filter: { company_id: `eq.${COMPANY_ID}`, status: 'eq.completed' },
-                    order: 'completed_at.desc',
+                // Load synthesis snapshot from research_snapshots
+                const snapshots = await supabaseQuery('research_snapshots', {
+                    select: 'summary,signals,source,created_at',
+                    filter: { company_id: `eq.${COMPANY_ID}`, source: 'eq.synthesis' },
+                    order: 'created_at.desc',
                     limit: 1,
                 });
-                if (!runs.length) {
+                if (!snapshots.length) {
                     document.getElementById('intelligence-content').innerHTML = '<div class="loading">No intelligence yet. Run research first.</div>';
                     return;
                 }
-                const run = runs[0];
+                const snap = snapshots[0];
+                const signals = snap.signals || {};
                 let html = '';
 
-                if (run.company_summary) {
+                if (snap.summary) {
                     html += `<div class="panel"><div class="panel-header"><h3>Company Intelligence Brief</h3></div>
-                        <div class="panel-body"><div class="summary-text">${run.company_summary}</div></div></div>`;
+                        <div class="panel-body"><div class="summary-text">${snap.summary}</div></div></div>`;
                 }
 
-                if (run.key_signals && run.key_signals.length) {
+                if (signals.keySignals && signals.keySignals.length) {
                     html += `<div class="panel"><div class="panel-header"><h3>Key Buying Signals</h3></div><div class="panel-body">`;
-                    for (const s of run.key_signals) {
+                    for (const s of signals.keySignals) {
                         html += `<div class="signal-card ${s.strength || 'medium'}">
                             <div class="signal-text">${s.signal}</div>
                             <div class="signal-meta">Source: ${s.source || 'N/A'} | Angle: ${s.salesAngle || s.sales_angle || 'N/A'}</div>
@@ -419,9 +416,9 @@
                     html += '</div></div>';
                 }
 
-                if (run.pain_points && run.pain_points.length) {
+                if (signals.painPoints && signals.painPoints.length) {
                     html += `<div class="panel"><div class="panel-header"><h3>Pain Points</h3></div><div class="panel-body">`;
-                    for (const p of run.pain_points) {
+                    for (const p of signals.painPoints) {
                         html += `<div class="signal-card medium">
                             <div class="signal-text">${p.painPoint || p.pain_point}</div>
                             <div class="signal-meta">Evidence: ${p.evidence || 'N/A'}</div>
@@ -430,10 +427,10 @@
                     html += '</div></div>';
                 }
 
-                if (run.competitive_landscape && run.competitive_landscape.summary) {
+                if (signals.competitiveLandscape && signals.competitiveLandscape.summary) {
                     html += `<div class="panel"><div class="panel-header"><h3>Competitive Landscape</h3></div>
-                        <div class="panel-body"><div class="summary-text">${run.competitive_landscape.summary}</div>
-                        ${run.competitive_landscape.knownVendors?.length ? `<p style="margin-top:0.75rem"><strong>Known Vendors:</strong> ${run.competitive_landscape.knownVendors.join(', ')}</p>` : ''}
+                        <div class="panel-body"><div class="summary-text">${signals.competitiveLandscape.summary}</div>
+                        ${signals.competitiveLandscape.knownVendors?.length ? `<p style="margin-top:0.75rem"><strong>Known Vendors:</strong> ${signals.competitiveLandscape.knownVendors.join(', ')}</p>` : ''}
                         </div></div>`;
                 }
 
@@ -455,24 +452,31 @@
                     return;
                 }
 
-                const typeLabels = {
-                    email_draft: 'Email Draft',
-                    linkedin_message: 'LinkedIn Message',
-                    call_talk_track: 'Call Talk Track',
-                    executive_briefing: 'Executive Briefing',
-                };
-
-                document.getElementById('outreach-content').innerHTML = content.map(c => `
-                    <div class="content-card">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-                            <h4>${c.title || typeLabels[c.content_type] || c.content_type}</h4>
-                            <div>
-                                <span class="content-type-badge">${typeLabels[c.content_type] || c.content_type}</span>
-                                <span class="status-badge status-${c.status}" style="margin-left:0.5rem">${c.status}</span>
-                            </div>
-                        </div>
-                        <pre>${escapeHtml(c.content)}</pre>
-                    </div>`).join('');
+                document.getElementById('outreach-content').innerHTML = content.map(c => {
+                    let cards = '';
+                    if (c.pitch_angle) {
+                        cards += `<div class="content-card"><h4><span class="content-type-badge">Pitch Angle</span></h4><pre>${escapeHtml(c.pitch_angle)}</pre></div>`;
+                    }
+                    if (c.email_draft) {
+                        cards += `<div class="content-card"><h4><span class="content-type-badge">Email Draft</span> ${c.email_subject ? escapeHtml(c.email_subject) : ''}</h4><pre>${escapeHtml(c.email_draft)}</pre></div>`;
+                    }
+                    if (c.linkedin_sequence) {
+                        const seq = typeof c.linkedin_sequence === 'string' ? JSON.parse(c.linkedin_sequence) : c.linkedin_sequence;
+                        cards += `<div class="content-card"><h4><span class="content-type-badge">LinkedIn Sequence</span></h4>
+                            <pre><strong>Connection Request:</strong>\n${escapeHtml(seq.connectionRequest || '')}\n\n<strong>Follow-up:</strong>\n${escapeHtml(seq.followUp || '')}</pre></div>`;
+                    }
+                    if (c.call_talk_track) {
+                        cards += `<div class="content-card"><h4><span class="content-type-badge">Call Talk Track</span></h4><pre>${escapeHtml(c.call_talk_track)}</pre></div>`;
+                    }
+                    if (c.discovery_questions && c.discovery_questions.length) {
+                        cards += `<div class="content-card"><h4><span class="content-type-badge">Discovery Questions</span></h4>
+                            <pre>${c.discovery_questions.map((q, i) => `${i + 1}. ${escapeHtml(q)}`).join('\n')}</pre></div>`;
+                    }
+                    if (c.exec_briefing) {
+                        cards += `<div class="content-card"><h4><span class="content-type-badge">Executive Briefing</span></h4><pre>${escapeHtml(c.exec_briefing)}</pre></div>`;
+                    }
+                    return cards;
+                }).join('<hr style="border-color:#334155;margin:1rem 0">');
             } catch (e) {
                 console.error('Failed to load outreach content:', e);
             }
@@ -481,9 +485,9 @@
         async function loadHistory() {
             try {
                 const runs = await supabaseQuery('research_runs', {
-                    select: 'id,status,triggered_by,tokens_used,estimated_cost,started_at,completed_at,error_message',
+                    select: 'id,status,triggered_by,actual_tokens,started_at,completed_at,error_message',
                     filter: { company_id: `eq.${COMPANY_ID}` },
-                    order: 'created_at.desc',
+                    order: 'started_at.desc',
                     limit: 20,
                 });
                 if (!runs.length) {
@@ -498,8 +502,7 @@
                         </div>
                         <div style="font-size:0.8rem;margin-top:0.5rem;color:#94a3b8">
                             Triggered: ${r.triggered_by || 'manual'}
-                            ${r.tokens_used ? ` | Tokens: ${r.tokens_used.toLocaleString()}` : ''}
-                            ${r.estimated_cost ? ` | Cost: $${r.estimated_cost.toFixed(4)}` : ''}
+                            ${r.actual_tokens ? ` | Tokens: ${r.actual_tokens.toLocaleString()}` : ''}
                         </div>
                         ${r.error_message ? `<div style="font-size:0.75rem;color:#f87171;margin-top:0.25rem">${r.error_message}</div>` : ''}
                     </div>`).join('');
@@ -531,14 +534,12 @@
         }
 
         async function addContact() {
-            const first = document.getElementById('contact-first').value.trim();
-            const last = document.getElementById('contact-last').value.trim();
-            if (!first || !last) { showToast('First and last name required', true); return; }
+            const name = document.getElementById('contact-name').value.trim();
+            if (!name) { showToast('Name is required', true); return; }
             try {
                 await supabaseInsert('contacts', {
                     company_id: COMPANY_ID,
-                    first_name: first,
-                    last_name: last,
+                    name,
                     title: document.getElementById('contact-title').value.trim() || null,
                     seniority: document.getElementById('contact-seniority').value || null,
                     email: document.getElementById('contact-email').value.trim() || null,
@@ -546,7 +547,7 @@
                     enrichment_source: 'manual',
                 });
                 closeModal('modal-add-contact');
-                showToast(`Added ${first} ${last}`);
+                showToast(`Added ${name}`);
                 loadContacts();
             } catch (e) {
                 showToast(`Failed: ${e.message}`, true);

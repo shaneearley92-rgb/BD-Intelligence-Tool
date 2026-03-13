@@ -1,5 +1,5 @@
--- Sales Prospecting Agent - Supabase Schema
--- Run this in the Supabase SQL Editor to set up all tables
+-- BD Intelligence Tool - Supabase Schema
+-- This schema reflects the actual deployed database tables.
 
 -- Enable UUID generation
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -12,18 +12,14 @@ CREATE TABLE companies (
     name TEXT NOT NULL,
     domain TEXT,
     industry TEXT,
-    employee_count INTEGER,
-    revenue_estimate TEXT,
-    headquarters TEXT,
+    employee_count TEXT,
+    hq_location TEXT,
     description TEXT,
-    ticker_symbol TEXT,          -- For SEC EDGAR lookups
-    cik_number TEXT,             -- SEC Central Index Key
-    tech_stack JSONB DEFAULT '[]',  -- Known technology vendors (Apollo-ready)
-    icp_match_score REAL,       -- 0-1 score for ICP fit
-    status TEXT DEFAULT 'active' CHECK (status IN ('active', 'archived', 'prospect')),
-    notes TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    ticker TEXT,
+    is_public BOOLEAN,
+    research_status TEXT,
+    last_researched_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ============================================
@@ -32,16 +28,16 @@ CREATE TABLE companies (
 CREATE TABLE contacts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
-    first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL,
-    title TEXT,                  -- e.g. "CISO", "VP of IT Security"
-    seniority TEXT,              -- e.g. "VP", "C-Suite", "Director"
+    name TEXT NOT NULL,
+    title TEXT,
     email TEXT,
     phone TEXT,
     linkedin_url TEXT,
-    is_primary BOOLEAN DEFAULT FALSE,  -- Primary contact at this company
-    enrichment_source TEXT,     -- 'manual', 'apollo', 'exa', etc.
-    enrichment_data JSONB DEFAULT '{}',  -- Raw enrichment response
+    seniority TEXT,
+    department TEXT,
+    enrichment_source TEXT,
+    enrichment_data JSONB,
+    tech_stack JSONB,
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -53,33 +49,31 @@ CREATE TABLE contacts (
 CREATE TABLE research_runs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
-    status TEXT DEFAULT 'pending' CHECK (status IN (
-        'pending', 'running', 'completed', 'failed', 'cancelled'
-    )),
-    triggered_by TEXT DEFAULT 'manual',  -- 'manual', 'batch', 'scheduled'
-    github_run_id TEXT,         -- GitHub Actions run ID for tracking
-
-    -- Data collection results
-    edgar_data JSONB DEFAULT '{}',
-    exa_data JSONB DEFAULT '{}',
-    youtube_data JSONB DEFAULT '{}',
-    apollo_data JSONB DEFAULT '{}',  -- Ready for Apollo integration
-
-    -- AI synthesis
-    company_summary TEXT,       -- Claude-generated company intelligence brief
-    key_signals JSONB DEFAULT '[]',  -- Extracted buying signals
-    pain_points JSONB DEFAULT '[]',  -- Identified pain points
-    competitive_landscape JSONB DEFAULT '{}',
-
-    -- Cost tracking
-    tokens_used INTEGER DEFAULT 0,
-    estimated_cost REAL DEFAULT 0,
-
-    -- Timing
+    status TEXT DEFAULT 'pending',
+    triggered_by TEXT DEFAULT 'manual',
+    estimated_tokens INTEGER,
+    actual_tokens INTEGER,
+    sources_fetched TEXT[],
+    error_message TEXT,
+    queued_at TIMESTAMPTZ,
     started_at TIMESTAMPTZ,
-    completed_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    error_message TEXT
+    completed_at TIMESTAMPTZ
+);
+
+-- ============================================
+-- RESEARCH SNAPSHOTS
+-- ============================================
+CREATE TABLE research_snapshots (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
+    run_id UUID REFERENCES research_runs(id) ON DELETE CASCADE,
+    source TEXT NOT NULL,
+    title TEXT,
+    url TEXT,
+    raw_content TEXT,
+    summary TEXT,
+    signals JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ============================================
@@ -89,48 +83,31 @@ CREATE TABLE outreach_content (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     contact_id UUID REFERENCES contacts(id) ON DELETE CASCADE,
     company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
-    research_run_id UUID REFERENCES research_runs(id) ON DELETE SET NULL,
-
-    content_type TEXT NOT NULL CHECK (content_type IN (
-        'email_draft', 'linkedin_message', 'call_talk_track', 'executive_briefing'
-    )),
-
-    title TEXT,
-    content TEXT NOT NULL,       -- The actual generated content
-    content_metadata JSONB DEFAULT '{}',  -- Subject lines, sequence position, etc.
-
-    -- Content management
-    status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'approved', 'sent', 'archived')),
-    approved_by TEXT,
-    approved_at TIMESTAMPTZ,
-
-    -- Versioning
-    version INTEGER DEFAULT 1,
-    parent_id UUID REFERENCES outreach_content(id),  -- For regenerated versions
-
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    run_id UUID REFERENCES research_runs(id) ON DELETE SET NULL,
+    pitch_angle TEXT,
+    email_subject TEXT,
+    email_draft TEXT,
+    linkedin_sequence JSONB,
+    call_talk_track TEXT,
+    discovery_questions TEXT[],
+    exec_briefing TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ============================================
--- ICP PROFILES (for future Apollo search integration)
+-- ICP FILTERS
 -- ============================================
-CREATE TABLE icp_profiles (
+CREATE TABLE icp_filters (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name TEXT NOT NULL,          -- e.g. "Primary ICP - Mid-Market Financial"
-    criteria JSONB NOT NULL DEFAULT '{}',
-    -- Example criteria structure:
-    -- {
-    --   "titles": ["CISO", "VP of IT", "CTO", "Director of Security"],
-    --   "industries": ["Financial Services", "Healthcare", "Technology"],
-    --   "employee_range": [500, 10000],
-    --   "geography": ["United States"],
-    --   "exclude_tech_stack": ["CrowdStrike"],  -- Competitors to displace
-    --   "include_tech_stack": ["Splunk", "legacy SIEM"]  -- Gap opportunities
-    -- }
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    name TEXT NOT NULL,
+    titles TEXT[],
+    industries TEXT[],
+    employee_min INTEGER,
+    employee_max INTEGER,
+    locations TEXT[],
+    tech_stack TEXT[],
+    filter_params JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ============================================
@@ -139,44 +116,9 @@ CREATE TABLE icp_profiles (
 CREATE INDEX idx_contacts_company ON contacts(company_id);
 CREATE INDEX idx_research_runs_company ON research_runs(company_id);
 CREATE INDEX idx_research_runs_status ON research_runs(status);
+CREATE INDEX idx_research_snapshots_company ON research_snapshots(company_id);
+CREATE INDEX idx_research_snapshots_run ON research_snapshots(run_id);
 CREATE INDEX idx_outreach_content_contact ON outreach_content(contact_id);
 CREATE INDEX idx_outreach_content_company ON outreach_content(company_id);
-CREATE INDEX idx_outreach_content_type ON outreach_content(content_type);
-CREATE INDEX idx_companies_status ON companies(status);
-CREATE INDEX idx_companies_ticker ON companies(ticker_symbol);
-
--- ============================================
--- UPDATED_AT TRIGGERS
--- ============================================
-CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER companies_updated_at
-    BEFORE UPDATE ON companies
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
-CREATE TRIGGER contacts_updated_at
-    BEFORE UPDATE ON contacts
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
-CREATE TRIGGER outreach_content_updated_at
-    BEFORE UPDATE ON outreach_content
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
-CREATE TRIGGER icp_profiles_updated_at
-    BEFORE UPDATE ON icp_profiles
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
--- ============================================
--- ROW LEVEL SECURITY (optional, enable per table)
--- ============================================
--- Uncomment these if you want to restrict access via Supabase auth:
--- ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE research_runs ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE outreach_content ENABLE ROW LEVEL SECURITY;
+CREATE INDEX idx_companies_research_status ON companies(research_status);
+CREATE INDEX idx_companies_ticker ON companies(ticker);

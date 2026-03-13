@@ -65,7 +65,6 @@ async function runResearch(companyId) {
             company_id: companyId,
             status: 'running',
             triggered_by: process.env.TRIGGER_SOURCE || 'manual',
-            github_run_id: process.env.GITHUB_RUN_ID || null,
             started_at: new Date().toISOString()
         })
         .select()
@@ -82,21 +81,22 @@ async function runResearch(companyId) {
 
         // Update contacts with enrichment data
         for (const contact of enrichedContacts) {
+            const updateFields = {
+                enrichment_data: contact.enrichment_data,
+                enrichment_source: contact.enrichment_source,
+            };
+            if (contact.email) updateFields.email = contact.email;
+            if (contact.linkedin_url) updateFields.linkedin_url = contact.linkedin_url;
             await supabase
                 .from('contacts')
-                .update({
-                    enrichment_data: contact.enrichment_data,
-                    enrichment_source: contact.enrichment_source,
-                    email: contact.email || undefined,
-                    linkedin_url: contact.linkedin_url || undefined
-                })
+                .update(updateFields)
                 .eq('id', contact.id);
         }
 
         // 4. Fetch data from all sources in parallel
         console.log('\n--- Data Collection ---');
         const [edgarData, exaData, youtubeData] = await Promise.all([
-            edgar.researchCompany(company.name, company.ticker_symbol).catch(err => {
+            edgar.researchCompany(company.name, company.ticker).catch(err => {
                 console.error('[Pipeline] EDGAR failed:', err.message);
                 return { source: 'edgar', found: false, error: err.message };
             }),
@@ -110,40 +110,54 @@ async function runResearch(companyId) {
             })
         ]);
 
-        // 5. Update research run with raw data
-        await supabase
-            .from('research_runs')
-            .update({
-                edgar_data: edgarData,
-                exa_data: exaData,
-                youtube_data: youtubeData
-            })
-            .eq('id', run.id);
+        // 5. Store raw data as research snapshots
+        const sourceSnapshots = [
+            { source: 'edgar', raw_content: JSON.stringify(edgarData), title: 'SEC EDGAR Data', summary: edgarData.found ? `Found ${edgarData.filings?.length || 0} filings` : 'No EDGAR data found' },
+            { source: 'exa', raw_content: JSON.stringify(exaData), title: 'Exa Web Research', summary: `${exaData.companyNews?.length || 0} news articles found` },
+            { source: 'youtube', raw_content: JSON.stringify(youtubeData), title: 'YouTube Data', summary: `${youtubeData.earningsCalls?.length || 0} earnings calls, ${youtubeData.executiveContent?.length || 0} executive videos` },
+        ];
+        const sourcesUsed = [];
+        for (const snap of sourceSnapshots) {
+            await supabase.from('research_snapshots').insert({
+                company_id: companyId,
+                run_id: run.id,
+                source: snap.source,
+                title: snap.title,
+                raw_content: snap.raw_content,
+                summary: snap.summary,
+            });
+            sourcesUsed.push(snap.source);
+        }
+        await supabase.from('research_runs').update({ sources_fetched: sourcesUsed }).eq('id', run.id);
 
         // 6. Synthesize with Claude
         console.log('\n--- AI Synthesis ---');
         const synthesis = await synthesizeResearch(company, contacts || [], edgarData, exaData, youtubeData);
 
-        // 7. Update research run with synthesis
-        await supabase
-            .from('research_runs')
-            .update({
-                company_summary: synthesis.companySummary,
-                key_signals: synthesis.keySignals,
-                pain_points: synthesis.painPoints,
-                competitive_landscape: synthesis.competitiveLandscape,
-                tokens_used: synthesis.tokensUsed,
-                estimated_cost: synthesis.estimatedCost
-            })
-            .eq('id', run.id);
+        // 7. Store synthesis as a research snapshot and update run tokens
+        await supabase.from('research_snapshots').insert({
+            company_id: companyId,
+            run_id: run.id,
+            source: 'synthesis',
+            title: 'AI Intelligence Brief',
+            summary: synthesis.companySummary,
+            signals: {
+                keySignals: synthesis.keySignals,
+                painPoints: synthesis.painPoints,
+                competitiveLandscape: synthesis.competitiveLandscape,
+            },
+        });
+        await supabase.from('research_runs').update({
+            actual_tokens: synthesis.tokensUsed,
+        }).eq('id', run.id);
 
         // 8. Generate outreach content for each contact
         console.log('\n--- Content Generation ---');
         for (const contact of (contacts || [])) {
             await generateOutreachContent(
                 contact, company, synthesis, run.id,
-                exaData.contactContent?.[`${contact.first_name} ${contact.last_name}`] || [],
-                youtubeData.contactVideos?.[`${contact.first_name} ${contact.last_name}`] || []
+                exaData.contactContent?.[contact.name] || [],
+                youtubeData.contactVideos?.[contact.name] || []
             );
         }
 
@@ -159,7 +173,6 @@ async function runResearch(companyId) {
         console.log(`\n${'='.repeat(60)}`);
         console.log(`Research completed for ${company.name}`);
         console.log(`Tokens used: ${synthesis.tokensUsed}`);
-        console.log(`Estimated cost: $${synthesis.estimatedCost.toFixed(4)}`);
         console.log(`${'='.repeat(60)}\n`);
 
         return { success: true, runId: run.id };
@@ -258,7 +271,7 @@ Respond in this exact JSON format:
 // ============================================
 
 async function generateOutreachContent(contact, company, synthesis, runId, contactWebContent, contactVideos) {
-    const contactName = `${contact.first_name} ${contact.last_name}`;
+    const contactName = contact.name;
     console.log(`Generating outreach for: ${contactName} (${contact.title})`);
 
     const systemPrompt = `You are an elite sales copywriter for a cybersecurity company's VP of Sales. You write personalized, research-backed outreach that demonstrates deep understanding of the prospect's specific situation.
@@ -295,84 +308,75 @@ CONTACT-SPECIFIC VIDEOS:
 ${contactVideos.map(v => `- ${v.title} (${v.publishedAt}): ${v.transcript?.substring(0, 500) || v.description}`).join('\n') || 'No specific videos found'}
 `;
 
-    const contentTypes = [
-        {
-            type: 'email_draft',
-            prompt: `Write a cold email to ${contactName}. Include:
-- Subject line (compelling, under 50 chars)
-- Body (3-4 short paragraphs max)
-- Clear, low-friction CTA
-Format as JSON: {"subject": "...", "body": "..."}`
-        },
-        {
-            type: 'linkedin_message',
-            prompt: `Write a LinkedIn connection request message (under 300 chars) and a follow-up message (under 1000 chars) to ${contactName}.
-Format as JSON: {"connectionRequest": "...", "followUp": "..."}`
-        },
-        {
-            type: 'call_talk_track',
-            prompt: `Write a cold call talk track for calling ${contactName}. Include:
-- Opening hook (10 seconds)
-- 3 discovery questions tailored to their situation
-- Key talking points based on their specific pain points
-- Objection handling for common cybersecurity sales objections
-- Close/next step ask
-Format as JSON: {"opener": "...", "discoveryQuestions": ["..."], "talkingPoints": ["..."], "objectionHandling": [{"objection": "...", "response": "..."}], "close": "..."}`
-        },
-        {
-            type: 'executive_briefing',
-            prompt: `Write a 1-page executive briefing about ${company.name} for the VP of Sales to review before engaging ${contactName}. Include:
-- Company overview (2-3 sentences)
-- Why now: Key triggers and timing signals
-- Decision maker profile: What we know about ${contactName}'s priorities
-- Recommended approach: How to position our solution
-- Competitive intelligence: What they're currently using and our advantages
-- Suggested meeting agenda if we get a meeting
-Format as plain text with clear section headers.`
-        }
-    ];
+    const allContentPrompt = `Generate all outreach content for ${contactName} at ${company.name}. Produce a single JSON response with these fields:
 
-    for (const { type, prompt } of contentTypes) {
+1. "pitch_angle": A 1-2 sentence strategic pitch angle for this prospect
+2. "email_subject": Compelling cold email subject line (under 50 chars)
+3. "email_draft": Full cold email body (3-4 short paragraphs, clear low-friction CTA)
+4. "linkedin_sequence": An object with "connectionRequest" (under 300 chars) and "followUp" (under 1000 chars)
+5. "call_talk_track": Full cold call talk track with opener, talking points, objection handling, and close
+6. "discovery_questions": Array of 3-5 discovery questions tailored to their specific situation
+7. "exec_briefing": 1-page executive briefing with sections: Company Overview, Why Now, Decision Maker Profile, Recommended Approach, Competitive Intelligence, Suggested Meeting Agenda
+
+Respond in this exact JSON format:
+{
+    "pitch_angle": "...",
+    "email_subject": "...",
+    "email_draft": "...",
+    "linkedin_sequence": {"connectionRequest": "...", "followUp": "..."},
+    "call_talk_track": "...",
+    "discovery_questions": ["...", "...", "..."],
+    "exec_briefing": "..."
+}`;
+
+    try {
+        const response = await anthropic.messages.create({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 4000,
+            system: systemPrompt,
+            messages: [{
+                role: 'user',
+                content: `${contactContext}\n\n${allContentPrompt}`
+            }]
+        });
+
+        const responseText = response.content[0].text;
+
+        let parsed;
         try {
-            const response = await anthropic.messages.create({
-                model: 'claude-sonnet-4-20250514',
-                max_tokens: 2000,
-                system: systemPrompt,
-                messages: [{
-                    role: 'user',
-                    content: `${contactContext}\n\n${prompt}`
-                }]
+            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+            parsed = JSON.parse(jsonMatch[0]);
+        } catch {
+            console.error('[Outreach] Failed to parse Claude response as JSON');
+            parsed = {
+                pitch_angle: 'Generation failed - see raw response',
+                email_subject: `Outreach for ${contactName}`,
+                email_draft: responseText,
+                linkedin_sequence: {},
+                call_talk_track: '',
+                discovery_questions: [],
+                exec_briefing: '',
+            };
+        }
+
+        await supabase
+            .from('outreach_content')
+            .insert({
+                contact_id: contact.id,
+                company_id: company.id,
+                run_id: runId,
+                pitch_angle: parsed.pitch_angle,
+                email_subject: parsed.email_subject,
+                email_draft: parsed.email_draft,
+                linkedin_sequence: parsed.linkedin_sequence,
+                call_talk_track: parsed.call_talk_track,
+                discovery_questions: parsed.discovery_questions,
+                exec_briefing: parsed.exec_briefing,
             });
 
-            const content = response.content[0].text;
-
-            // Parse metadata if JSON format
-            let metadata = {};
-            try {
-                const jsonMatch = content.match(/\{[\s\S]*\}/);
-                if (jsonMatch && type !== 'executive_briefing') {
-                    metadata = JSON.parse(jsonMatch[0]);
-                }
-            } catch {
-                // Non-JSON content is fine for executive briefings
-            }
-
-            await supabase
-                .from('outreach_content')
-                .insert({
-                    contact_id: contact.id,
-                    company_id: company.id,
-                    research_run_id: runId,
-                    content_type: type,
-                    title: metadata.subject || `${type} for ${contactName}`,
-                    content: content,
-                    content_metadata: metadata
-                });
-
-            console.log(`  ✓ Generated ${type}`);
-        } catch (err) {
-            console.error(`  ✗ Failed to generate ${type}:`, err.message);
-        }
+        console.log(`  ✓ Generated all outreach content for ${contactName}`);
+    } catch (err) {
+        console.error(`  ✗ Failed to generate outreach for ${contactName}:`, err.message);
     }
 }
 
@@ -388,9 +392,6 @@ function buildResearchPayload(company, contacts, edgarData, exaData, youtubeData
     sections.push(`Industry: ${company.industry || 'Unknown'}`);
     sections.push(`Employees: ${company.employee_count || 'Unknown'}`);
     sections.push(`Domain: ${company.domain || 'Unknown'}`);
-    if (company.tech_stack?.length) {
-        sections.push(`Known Tech Stack: ${JSON.stringify(company.tech_stack)}`);
-    }
 
     // SEC EDGAR
     if (edgarData.found) {
@@ -460,7 +461,7 @@ function buildResearchPayload(company, contacts, edgarData, exaData, youtubeData
     if (contacts.length) {
         sections.push('\n--- CONTACTS ---');
         contacts.forEach(c => {
-            sections.push(`  - ${c.first_name} ${c.last_name}, ${c.title || 'Unknown title'} (${c.seniority || 'Unknown seniority'})`);
+            sections.push(`  - ${c.name}, ${c.title || 'Unknown title'} (${c.seniority || 'Unknown seniority'})`);
         });
     }
 

@@ -338,7 +338,7 @@
             </div>
             <div class="form-group">
                 <label>Employee Count</label>
-                <input type="number" id="add-employees" placeholder="e.g. 5000">
+                <input type="text" id="add-employees" placeholder="e.g. 5000">
             </div>
             <div class="form-group">
                 <label>Status</label>
@@ -511,11 +511,11 @@
         async function loadCompanies() {
             const filter = {};
             const statusVal = document.getElementById('filter-status').value;
-            if (statusVal) filter.status = `eq.${statusVal}`;
+            if (statusVal) filter.research_status = `eq.${statusVal}`;
 
             try {
                 const companies = await supabaseQuery('companies', {
-                    select: 'id,name,domain,industry,employee_count,status,created_at',
+                    select: 'id,name,domain,industry,employee_count,research_status,created_at',
                     filter,
                     order: 'created_at.desc',
                     limit: 100,
@@ -544,7 +544,7 @@
                         </td>
                         <td>${c.industry || '-'}</td>
                         <td>${c.employee_count ? c.employee_count.toLocaleString() : '-'}</td>
-                        <td><span class="status-badge status-${c.status}">${c.status}</span></td>
+                        <td><span class="status-badge status-${c.research_status}">${c.research_status}</span></td>
                         <td>
                             <button class="btn btn-sm btn-primary" onclick="runResearch('${c.id}', '${c.name}')">Research</button>
                         </td>
@@ -582,9 +582,9 @@
                     name,
                     domain: document.getElementById('add-domain').value.trim() || null,
                     industry: document.getElementById('add-industry').value.trim() || null,
-                    ticker_symbol: document.getElementById('add-ticker').value.trim() || null,
-                    employee_count: parseInt(document.getElementById('add-employees').value) || null,
-                    status: document.getElementById('add-status').value,
+                    ticker: document.getElementById('add-ticker').value.trim() || null,
+                    employee_count: document.getElementById('add-employees').value.trim() || null,
+                    research_status: document.getElementById('add-status').value,
                 };
                 await supabaseInsert('companies', record);
                 closeModal('modal-add-company');

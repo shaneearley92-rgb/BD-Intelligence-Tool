@@ -49,7 +49,7 @@ class ExaEnrichmentProvider extends BaseEnrichmentProvider {
     }
 
     async enrichContact(contact, companyName) {
-        const contactName = `${contact.first_name} ${contact.last_name}`;
+        const contactName = contact.name;
 
         try {
             const results = await exa.searchPersonContent(contactName, companyName);
@@ -138,7 +138,7 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
     }
 
     async enrichContact(contact, companyName) {
-        const contactName = `${contact.first_name} ${contact.last_name}`;
+        const contactName = contact.name;
 
         const res = await fetch(`${this.baseUrl}/people/match`, {
             method: 'POST',

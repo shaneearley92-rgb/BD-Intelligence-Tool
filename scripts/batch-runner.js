@@ -28,12 +28,12 @@ async function main() {
     let companyIds = [];
 
     if (input === 'all_pending' || input === 'all_active') {
-        // Fetch companies by status
+        // Fetch companies by research_status
         const status = input === 'all_pending' ? 'prospect' : 'active';
         const { data, error } = await supabase
             .from('companies')
             .select('id, name')
-            .eq('status', status)
+            .eq('research_status', status)
             .limit(maxCompanies);
 
         if (error) {
