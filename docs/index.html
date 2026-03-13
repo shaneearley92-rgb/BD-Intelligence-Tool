@@ -268,6 +268,7 @@
         <h1>BD Intelligence Tool</h1>
         <div class="header-actions">
             <button class="btn btn-primary" onclick="openAddCompany()">+ Add Company</button>
+            <button class="btn" style="background:#4f46e5;border-color:#6366f1;color:white" onclick="openProspectSearch()">Prospect Search</button>
             <button class="btn btn-success" onclick="openBatchRun()">Run Batch Research</button>
         </div>
     </div>
@@ -376,6 +377,34 @@
             <div class="modal-actions">
                 <button class="btn" onclick="closeModal('modal-batch')">Cancel</button>
                 <button class="btn btn-success" onclick="runBatch()">Start Batch</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prospect Search Modal -->
+    <div class="modal-overlay" id="modal-prospect">
+        <div class="modal">
+            <h3>Prospect Search</h3>
+            <p style="font-size:0.8rem;color:#94a3b8;margin-bottom:1rem">Search Apollo for key leaders in identity, security, and AI at a target company.</p>
+            <div class="form-group">
+                <label>Company Name *</label>
+                <input type="text" id="prospect-company" placeholder="e.g. Travelers">
+            </div>
+            <div class="form-group">
+                <label>Company Domain</label>
+                <input type="text" id="prospect-domain" placeholder="e.g. travelers.com">
+            </div>
+            <div class="form-group">
+                <label>Max Contacts</label>
+                <input type="number" id="prospect-max" value="50" min="1" max="100">
+            </div>
+            <div class="form-group">
+                <label>Custom Keywords (comma-separated, leave empty for defaults)</label>
+                <input type="text" id="prospect-keywords" placeholder="identity, security, AI, agentic, IAM, zero trust">
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('modal-prospect')">Cancel</button>
+                <button class="btn" style="background:#4f46e5;border-color:#6366f1;color:white" onclick="runProspectSearch()">Search Prospects</button>
             </div>
         </div>
     </div>
@@ -624,6 +653,37 @@
 
         function openBatchRun() {
             document.getElementById('modal-batch').classList.add('active');
+        }
+
+        function openProspectSearch() {
+            document.getElementById('modal-prospect').classList.add('active');
+        }
+
+        async function runProspectSearch() {
+            const companyName = document.getElementById('prospect-company').value.trim();
+            if (!companyName) { showToast('Company name is required.', true); return; }
+
+            if (!CONFIG.GITHUB_PAT) {
+                showToast('Set GITHUB_PAT in CONFIG to trigger prospect searches.', true);
+                return;
+            }
+
+            const domain = document.getElementById('prospect-domain').value.trim();
+            const maxContacts = document.getElementById('prospect-max').value;
+            const keywords = document.getElementById('prospect-keywords').value.trim();
+
+            try {
+                await triggerWorkflow('prospect-search.yml', {
+                    company_name: companyName,
+                    company_domain: domain,
+                    max_contacts: maxContacts,
+                    search_keywords: keywords,
+                });
+                closeModal('modal-prospect');
+                showToast(`Prospect search started for ${companyName}. Check GitHub Actions for progress.`);
+            } catch (e) {
+                showToast(`Failed to start prospect search: ${e.message}`, true);
+            }
         }
 
         function closeModal(id) {
