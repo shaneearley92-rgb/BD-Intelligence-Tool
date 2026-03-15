@@ -270,6 +270,7 @@
             <button class="btn btn-primary" onclick="openAddCompany()">+ Add Company</button>
             <button class="btn" style="background:#4f46e5;border-color:#6366f1;color:white" onclick="openProspectSearch()">Prospect Search</button>
             <button class="btn btn-success" onclick="openBatchRun()">Run Batch Research</button>
+            <button class="btn" style="background:#059669;border-color:#10b981;color:white" onclick="runApiTest()">Test APIs</button>
         </div>
     </div>
 
@@ -694,6 +695,19 @@
                 showToast(`Prospect search started for ${companyName}. Check GitHub Actions for progress.`);
             } catch (e) {
                 showToast(`Failed to start prospect search: ${e.message}`, true);
+            }
+        }
+
+        async function runApiTest() {
+            if (!getGitHubPAT()) {
+                showToast('GitHub PAT is required to trigger API test.', true);
+                return;
+            }
+            try {
+                await triggerWorkflow('test-apis.yml', {});
+                showToast('API test started! Check GitHub Actions for results.');
+            } catch (e) {
+                showToast(`Failed to start API test: ${e.message}`, true);
             }
         }
 
