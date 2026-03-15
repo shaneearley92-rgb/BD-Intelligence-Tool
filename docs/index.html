@@ -507,7 +507,7 @@
         // ===========================================
         // GITHUB ACTIONS TRIGGER
         // ===========================================
-        async function triggerWorkflow(workflowFile, inputs = {}) {
+        async function triggerWorkflow(workflowFile, inputs = {}, ref = 'main') {
             const url = `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/${workflowFile}/dispatches`;
             const resp = await fetch(url, {
                 method: 'POST',
@@ -517,7 +517,7 @@
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    ref: 'main',
+                    ref,
                     inputs,
                 }),
             });
@@ -704,7 +704,7 @@
                 return;
             }
             try {
-                await triggerWorkflow('test-apis.yml', {});
+                await triggerWorkflow('test-apis.yml', {}, 'claude/initial-setup-7SeQ2');
                 showToast('API test started! Check GitHub Actions for results.');
             } catch (e) {
                 showToast(`Failed to start API test: ${e.message}`, true);
