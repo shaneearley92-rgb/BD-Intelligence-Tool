@@ -497,7 +497,7 @@ const CONFIG = {
   SUPABASE_ANON_KEY: 'sb_publishable_cqrID5e3KxU2YONXLzTlCA_QK__Lim3',
   GITHUB_OWNER:      'shaneearley92-rgb',
   GITHUB_REPO:       'BD-Intelligence-Tool',
-  GITHUB_PAT:        'YOUR_GITHUB_PAT',
+  GITHUB_PAT:        localStorage.getItem('bd_github_pat') || '',
 };
 // ============================================================
 
@@ -812,12 +812,12 @@ async function runApiTest() {
   alert('Test APIs button clicked! Getting your GitHub PAT...');
   let pat = CONFIG.GITHUB_PAT;
   if (!pat || pat === 'YOUR_GITHUB_PAT') {
-    pat = localStorage.getItem('gh_pat');
+    pat = localStorage.getItem('bd_github_pat');
   }
   if (!pat) {
     pat = prompt('Enter your GitHub Personal Access Token (PAT).\nNeeds "repo" and "workflow" scopes:');
     if (!pat) { alert('Cancelled — no PAT entered.'); return; }
-    localStorage.setItem('gh_pat', pat);
+    localStorage.setItem('bd_github_pat', pat);
   }
   try {
     const url = `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/test-apis.yml/dispatches`;
