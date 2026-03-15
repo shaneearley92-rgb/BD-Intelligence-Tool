@@ -492,11 +492,11 @@
 // CONFIG — FILL IN YOUR CREDENTIALS
 // ============================================================
 const CONFIG = {
-  SUPABASE_URL:      'https://bmomiedymqjidgzynjld.supabase.co'
-    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtb21pZWR5bXFqaWRnenluamxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MTEzMDgsImV4cCI6MjA4OTE4NzMwOH0.KPrT6M8GQRjxgOPTIRxhJDCRb_Al6GvDkldehI7Ap10'
+  SUPABASE_URL:      'https://axoociwagtamyepfvyeq.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_cqrID5e3KxU2YONXLzTlCA_QK__Lim3',
   GITHUB_OWNER:      'shaneearley92-rgb',
   GITHUB_REPO:       'BD-Intelligence-Tool',
-  GITHUB_PAT:        'YOUR_GITHUB_PAT',
+  GITHUB_PAT:        localStorage.getItem('bd_github_pat') || '',
 };
 // ============================================================
 
@@ -803,6 +803,47 @@ function showToast(msg, type) {
 // UTILS
 // ============================================================
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ============================================================
+// TEST APIs
+// ============================================================
+async function runApiTest() {
+  alert('Test APIs button clicked! Getting your GitHub PAT...');
+  let pat = CONFIG.GITHUB_PAT;
+  if (!pat || pat === 'YOUR_GITHUB_PAT') {
+    pat = localStorage.getItem('bd_github_pat');
+  }
+  if (!pat) {
+    pat = prompt('Enter your GitHub Personal Access Token (PAT).\nNeeds "repo" and "workflow" scopes:');
+    if (!pat) { alert('Cancelled — no PAT entered.'); return; }
+    localStorage.setItem('bd_github_pat', pat);
+  }
+  try {
+    const url = `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/test-apis.yml/dispatches`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + pat,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ref: 'main' }),
+    });
+    if (res.status === 204) {
+      alert('API test started! Check the Actions tab in GitHub for results.');
+    } else {
+      const err = await res.json().catch(() => ({}));
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('gh_pat');
+        alert('GitHub auth failed (status ' + res.status + '). Your PAT was cleared — try again with a valid PAT.\n\n' + (err.message || ''));
+      } else {
+        alert('GitHub error (status ' + res.status + '): ' + (err.message || 'Unknown error'));
+      }
+    }
+  } catch (e) {
+    alert('Network error: ' + e.message);
+  }
+}
 
 // ============================================================
 // INIT

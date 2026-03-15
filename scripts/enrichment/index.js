@@ -219,7 +219,7 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
             per_page: perPage
         };
 
-        const res = await fetch(`${this.baseUrl}/mixed_people/search`, {
+        const res = await fetch(`${this.baseUrl}/mixed_people/api_search`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
