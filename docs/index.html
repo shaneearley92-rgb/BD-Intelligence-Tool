@@ -1,1 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PG Genie — Sales Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg:       #07080f;
+    --bg2:      #0b0c1a;
+    --bg3:      #090a16;
+    --border:   #1a1535;
+    --border2:  #2a2060;
+    --purple:   #a78bfa;
+    --purple2:  #7c3aed;
+    --purple3:  #5b21b6;
+    --pink:     #f0abfc;
+    --blue:     #7dd3fc;
+    --gold:     #fbbf24;
+    --green:    #4ade80;
+    --red:      #f87171;
+    --text:     #c8d8ff;
+    --muted:    #4a4270;
+    --dim:      #2e2a50;
+    --mono:     'Share Tech Mono', monospace;
+    --head:     'Rajdhani', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--head); min-height: 100vh; }
 
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); }
+
+  /* TYPOGRAPHY */
+  .mono { font-family: var(--mono); }
+  .label { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--dim); text-transform: uppercase; }
+
+  /* INPUTS */
+  input[type=text], input[type=url], input[type=number], select, textarea {
+    background: #0d0b1e; border: 1px solid var(--border2);
+    color: var(--text); font-family: var(--mono); font-size: 12px;
+    padding: 9px 12px; width: 100%; outline: none;
+    transition: border-color 0.2s; border-radius: 0;
+    appearance: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--purple); }
+  input::placeholder, textarea::placeholder { color: var(--dim); }
+  select option { background: #0d0b1e; }
+
+  /* BUTTONS */
+  .btn { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; cursor: pointer; border: none; padding: 9px 18px; transition: all 0.15s; }
+  .btn-primary { background: var(--purple); color: var(--bg); font-weight: 600; }
+  .btn-primary:hover { background: #c4b5fd; }
+  .btn-ghost { background: transparent; color: var(--purple); border: 1px solid var(--border2); }
+  .btn-ghost:hover { border-color: var(--purple); }
+  .btn-danger { background: transparent; color: var(--red); border: 1px solid #3a1a1a; }
+  .btn-danger:hover { border-color: var(--red); }
+  .btn-sm { font-size: 10px; padding: 5px 12px; }
+  .btn-blue { background: transparent; color: var(--blue); border: 1px solid #1a2a3a; }
+  .btn-blue:hover { border-color: var(--blue); }
+
+  /* TAGS */
+  .tag { font-family: var(--mono); font-size: 9px; padding: 2px 8px; letter-spacing: 1px; }
+  .tag-active   { background: #0f2218; color: var(--green); }
+  .tag-prospect { background: #1a1505; color: var(--gold); }
+  .tag-scanning { background: #160e2a; color: var(--pink); }
+  .tag-error    { background: #1a0808; color: var(--red); }
+
+  /* LAYOUT */
+  #app { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* HEADER */
+  #header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px; border-bottom: 1px solid var(--border);
+    background: #090a16; position: sticky; top: 0; z-index: 100;
+  }
+  #header .logo { display: flex; align-items: center; gap: 14px; }
+  #header .logo-text-main { font-family: var(--head); font-size: 18px; color: var(--purple); letter-spacing: 4px; font-weight: 600; line-height: 1.1; }
+  #header .logo-text-sub  { font-family: var(--mono); font-size: 9px; color: var(--dim); letter-spacing: 3px; }
+  #header .status { display: flex; align-items: center; gap: 8px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* MISSION PANEL */
+  #mission {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 18px 24px;
+  }
+  #mission .mission-grid {
+    display: grid; grid-template-columns: 1fr 1fr auto;
+    gap: 16px; align-items: end;
+  }
+  .mission-field-label {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 7px;
+  }
+  .mission-field-label .dot-sq { width: 8px; height: 8px; }
+  .mission-field-label .dot-sq-purple { background: var(--purple); }
+  .mission-field-label .dot-sq-pink   { background: var(--pink); }
+  #context-pill {
+    margin-top: 12px; padding: 10px 14px;
+    border: 1px solid var(--border2); background: #0d0b1e;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  #context-pill .pill-dot { width: 6px; height: 6px; background: var(--purple); margin-top: 4px; flex-shrink: 0; }
+
+  /* STATS */
+  #stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); border-bottom: 1px solid var(--border); }
+  .stat-cell { padding: 13px 24px; border-right: 1px solid var(--border); }
+  .stat-cell:last-child { border-right: none; }
+  .stat-num { font-family: var(--mono); font-size: 26px; font-weight: 600; line-height: 1; margin-top: 4px; }
+  .stat-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+  /* MAIN CONTENT */
+  #main { display: grid; grid-template-columns: 1fr 260px; flex: 1; }
+
+  /* TABLE AREA */
+  #table-area { padding: 18px 24px; border-right: 1px solid var(--border); }
+  .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .filter-btns { display: flex; gap: 6px; }
+  .filter-btn { font-family: var(--mono); font-size: 9px; padding: 3px 10px; border: 1px solid var(--border); color: var(--dim); cursor: pointer; background: transparent; letter-spacing: 1px; }
+  .filter-btn.active { border-color: var(--purple); color: var(--purple); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th { text-align: left; padding: 6px 8px 6px 0; font-size: 9px; letter-spacing: 2px; color: var(--dim); font-weight: 400; font-family: var(--mono); border-bottom: 1px solid var(--border); }
+  tbody tr { border-bottom: 1px solid #0e0f1c; transition: background 0.1s; }
+  tbody tr:hover { background: #0d0e1f; }
+  tbody tr:nth-child(even) { background: #0a0b16; }
+  tbody tr:nth-child(even):hover { background: #0d0e1f; }
+  td { padding: 10px 8px 10px 0; vertical-align: middle; }
+  td:not(:first-child) { padding-left: 8px; }
+  .co-name { font-family: var(--mono); color: var(--text); font-size: 12px; }
+  .co-meta { font-family: var(--mono); color: var(--dim); font-size: 10px; margin-top: 1px; }
+  .signal-bar { display: flex; gap: 3px; align-items: center; }
+  .bar { height: 3px; }
+  .action-btns { display: flex; gap: 10px; justify-content: flex-end; }
+  .action-btn { font-family: var(--mono); font-size: 10px; cursor: pointer; background: none; border: none; letter-spacing: 0.5px; padding: 0; }
+
+  /* SCAN ANIMATION */
+  @keyframes scan { 0%{width:6px;opacity:0.5} 50%{width:28px;opacity:1} 100%{width:6px;opacity:0.5} }
+  .scan-bar { height: 3px; background: var(--pink); animation: scan 1.4s infinite; }
+
+  /* FEED PANEL */
+  #feed-panel { padding: 16px; background: var(--bg3); }
+  .feed-item { border-left: 2px solid; padding-left: 10px; margin-bottom: 10px; }
+  .feed-time { font-family: var(--mono); font-size: 9px; color: var(--dim); }
+  .feed-title { font-family: var(--mono); font-size: 11px; color: var(--text); margin-top: 2px; }
+  .feed-sub   { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 1px; }
+  #quick-actions { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; }
+  #quick-actions .qa-btn { display: block; width: 100%; text-align: left; margin-bottom: 6px; }
+
+  /* MODALS */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(7,8,15,0.88); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border2);
+    padding: 24px; width: 420px; max-width: 95vw;
+  }
+  .modal-title { font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: var(--purple); margin-bottom: 18px; }
+  .form-row { margin-bottom: 12px; }
+  .form-label { font-family: var(--mono); font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-bottom: 5px; display: block; }
+  .form-label span { color: var(--red); }
+  .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--bg2); border: 1px solid var(--border2);
+    font-family: var(--mono); font-size: 11px; color: var(--text);
+    padding: 10px 16px; z-index: 300; opacity: 0;
+    transition: opacity 0.3s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+  #toast.success { border-color: var(--green); color: var(--green); }
+  #toast.error   { border-color: var(--red);   color: var(--red); }
+
+  /* EMPTY STATE */
+  .empty { text-align: center; padding: 40px 0; font-family: var(--mono); font-size: 11px; color: var(--dim); }
+
+  /* CONFIG WARNING */
+  #config-warning {
+    background: #1a0f05; border: 1px solid #3a2a10;
+    padding: 10px 16px; font-family: var(--mono); font-size: 11px; color: var(--gold);
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- CONFIG WARNING -->
+  <div id="config-warning">
+    ⚠ CONFIGURE: Open this file and fill in the CONFIG object at the top of the &lt;script&gt; section with your Supabase and GitHub credentials.
+  </div>
+
+  <!-- HEADER -->
+  <div id="header">
+    <div class="logo">
+      <!-- GENIE LOGO -->
+      <svg width="72" height="78" viewBox="0 0 120 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="82" cy="116" rx="30" ry="10" fill="#92400e"/>
+        <ellipse cx="82" cy="113" rx="30" ry="10" fill="#d97706"/>
+        <ellipse cx="82" cy="111" rx="30" ry="9" fill="#f59e0b"/>
+        <ellipse cx="82" cy="110" rx="27" ry="7" fill="#fbbf24"/>
+        <ellipse cx="78" cy="108" rx="14" ry="3" fill="#fde68a" opacity="0.5"/>
+        <path d="M110 112 Q122 107 122 116 Q122 125 110 121" stroke="#d97706" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+        <path d="M54 110 Q44 106 38 97 Q32 87 37 81" stroke="#92400e" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M54 108 Q45 104 39 95 Q33 85 38 79" stroke="#fbbf24" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="38.5" cy="77.5" rx="5.5" ry="3.5" fill="#fbbf24" transform="rotate(-25 38.5 77.5)"/>
+        <ellipse cx="38.5" cy="76.5" rx="4" ry="2.5" fill="#fde68a" transform="rotate(-25 38.5 76.5)"/>
+        <path d="M36 74 Q22 58 30 40 Q36 26 28 12" stroke="#2d1060" stroke-width="20" stroke-linecap="round" fill="none" opacity="0.45"/>
+        <path d="M38 73 Q52 54 44 34 Q36 16 44 4" stroke="#4c1d95" stroke-width="15" stroke-linecap="round" fill="none" opacity="0.55"/>
+        <path d="M37 72 Q24 54 32 35 Q38 20 33 6" stroke="#5b21b6" stroke-width="11" stroke-linecap="round" fill="none" opacity="0.65"/>
+        <path d="M38 71 Q50 52 43 32 Q36 14 42 2" stroke="#7c3aed" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.8"/>
+        <path d="M38 70 Q27 52 34 33 Q40 17 36 4" stroke="#a78bfa" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.9"/>
+        <ellipse cx="40" cy="68" rx="13" ry="6" fill="#4c1d95" opacity="0.7"/>
+        <ellipse cx="40" cy="54" rx="15" ry="18" fill="#4c1d95"/>
+        <ellipse cx="40" cy="52" rx="13" ry="16" fill="#5b21b6"/>
+        <path d="M28 48 Q40 44 52 48" stroke="#7c3aed" stroke-width="1.5" fill="none"/>
+        <circle cx="40" cy="56" r="4" fill="#f0abfc" opacity="0.6"/>
+        <circle cx="40" cy="56" r="2" fill="#fde68a" opacity="0.8"/>
+        <path d="M27 46 Q18 38 12 40 Q8 42 10 47 Q12 51 17 49" stroke="#c4b5fd" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+        <circle cx="10" cy="43.5" r="5" fill="#6d28d9"/>
+        <circle cx="10" cy="43.5" r="3.5" fill="#7c3aed"/>
+        <path d="M53 44 Q62 36 68 39 Q72 41 70 46 Q68 50 63 48" stroke="#c4b5fd" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+        <circle cx="70" cy="42" r="5" fill="#6d28d9"/>
+        <circle cx="70" cy="42" r="3.5" fill="#7c3aed"/>
+        <rect x="35" y="33" width="10" height="6" rx="3" fill="#4c1d95"/>
+        <circle cx="40" cy="26" r="18" fill="#0f0720"/>
+        <circle cx="40" cy="26" r="17" fill="#130930" stroke="#a78bfa" stroke-width="1"/>
+        <ellipse cx="34" cy="26" rx="4" ry="4.5" fill="#4c1d95"/>
+        <ellipse cx="46" cy="26" rx="4" ry="4.5" fill="#4c1d95"/>
+        <ellipse cx="34" cy="26" rx="2.8" ry="3.2" fill="#7c3aed"/>
+        <ellipse cx="46" cy="26" rx="2.8" ry="3.2" fill="#7c3aed"/>
+        <ellipse cx="34" cy="26" rx="1.8" ry="2" fill="#a78bfa"/>
+        <ellipse cx="46" cy="26" rx="1.8" ry="2" fill="#a78bfa"/>
+        <circle cx="35" cy="24.5" r="1" fill="#e9d5ff"/>
+        <circle cx="47" cy="24.5" r="1" fill="#e9d5ff"/>
+        <path d="M30 21 Q34 18.5 38 21" stroke="#c4b5fd" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M42 21 Q46 18.5 50 21" stroke="#c4b5fd" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M39 28 Q40 30 41 28" stroke="#a78bfa" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+        <path d="M33 32 Q40 37 47 32" stroke="#c4b5fd" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M23 22 Q26 10 40 8 Q54 10 57 22 Q52 16 40 17 Q28 16 23 22Z" fill="#5b21b6"/>
+        <path d="M23 22 Q28 14 40 13 Q52 14 57 22" stroke="#7c3aed" stroke-width="1" fill="none"/>
+        <path d="M24 20 Q29 13 40 12 Q51 13 56 20" stroke="#8b5cf6" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>
+        <ellipse cx="40" cy="9" rx="6" ry="4" fill="#6d28d9"/>
+        <circle cx="40" cy="13" r="3.5" fill="#f0abfc"/>
+        <circle cx="40" cy="13" r="1.5" fill="#fde68a"/>
+        <circle cx="40" cy="13" r="0.6" fill="#fff" opacity="0.8"/>
+        <path d="M44 10 Q50 2 54 -4 Q56 -8 53 -10" stroke="#c4b5fd" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M44 10 Q49 4 52 -2 Q54 -6 53 -9" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <path d="M44 10 Q48 5 51 -1 Q53 -5 52 -8" stroke="#a78bfa" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.55"/>
+        <path d="M47 6 Q51 1 53 -5" stroke="#f0abfc" stroke-width="0.8" fill="none" opacity="0.5" stroke-linecap="round"/>
+        <circle cx="53" cy="-10" r="1.5" fill="#e9d5ff" opacity="0.9"/>
+        <path d="M4 30 L4.8 33 L7.8 33.8 L4.8 34.6 L4 37.6 L3.2 34.6 L0.2 33.8 L3.2 33Z" fill="#f0abfc" opacity="0.85"/>
+        <path d="M74 18 L74.6 20.4 L77 21 L74.6 21.6 L74 24 L73.4 21.6 L71 21 L73.4 20.4Z" fill="#7dd3fc" opacity="0.8"/>
+        <circle cx="14" cy="10" r="2" fill="#fde68a" opacity="0.65"/>
+      </svg>
+      <div>
+        <div class="logo-text-main">PG GENIE</div>
+        <div class="logo-text-sub">SALES INTELLIGENCE PLATFORM</div>
+      </div>
+    </div>
+    <div class="status">
+      <div class="dot"></div>
+      <span class="mono" style="font-size:10px;color:var(--green);letter-spacing:1px;">SYSTEMS ONLINE</span>
+      <span class="mono" style="font-size:10px;color:var(--dim);margin-left:16px;" id="clock">--:--:--</span>
+    </div>
+  </div>
+
+  <!-- RESEARCH MISSION PANEL -->
+  <div id="mission">
+    <div class="label" style="margin-bottom:12px;">RESEARCH MISSION</div>
+    <div class="mission-grid">
+
+      <div>
+        <div class="mission-field-label">
+          <div class="dot-sq dot-sq-purple"></div>
+          <span class="mono" style="font-size:10px;color:var(--purple);letter-spacing:2px;">MY COMPANY</span>
+        </div>
+        <input type="text" id="my-company" placeholder="Your company name (e.g. Saviynt)" value="Saviynt"/>
+        <input type="url" id="my-company-url" placeholder="https://saviynt.com" value="https://saviynt.com" style="margin-top:6px;"/>
+        <div class="mono" style="font-size:9px;color:var(--dim);margin-top:5px;">The company whose value prop we align to</div>
+      </div>
+
+      <div>
+        <div class="mission-field-label">
+          <div class="dot-sq dot-sq-pink"></div>
+          <span class="mono" style="font-size:10px;color:var(--pink);letter-spacing:2px;">TARGET COMPANY</span>
+        </div>
+        <input type="text" id="target-company" placeholder="Target company name (e.g. Traveler's Insurance)"/>
+        <input type="url" id="target-company-url" placeholder="https://travelers.com" style="margin-top:6px;"/>
+        <div class="mono" style="font-size:9px;color:var(--dim);margin-top:5px;">The prospect we're researching for pain point alignment</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;padding-bottom:22px;">
+        <button class="btn btn-primary" onclick="grantWish()">GRANT WISH ✦</button>
+        <button class="btn btn-ghost" onclick="openModal('add-modal')">+ ADD TO LIST</button>
+      </div>
+    </div>
+
+    <!-- CONTEXT PILL -->
+    <div id="context-pill">
+      <div class="pill-dot"></div>
+      <div>
+        <div class="mono" style="font-size:10px;color:var(--purple);letter-spacing:1px;margin-bottom:3px;" id="pill-title">COMPANY PROFILE LOADED — SAVIYNT</div>
+        <div class="mono" style="font-size:10px;color:var(--muted);line-height:1.6;" id="pill-body">AI-based identity security · IGA · PAM · NHI · External Identity · AI Agent Security<br>Pain points to align: legacy IGA modernization · access sprawl · non-human identity risk · compliance gaps · privileged access exposure</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS BAR -->
+  <div id="stats">
+    <div class="stat-cell">
+      <div class="label">TARGETS</div>
+      <div class="stat-num" style="color:var(--purple);" id="stat-companies">—</div>
+      <div class="stat-sub">tracked companies</div>
+    </div>
+    <div class="stat-cell">
+      <div class="label">RESEARCH RUNS</div>
+      <div class="stat-num" style="color:var(--blue);" id="stat-runs">—</div>
+      <div class="stat-sub">total completed</div>
+    </div>
+    <div class="stat-cell">
+      <div class="label">CONTACTS</div>
+      <div class="stat-num" style="color:var(--purple);" id="stat-contacts">—</div>
+      <div class="stat-sub">across all companies</div>
+    </div>
+    <div class="stat-cell">
+      <div class="label">OUTREACH READY</div>
+      <div class="stat-num" style="color:var(--pink);" id="stat-content">—</div>
+      <div class="stat-sub">outreach pieces</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- TABLE -->
+    <div id="table-area">
+      <div class="table-header">
+        <span class="label">TARGET COMPANIES</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="filter-btns">
+            <button class="filter-btn active" onclick="setFilter('all',this)">ALL</button>
+            <button class="filter-btn" onclick="setFilter('active',this)">ACTIVE</button>
+            <button class="filter-btn" onclick="setFilter('prospect',this)">PROSPECT</button>
+            <button class="filter-btn" onclick="setFilter('archived',this)">ARCHIVED</button>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('batch-modal')">BATCH RUN</button>
+          <button class="btn btn-ghost btn-sm" onclick="openModal('prospect-modal')">PROSPECT SEARCH</button>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>COMPANY</th>
+            <th>SECTOR</th>
+            <th>STATUS</th>
+            <th>ALIGNMENT</th>
+            <th style="text-align:right;">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody id="companies-tbody">
+          <tr><td colspan="5" class="empty">Loading targets...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- FEED + QUICK ACTIONS -->
+    <div id="feed-panel">
+      <div class="label" style="margin-bottom:12px;">INTEL FEED</div>
+      <div id="feed-list">
+        <div class="empty" style="padding:20px 0;">No recent activity</div>
+      </div>
+      <div id="quick-actions">
+        <div class="label" style="margin-bottom:10px;">QUICK ACTIONS</div>
+        <button class="btn btn-ghost btn-sm qa-btn" onclick="openModal('add-modal')">+ ADD TARGET COMPANY</button>
+        <button class="btn btn-blue btn-sm qa-btn" onclick="openModal('batch-modal')">RUN BATCH RESEARCH</button>
+        <button class="btn qa-btn btn-sm" style="background:transparent;color:var(--pink);border:1px solid #2a1535;width:100%;text-align:left;" onclick="openModal('prospect-modal')">PROSPECT SEARCH</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ADD COMPANY MODAL -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">ADD TARGET COMPANY</div>
+    <div class="form-row">
+      <label class="form-label">COMPANY NAME <span>*</span></label>
+      <input type="text" id="add-name" placeholder="e.g. Traveler's Insurance"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">DOMAIN</label>
+      <input type="text" id="add-domain" placeholder="e.g. travelers.com"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">INDUSTRY</label>
+      <input type="text" id="add-industry" placeholder="e.g. Insurance"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">TICKER (for SEC filings)</label>
+      <input type="text" id="add-ticker" placeholder="e.g. TRV"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">EMPLOYEE COUNT</label>
+      <input type="number" id="add-employees" placeholder="e.g. 30000"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">STATUS</label>
+      <select id="add-status">
+        <option value="prospect">Prospect</option>
+        <option value="active">Active</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-danger" onclick="closeModal('add-modal')">CANCEL</button>
+      <button class="btn btn-primary" onclick="addCompany()">ADD COMPANY</button>
+    </div>
+  </div>
+</div>
+
+<!-- BATCH MODAL -->
+<div class="modal-overlay" id="batch-modal">
+  <div class="modal">
+    <div class="modal-title">RUN BATCH RESEARCH</div>
+    <div class="form-row">
+      <label class="form-label">TARGET</label>
+      <select id="batch-target">
+        <option value="prospect">All Prospect Companies</option>
+        <option value="active">All Active Companies</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">MAX COMPANIES</label>
+      <input type="number" id="batch-max" value="5" min="1" max="50"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">DELAY BETWEEN RUNS (seconds)</label>
+      <input type="number" id="batch-delay" value="30" min="10" max="300"/>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-danger" onclick="closeModal('batch-modal')">CANCEL</button>
+      <button class="btn btn-primary" onclick="runBatch()">START BATCH</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROSPECT SEARCH MODAL -->
+<div class="modal-overlay" id="prospect-modal">
+  <div class="modal">
+    <div class="modal-title">PROSPECT SEARCH</div>
+    <div class="mono" style="font-size:10px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Search Apollo for key leaders in identity, security, and AI at a target company.</div>
+    <div class="form-row">
+      <label class="form-label">COMPANY NAME <span>*</span></label>
+      <input type="text" id="ps-company" placeholder="e.g. Traveler's Insurance"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">COMPANY DOMAIN</label>
+      <input type="text" id="ps-domain" placeholder="e.g. travelers.com"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">MAX CONTACTS</label>
+      <input type="number" id="ps-max" value="10" min="1" max="50"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">CUSTOM KEYWORDS (comma-separated)</label>
+      <input type="text" id="ps-keywords" placeholder="leave empty for defaults"/>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-danger" onclick="closeModal('prospect-modal')">CANCEL</button>
+      <button class="btn btn-primary" onclick="searchProspects()">SEARCH PROSPECTS</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG — FILL IN YOUR CREDENTIALS
+// ============================================================
+const CONFIG = {
+  SUPABASE_URL:      'YOUR_SUPABASE_URL',
+  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
+  GITHUB_OWNER:      'shaneearley92-rgb',
+  GITHUB_REPO:       'BD-Intelligence-Tool',
+  GITHUB_PAT:        'YOUR_GITHUB_PAT',
+};
+// ============================================================
+
+// Check config
+const isConfigured = CONFIG.SUPABASE_URL !== 'YOUR_SUPABASE_URL';
+if (!isConfigured) document.getElementById('config-warning').style.display = 'block';
+
+// Supabase
+let supabase = null;
+if (isConfigured) {
+  supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+}
+
+// State
+let companies = [];
+let currentFilter = 'all';
+
+// Clock
+function tick() {
+  const el = document.getElementById('clock');
+  if (el) el.textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+}
+tick(); setInterval(tick, 1000);
+
+// ============================================================
+// MISSION PANEL
+// ============================================================
+document.getElementById('my-company').addEventListener('input', function () {
+  const val = this.value.trim();
+  const pill = document.getElementById('context-pill');
+  const title = document.getElementById('pill-title');
+  const body = document.getElementById('pill-body');
+  if (!val) { pill.style.display = 'none'; return; }
+  pill.style.display = 'flex';
+  title.textContent = 'COMPANY PROFILE LOADED — ' + val.toUpperCase();
+  if (val.toLowerCase().includes('saviynt')) {
+    body.innerHTML = 'AI-based identity security · IGA · PAM · NHI · External Identity · AI Agent Security<br>Pain points to align: legacy IGA modernization · access sprawl · non-human identity risk · compliance gaps · privileged access exposure';
+  } else {
+    body.textContent = 'Enter URL above to auto-load company profile and pain point alignment context.';
+  }
+});
+
+function grantWish() {
+  const myC = document.getElementById('my-company').value.trim();
+  const tgt = document.getElementById('target-company').value.trim();
+  const tgtUrl = document.getElementById('target-company-url').value.trim();
+  if (!tgt) {
+    document.getElementById('target-company').style.borderColor = '#f0abfc';
+    document.getElementById('target-company').focus();
+    return;
+  }
+  document.getElementById('target-company').style.borderColor = '';
+  // Find company in list and trigger research, or prompt to add
+  const match = companies.find(c => c.name.toLowerCase().includes(tgt.toLowerCase()));
+  if (match) {
+    triggerResearch(match.id, match.name);
+  } else {
+    // Pre-fill add modal and open it
+    document.getElementById('add-name').value = tgt;
+    if (tgtUrl) document.getElementById('add-domain').value = tgtUrl.replace(/https?:\/\//,'').split('/')[0];
+    showToast('Target not in list — add it first', 'error');
+    openModal('add-modal');
+  }
+}
+
+// ============================================================
+// SUPABASE DATA
+// ============================================================
+async function loadData() {
+  if (!isConfigured) {
+    renderCompanies([]);
+    return;
+  }
+  try {
+    const [{ data: cos }, { data: runs }, { data: contacts }, { data: content }] = await Promise.all([
+      supabase.from('companies').select('*').order('created_at', { ascending: false }),
+      supabase.from('research_runs').select('id, status, company_id, created_at').order('created_at', { ascending: false }).limit(20),
+      supabase.from('contacts').select('id, company_id'),
+      supabase.from('outreach_content').select('id'),
+    ]);
+    companies = cos || [];
+    renderCompanies(companies);
+    renderStats(companies, runs, contacts, content);
+    renderFeed(runs, companies);
+  } catch (e) {
+    console.error(e);
+    showToast('Failed to load data', 'error');
+  }
+}
+
+function renderStats(cos, runs, contacts, content) {
+  document.getElementById('stat-companies').textContent = cos?.length ?? '—';
+  document.getElementById('stat-runs').textContent = runs?.filter(r => r.status === 'completed').length ?? '—';
+  document.getElementById('stat-contacts').textContent = contacts?.length ?? '—';
+  document.getElementById('stat-content').textContent = content?.length ?? '—';
+}
+
+// ============================================================
+// COMPANIES TABLE
+// ============================================================
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCompanies(companies);
+}
+
+function renderCompanies(list) {
+  const filtered = currentFilter === 'all' ? list : list.filter(c => c.status === currentFilter);
+  const tbody = document.getElementById('companies-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">' + (isConfigured ? 'No companies found — add your first target above.' : 'Configure credentials to load data.') + '</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(c => {
+    const tag = statusTag(c.status);
+    const signal = signalBar(c.status);
+    return `<tr>
+      <td>
+        <div class="co-name">${esc(c.name)}</div>
+        <div class="co-meta">${c.ticker ? c.ticker + ' · ' : ''}${c.employee_count ? Number(c.employee_count).toLocaleString() + ' emp' : c.domain || ''}</div>
+      </td>
+      <td><span class="mono" style="font-size:11px;color:var(--muted);">${esc(c.industry || '—')}</span></td>
+      <td><span class="tag ${tag.cls} mono">${tag.label}</span></td>
+      <td>${signal}</td>
+      <td style="text-align:right;">
+        <div class="action-btns">
+          <button class="action-btn" style="color:var(--purple);" onclick="triggerResearch('${c.id}','${esc(c.name)}')">RESEARCH</button>
+          <button class="action-btn" style="color:var(--blue);" onclick="viewCompany('${c.id}')">VIEW</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function statusTag(s) {
+  if (s === 'active')   return { cls: 'tag-active',   label: 'ACTIVE' };
+  if (s === 'archived') return { cls: 'tag-error',    label: 'ARCHIVED' };
+  return { cls: 'tag-prospect', label: 'PROSPECT' };
+}
+
+function signalBar(s) {
+  if (s === 'active') return `<div class="signal-bar"><div class="bar" style="width:28px;background:var(--green);"></div><div class="bar" style="width:20px;background:var(--green);"></div><div class="bar" style="width:14px;background:var(--green);"></div><span class="mono" style="font-size:9px;color:var(--green);margin-left:4px;">HIGH</span></div>`;
+  return `<div class="signal-bar"><div class="bar" style="width:28px;background:var(--gold);"></div><div class="bar" style="width:16px;background:var(--gold);"></div><div class="bar" style="width:10px;background:var(--border);"></div><span class="mono" style="font-size:9px;color:var(--gold);margin-left:4px;">MED</span></div>`;
+}
+
+// ============================================================
+// FEED
+// ============================================================
+function renderFeed(runs, cos) {
+  const el = document.getElementById('feed-list');
+  if (!runs?.length) return;
+  const colors = { completed: 'var(--green)', running: 'var(--pink)', failed: 'var(--red)', pending: 'var(--gold)' };
+  el.innerHTML = runs.slice(0, 6).map(r => {
+    const co = cos?.find(c => c.id === r.company_id);
+    const col = colors[r.status] || 'var(--muted)';
+    const time = new Date(r.created_at).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+    return `<div class="feed-item" style="border-color:${col};">
+      <div class="feed-time">${time}</div>
+      <div class="feed-title">${co ? esc(co.name) : 'Unknown'} — ${r.status}</div>
+      <div class="feed-sub">Research run ${r.status}</div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+async function addCompany() {
+  const name = document.getElementById('add-name').value.trim();
+  if (!name) { showToast('Company name required', 'error'); return; }
+  if (!isConfigured) { showToast('Configure credentials first', 'error'); return; }
+  const { error } = await supabase.from('companies').insert({
+    name,
+    domain:         document.getElementById('add-domain').value.trim() || null,
+    industry:       document.getElementById('add-industry').value.trim() || null,
+    ticker:         document.getElementById('add-ticker').value.trim() || null,
+    employee_count: document.getElementById('add-employees').value || null,
+    status:         document.getElementById('add-status').value,
+  });
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  showToast('Company added', 'success');
+  closeModal('add-modal');
+  loadData();
+}
+
+async function triggerResearch(companyId, companyName) {
+  if (!isConfigured) { showToast('Configure credentials first', 'error'); return; }
+  showToast('Triggering research for ' + companyName + '...', '');
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/research.yml/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + CONFIG.GITHUB_PAT,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ref: 'main', inputs: { company_id: companyId } }),
+      }
+    );
+    if (res.status === 204) {
+      showToast('Wish granted — research running for ' + companyName, 'success');
+      loadData();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showToast('GitHub error: ' + (err.message || res.status), 'error');
+    }
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  }
+}
+
+async function runBatch() {
+  if (!isConfigured) { showToast('Configure credentials first', 'error'); return; }
+  const target = document.getElementById('batch-target').value;
+  const max = document.getElementById('batch-max').value;
+  const delay = document.getElementById('batch-delay').value;
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/batch.yml/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + CONFIG.GITHUB_PAT,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ref: 'main', inputs: { target_status: target, max_companies: max, delay_seconds: delay } }),
+      }
+    );
+    if (res.status === 204) {
+      showToast('Batch run started', 'success');
+      closeModal('batch-modal');
+    } else {
+      showToast('GitHub error: ' + res.status, 'error');
+    }
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  }
+}
+
+async function searchProspects() {
+  const company = document.getElementById('ps-company').value.trim();
+  if (!company) { showToast('Company name required', 'error'); return; }
+  if (!isConfigured) { showToast('Configure credentials first', 'error'); return; }
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/research.yml/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + CONFIG.GITHUB_PAT,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ref: 'main', inputs: {
+          prospect_search: 'true',
+          company_name: company,
+          company_domain: document.getElementById('ps-domain').value.trim(),
+          max_contacts: document.getElementById('ps-max').value,
+          keywords: document.getElementById('ps-keywords').value.trim(),
+        }}),
+      }
+    );
+    if (res.status === 204) {
+      showToast('Prospect search started for ' + company, 'success');
+      closeModal('prospect-modal');
+    } else {
+      showToast('GitHub error: ' + res.status, 'error');
+    }
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  }
+}
+
+function viewCompany(id) {
+  window.location.href = 'company.html?id=' + id;
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + (type || '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = '', 3500);
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ============================================================
+// INIT
+// ============================================================
+loadData();
+</script>
+</body>
+</html>
