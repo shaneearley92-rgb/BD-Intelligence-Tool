@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sales Value Pyramid — PG Genie</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#fdf8f2;--bg2:#fff9f4;--border:#ecddd0;
+  --purple:#7c3aed;--purple-light:#ede9fe;
+  --gold:#f59e0b;--teal:#0d9488;--green:#16a34a;--green-light:#dcfce7;
+  --red:#dc2626;--red-light:#fee2e2;
+  --text:#2d1f0e;--text2:#6b4f35;--text3:#a07850;
+  --shadow:0 2px 12px rgba(124,58,237,0.10);
+  --shadow2:0 4px 24px rgba(124,58,237,0.13);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Nunito Sans',sans-serif;min-height:100vh;}
+.btn{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;border:none;padding:10px 22px;border-radius:999px;transition:all 0.18s;white-space:nowrap;display:inline-block;}
+.btn-primary{background:var(--purple);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,0.3);}
+.btn-primary:hover{background:#6d28d9;transform:translateY(-1px);}
+.btn-ghost{background:#fff;color:var(--purple);border:2px solid var(--border);}
+.btn-ghost:hover{border-color:var(--purple);background:var(--purple-light);}
+.btn-teal{background:var(--teal);color:#fff;}
+.btn-teal:hover{background:#0f766e;}
+.btn-sm{font-size:12px;padding:7px 16px;}
+#loading{text-align:center;padding:80px 20px;font-family:'Nunito',sans-serif;font-weight:800;color:var(--purple);}
+#error-msg{text-align:center;padding:80px 20px;font-family:'Nunito',sans-serif;font-weight:800;color:var(--red);display:none;}
+.spinner{width:48px;height:48px;border:4px solid var(--purple-light);border-top-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+#slide-wrapper{display:none;background:var(--bg);padding:32px;}
+#slide{background:#fff;border-radius:20px;box-shadow:var(--shadow2);padding:40px 48px;max-width:1100px;margin:0 auto;}
+.tier-desc{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
+.tier-desc:last-child{border-bottom:none;}
+.tier-dot{width:14px;height:14px;border-radius:3px;flex-shrink:0;margin-top:3px;}
+.tier-tag{display:inline-block;font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;padding:2px 10px;border-radius:999px;margin:2px 3px 2px 0;}
+@media print{
+  body{background:#fff;}
+  #controls{display:none!important;}
+  #slide-wrapper{padding:0!important;background:#fff!important;}
+  #slide{box-shadow:none!important;border-radius:0!important;max-width:100%!important;}
+  @page{size:landscape;margin:0.5in;}
+}
+</style>
+</head>
+<body>
+
+<div id="controls" style="background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a href="index.html" style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:var(--purple);text-decoration:none;">← Back to Dashboard</a>
+    <span style="color:var(--border);font-size:16px;">|</span>
+    <span style="font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:var(--text);" id="ctrl-name">Loading...</span>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn btn-ghost btn-sm" onclick="generatePyramid()">↻ Regenerate</button>
+    <button class="btn btn-teal btn-sm" onclick="window.print()">Download PDF</button>
+    <button class="btn btn-primary btn-sm" onclick="window.print()">Print Slide</button>
+  </div>
+</div>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div style="font-size:16px;">Genie is building your pyramid...</div>
+  <div style="font-size:13px;color:var(--text3);margin-top:8px;font-weight:600;" id="load-status">Gathering intelligence from public sources</div>
+</div>
+<div id="error-msg">
+  <div style="font-size:16px;" id="err-title">Something went wrong</div>
+  <div style="font-size:13px;margin-top:8px;font-weight:600;" id="err-detail"></div>
+  <button class="btn btn-primary" style="margin-top:16px;" onclick="generatePyramid()">Try Again</button>
+</div>
+
+<div id="slide-wrapper">
+  <div id="slide">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;">
+      <div>
+        <div style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Sales Value Pyramid</div>
+        <div style="font-family:'Nunito',sans-serif;font-size:28px;font-weight:900;color:var(--text);line-height:1.1;" id="s-title">Company</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text3);margin-top:4px;" id="s-meta"></div>
+        <div style="font-size:11px;font-weight:600;color:var(--text3);margin-top:2px;" id="s-date"></div>
+      </div>
+      <div id="logo-area" style="width:130px;height:65px;background:var(--purple-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;color:var(--purple);text-align:center;padding:8px;" id="logo-placeholder">Company Logo</div>
+    </div>
+
+    <!-- PYRAMID + CONTENT -->
+    <div style="display:grid;grid-template-columns:300px 1fr;gap:40px;align-items:start;">
+
+      <!-- SVG -->
+      <div>
+        <svg width="300" height="380" viewBox="0 0 300 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="150,18 206,88 94,88" fill="#b2dfdb" stroke="#fff" stroke-width="2"/>
+          <text x="150" y="60" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="12" fill="#004d40">GOALS</text>
+          <polygon points="94,91 206,91 232,156 68,156" fill="#80cbc4" stroke="#fff" stroke-width="2"/>
+          <text x="150" y="130" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="12" fill="#004d40">STRATEGIES</text>
+          <polygon points="68,159 232,159 258,224 42,224" fill="#4db6ac" stroke="#fff" stroke-width="2"/>
+          <text x="150" y="198" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="12" fill="#fff">INITIATIVES</text>
+          <polygon points="42,227 258,227 284,292 16,292" fill="#26a69a" stroke="#fff" stroke-width="2"/>
+          <text x="150" y="266" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="12" fill="#fff">OBSTACLES</text>
+          <polygon points="16,295 284,295 300,360 0,360" fill="#00796b" stroke="#fff" stroke-width="2"/>
+          <text x="150" y="334" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="12" fill="#fff">NEEDS</text>
+        </svg>
+        <div style="font-size:10px;font-weight:700;color:var(--text3);text-align:center;margin-top:6px;">Adapted from MEDDICC.COM</div>
+      </div>
+
+      <!-- TIER DESCRIPTIONS -->
+      <div id="tiers-content">
+        <div class="tier-desc">
+          <div class="tier-dot" style="background:#b2dfdb;border:1px solid #80cbc4;"></div>
+          <div>
+            <div style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:900;letter-spacing:1px;color:#00796b;text-transform:uppercase;margin-bottom:4px;">Goals</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text2);line-height:1.6;margin-bottom:5px;" id="d-goals">—</div>
+            <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;" id="c-goals"></div>
+            <div id="sa-goals"></div>
+          </div>
+        </div>
+        <div class="tier-desc">
+          <div class="tier-dot" style="background:#80cbc4;"></div>
+          <div>
+            <div style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:900;letter-spacing:1px;color:#00796b;text-transform:uppercase;margin-bottom:4px;">Strategies</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text2);line-height:1.6;margin-bottom:5px;" id="d-strategies">—</div>
+            <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;" id="c-strategies"></div>
+            <div id="sa-strategies"></div>
+          </div>
+        </div>
+        <div class="tier-desc">
+          <div class="tier-dot" style="background:#4db6ac;"></div>
+          <div>
+            <div style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:900;letter-spacing:1px;color:#00796b;text-transform:uppercase;margin-bottom:4px;">Initiatives</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text2);line-height:1.6;margin-bottom:5px;" id="d-initiatives">—</div>
+            <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;" id="c-initiatives"></div>
+            <div id="sa-initiatives"></div>
+          </div>
+        </div>
+        <div class="tier-desc">
+          <div class="tier-dot" style="background:#26a69a;"></div>
+          <div>
+            <div style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:900;letter-spacing:1px;color:#00796b;text-transform:uppercase;margin-bottom:4px;">Obstacles</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text2);line-height:1.6;margin-bottom:5px;" id="d-obstacles">—</div>
+            <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;" id="c-obstacles"></div>
+            <div id="sa-obstacles"></div>
+          </div>
+        </div>
+        <div class="tier-desc">
+          <div class="tier-dot" style="background:#00796b;"></div>
+          <div>
+            <div style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:900;letter-spacing:1px;color:#00796b;text-transform:uppercase;margin-bottom:4px;">Needs</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text2);line-height:1.6;margin-bottom:5px;" id="d-needs">—</div>
+            <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;" id="c-needs"></div>
+            <div id="sa-needs"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="margin-top:24px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <svg width="24" height="28" viewBox="0 0 130 160" fill="none">
+          <ellipse cx="72" cy="123" rx="24" ry="12" fill="#fbbf24"/>
+          <path d="M31 80 Q44 60 36 38 Q28 17 35 3" stroke="#16a34a" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.65"/>
+          <ellipse cx="32" cy="60" rx="12" ry="15" fill="#16a34a"/>
+          <circle cx="32" cy="33" r="18" fill="#86efac" stroke="#22c55e" stroke-width="0.75"/>
+          <ellipse cx="25.5" cy="32" rx="3" ry="3.5" fill="#7c3aed"/>
+          <ellipse cx="38.5" cy="32" rx="3" ry="3.5" fill="#7c3aed"/>
+          <path d="M25 40 Q32 46.5 39 40" stroke="#14532d" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M14 29 Q17 16 32 14 Q47 16 50 29 Q45 22 32 23 Q19 22 14 29Z" fill="#7c3aed"/>
+          <circle cx="32" cy="19" r="4.5" fill="#fbbf24"/>
+        </svg>
+        <div>
+          <div style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:900;color:var(--purple);">PG Genie</div>
+          <div style="font-size:10px;font-weight:600;color:var(--text3);">AI-Powered Sales Intelligence</div>
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);">Powered by Claude AI · Aligned to Saviynt Identity Security</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);" id="footer-date"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CONFIG = {
+  SUPABASE_URL:      'YOUR_SUPABASE_URL',
+  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
+};
+
+const params   = new URLSearchParams(window.location.search);
+const coId     = params.get('company_id') || '';
+const coName   = params.get('company_name') || 'Unknown Company';
+const coDomain = params.get('company_domain') || '';
+
+document.getElementById('ctrl-name').textContent = coName + ' — Sales Value Pyramid';
+document.getElementById('s-title').textContent   = coName;
+document.getElementById('s-date').textContent    = 'Generated ' + new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+document.getElementById('footer-date').textContent = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+// Load company logo via Clearbit
+if(coDomain){
+  const domain = coDomain.replace(/https?:\/\//,'').split('/')[0];
+  const img = new Image();
+  img.onload = () => {
+    document.getElementById('logo-area').innerHTML = `<img src="https://logo.clearbit.com/${domain}" style="width:130px;height:65px;object-fit:contain;border-radius:10px;" alt="${coName}"/>`;
+  };
+  img.onerror = () => { document.getElementById('logo-placeholder').textContent = coName; };
+  img.src = `https://logo.clearbit.com/${domain}`;
+} else {
+  document.getElementById('logo-placeholder').textContent = coName;
+}
+
+async function generatePyramid(){
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('slide-wrapper').style.display = 'none';
+  document.getElementById('error-msg').style.display = 'none';
+
+  let researchContext = '';
+  const configured = CONFIG.SUPABASE_URL !== 'YOUR_SUPABASE_URL';
+  if(configured && coId){
+    try{
+      document.getElementById('load-status').textContent = 'Loading research data...';
+      const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+      const [{data:co},{data:contacts}] = await Promise.all([
+        sb.from('companies').select('*').eq('id',coId).single(),
+        sb.from('contacts').select('*').eq('company_id',coId).limit(20),
+      ]);
+      if(co?.industry||co?.employee_count) document.getElementById('s-meta').textContent = [co.industry, co.employee_count?Number(co.employee_count).toLocaleString()+' employees':null, co.ticker].filter(Boolean).join(' · ');
+      if(co?.intelligence) researchContext = JSON.stringify(co.intelligence).substring(0,3000);
+      if(contacts?.length) researchContext += '\nContacts found: '+contacts.map(c=>`${c.name} (${c.title||''})`).join(', ');
+    }catch(e){console.warn('Supabase load failed:',e);}
+  }
+
+  document.getElementById('load-status').textContent = 'Claude is analyzing and building your pyramid...';
+
+  const prompt = `You are a senior enterprise sales strategist. Build a Sales Value Pyramid for ${coName}${coDomain?' ('+coDomain+')':''} aligned to Saviynt's identity security platform (IGA, PAM, NHI, External Identity, AI Agent Security).
+
+${researchContext?'RESEARCH DATA:\n'+researchContext:'Use publicly available knowledge about this company including any SEC filings, news, and earnings calls.'}
+
+Return ONLY valid JSON, no markdown, no preamble:
+{
+  "company_meta": "Industry · Size · one key fact",
+  "goals": {
+    "description": "2 sentences on top-level business objectives from public sources",
+    "contacts": ["CISO — owns security strategy", "CIO — digital transformation owner"],
+    "saviynt_alignment": ["IGA modernization directly supports compliance goals", "Identity governance reduces board-level risk exposure"]
+  },
+  "strategies": {
+    "description": "2 sentences on how they plan to achieve those goals",
+    "contacts": ["VP Security Architecture", "Director of Identity & Access"],
+    "saviynt_alignment": ["Zero Trust strategy powered by Saviynt IGA", "PAM aligns with privileged access reduction roadmap"]
+  },
+  "initiatives": {
+    "description": "2 sentences on specific funded programs underway",
+    "contacts": ["Director of IAM", "IT Security Manager"],
+    "saviynt_alignment": ["App Access Governance streamlines ERP/SaaS consolidation", "NHI secures machine identities in cloud migrations"]
+  },
+  "obstacles": {
+    "description": "2 sentences on barriers and pain points threatening initiatives",
+    "contacts": ["IAM Program Manager", "Compliance & Risk Manager"],
+    "saviynt_alignment": ["Saviynt replaces fragmented legacy IGA tools", "Automated certifications cut compliance overhead significantly"]
+  },
+  "needs": {
+    "description": "2 sentences on capabilities needed to overcome those obstacles",
+    "contacts": ["IT Operations Lead", "Security Analyst"],
+    "saviynt_alignment": ["Identity Cloud covers all identity types on one platform", "SaviAI reduces admin effort and accelerates app onboarding"]
+  }
+}`;
+
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    const data = await res.json();
+    const raw = data.content?.map(b=>b.text||'').join('')||'';
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    render(parsed);
+  }catch(e){
+    document.getElementById('loading').style.display='none';
+    document.getElementById('error-msg').style.display='block';
+    document.getElementById('err-detail').textContent='Error: '+e.message+'. Check that your Anthropic API key is configured in the file.';
+  }
+}
+
+function render(d){
+  if(d.company_meta) document.getElementById('s-meta').textContent = d.company_meta;
+  const tiers = ['goals','strategies','initiatives','obstacles','needs'];
+  const tagColors = {
+    goals:['#b2dfdb','#004d40'], strategies:['#80cbc4','#004d40'],
+    initiatives:['#4db6ac','#fff'], obstacles:['#26a69a','#fff'], needs:['#00796b','#fff']
+  };
+  tiers.forEach(t=>{
+    const td=d[t]; if(!td) return;
+    const de=document.getElementById('d-'+t);
+    const ce=document.getElementById('c-'+t);
+    const se=document.getElementById('sa-'+t);
+    if(de) de.textContent=td.description||'';
+    if(ce&&td.contacts?.length) ce.innerHTML='<strong style="color:var(--text);">Key Contacts:</strong> '+td.contacts.join(' · ');
+    if(se&&td.saviynt_alignment?.length){
+      const [bg,fg]=tagColors[t];
+      se.innerHTML=td.saviynt_alignment.map(s=>`<span class="tier-tag" style="background:${bg}33;color:${fg==='#fff'?'#00796b':fg};border:1px solid ${bg};">✓ ${s}</span>`).join('');
+    }
+  });
+  document.getElementById('loading').style.display='none';
+  document.getElementById('slide-wrapper').style.display='block';
+}
+
+generatePyramid();
+</script>
+</body>
+</html>
