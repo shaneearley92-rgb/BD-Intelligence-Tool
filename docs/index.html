@@ -328,9 +328,9 @@ const CONFIG = {
 
 const isConfigured = CONFIG.SUPABASE_URL !== 'YOUR_SUPABASE_URL';
 if (!isConfigured) document.getElementById('config-warning').style.display = 'block';
-let supabase = null;
-if (isConfigured) supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-let companies = [], currentFilter = 'all';
+var sb = null;
+if (isConfigured) sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+var companies = [], currentFilter = 'all';
 
 function tick(){const e=document.getElementById('clock');if(e)e.textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}
 tick();setInterval(tick,1000);
@@ -360,10 +360,10 @@ async function loadData(){
   if(!isConfigured){renderCompanies([]);return;}
   try{
     const[{data:cos},{data:runs},{data:contacts},{data:content}]=await Promise.all([
-      supabase.from('companies').select('*').order('created_at',{ascending:false}),
-      supabase.from('research_runs').select('id,status,company_id,created_at').order('created_at',{ascending:false}).limit(20),
-      supabase.from('contacts').select('id,company_id'),
-      supabase.from('outreach_content').select('id'),
+      sb.from('companies').select('*').order('created_at',{ascending:false}),
+      sb.from('research_runs').select('id,status,company_id,created_at').order('created_at',{ascending:false}).limit(20),
+      sb.from('contacts').select('id,company_id'),
+      sb.from('outreach_content').select('id'),
     ]);
     companies=cos||[];
     renderCompanies(companies);
@@ -436,7 +436,7 @@ async function addCompany(){
   const name=document.getElementById('add-name').value.trim();
   if(!name){showToast('Company name required','error');return;}
   if(!isConfigured){showToast('Configure credentials first','error');return;}
-  const{error}=await supabase.from('companies').insert({name,domain:document.getElementById('add-domain').value.trim()||null,industry:document.getElementById('add-industry').value.trim()||null,ticker:document.getElementById('add-ticker').value.trim()||null,employee_count:document.getElementById('add-employees').value||null,status:document.getElementById('add-status').value});
+  const{error}=await sb.from('companies').insert({name,domain:document.getElementById('add-domain').value.trim()||null,industry:document.getElementById('add-industry').value.trim()||null,ticker:document.getElementById('add-ticker').value.trim()||null,employee_count:document.getElementById('add-employees').value||null,status:document.getElementById('add-status').value});
   if(error){showToast('Error: '+error.message,'error');return;}
   showToast('Company added!','success');closeModal('add-modal');loadData();
 }
