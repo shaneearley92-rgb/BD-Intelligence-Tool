@@ -387,6 +387,7 @@
         <button class="btn btn-ghost btn-sm qa-btn" onclick="openModal('add-modal')">+ ADD TARGET COMPANY</button>
         <button class="btn btn-blue btn-sm qa-btn" onclick="openModal('batch-modal')">RUN BATCH RESEARCH</button>
         <button class="btn qa-btn btn-sm" style="background:transparent;color:var(--pink);border:1px solid #2a1535;width:100%;text-align:left;" onclick="openModal('prospect-modal')">PROSPECT SEARCH</button>
+        <button class="btn qa-btn btn-sm" style="background:transparent;color:var(--green);border:1px solid #0a3a1a;width:100%;text-align:left;" onclick="runApiTest()">TEST APIs</button>
       </div>
     </div>
   </div>
@@ -803,6 +804,35 @@ function showToast(msg, type) {
 // UTILS
 // ============================================================
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ============================================================
+// TEST APIs
+// ============================================================
+async function runApiTest() {
+  if (!isConfigured) { showToast('Configure credentials first', 'error'); return; }
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/test-apis.yml/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + CONFIG.GITHUB_PAT,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ref: 'main' }),
+      }
+    );
+    if (res.status === 204) {
+      showToast('API test started — check GitHub Actions for results', 'success');
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showToast('GitHub error: ' + (err.message || res.status), 'error');
+    }
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  }
+}
 
 // ============================================================
 // INIT
