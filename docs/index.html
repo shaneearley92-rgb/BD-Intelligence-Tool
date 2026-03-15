@@ -809,14 +809,22 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 // TEST APIs
 // ============================================================
 async function runApiTest() {
-  if (!isConfigured) { showToast('Configure credentials first', 'error'); return; }
+  let pat = CONFIG.GITHUB_PAT;
+  if (!pat || pat === 'YOUR_GITHUB_PAT') {
+    pat = localStorage.getItem('gh_pat');
+  }
+  if (!pat) {
+    pat = prompt('Enter your GitHub Personal Access Token (PAT):');
+    if (!pat) return;
+    localStorage.setItem('gh_pat', pat);
+  }
   try {
     const res = await fetch(
       `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/test-apis.yml/dispatches`,
       {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer ' + CONFIG.GITHUB_PAT,
+          'Authorization': 'Bearer ' + pat,
           'Accept': 'application/vnd.github.v3+json',
           'Content-Type': 'application/json',
         },
@@ -827,6 +835,7 @@ async function runApiTest() {
       showToast('API test started — check GitHub Actions for results', 'success');
     } else {
       const err = await res.json().catch(() => ({}));
+      if (res.status === 401 || res.status === 403) localStorage.removeItem('gh_pat');
       showToast('GitHub error: ' + (err.message || res.status), 'error');
     }
   } catch (e) {
