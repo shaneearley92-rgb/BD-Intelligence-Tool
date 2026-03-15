@@ -1,288 +1,434 @@
 <!DOCTYPE html>
-<!-- saved from url=(0051)file:///Users/tonyearley/Downloads/index%20(4).html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>PG Genie — Sales Intelligence Platform</title>
-<link href="./index-configuration_files/css2" rel="stylesheet">
-<script src="./index-configuration_files/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{
-  --bg:#fdf8f2;--bg2:#fff9f4;--bg3:#fef3e8;
-  --border:#ecddd0;--border2:#ddc9b5;
-  --purple:#7c3aed;--purple-light:#ede9fe;
-  --gold:#f59e0b;--gold-light:#fef3c7;
-  --pink:#e879a0;--pink-light:#fce7f3;
-  --teal:#0d9488;--teal-light:#ccfbf1;
-  --green:#16a34a;--green-light:#dcfce7;
-  --red:#dc2626;--red-light:#fee2e2;
-  --text:#2d1f0e;--text2:#6b4f35;--text3:#a07850;
-  --shadow:0 2px 12px rgba(124,58,237,0.10);
-  --shadow2:0 4px 24px rgba(124,58,237,0.13);
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Nunito Sans',sans-serif;min-height:100vh;}
-::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
-input[type=text],input[type=url],input[type=number],select,textarea{background:#fff;border:2px solid var(--border);color:var(--text);font-family:'Nunito Sans',sans-serif;font-size:14px;font-weight:600;padding:10px 16px;width:100%;outline:none;border-radius:12px;transition:border-color 0.2s,box-shadow 0.2s;appearance:none;}
-input:focus,select:focus,textarea:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(124,58,237,0.1);}
-input::placeholder,textarea::placeholder{color:var(--text3);font-weight:400;}
-select option{background:#fff;}
-.btn{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;border:none;padding:10px 22px;border-radius:999px;transition:all 0.18s;letter-spacing:0.3px;white-space:nowrap;display:inline-block;}
-.btn-primary{background:var(--purple);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,0.3);}
-.btn-primary:hover{background:#6d28d9;transform:translateY(-1px);}
-.btn-ghost{background:#fff;color:var(--purple);border:2px solid var(--border2);}
-.btn-ghost:hover{border-color:var(--purple);background:var(--purple-light);}
-.btn-gold{background:var(--gold);color:#fff;box-shadow:0 4px 14px rgba(245,158,11,0.3);}
-.btn-gold:hover{background:#d97706;transform:translateY(-1px);}
-.btn-teal{background:var(--teal);color:#fff;box-shadow:0 4px 14px rgba(13,148,136,0.25);}
-.btn-teal:hover{background:#0f766e;transform:translateY(-1px);}
-.btn-danger{background:#fff;color:var(--red);border:2px solid var(--red-light);}
-.btn-danger:hover{background:var(--red-light);}
-.btn-sm{font-size:12px;padding:7px 16px;}
-.tag{font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;padding:3px 12px;border-radius:999px;}
-.tag-active{background:var(--green-light);color:#15803d;}
-.tag-prospect{background:var(--gold-light);color:#b45309;}
-.tag-scanning{background:var(--pink-light);color:#be185d;}
-.tag-archived{background:#f1f5f9;color:#64748b;}
-.label{font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;letter-spacing:2px;color:var(--text3);text-transform:uppercase;}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(45,31,14,0.5);z-index:200;align-items:center;justify-content:center;}
-.modal-overlay.open{display:flex;}
-.modal{background:#fff;border-radius:20px;padding:28px;width:440px;max-width:95vw;box-shadow:var(--shadow2);}
-.modal-title{font-family:'Nunito',sans-serif;font-size:16px;font-weight:900;color:var(--purple);margin-bottom:20px;}
-.form-row{margin-bottom:14px;}
-.form-label{font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;color:var(--text3);letter-spacing:1px;margin-bottom:6px;display:block;text-transform:uppercase;}
-.form-label span{color:var(--red);}
-.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
-#toast{position:fixed;bottom:24px;right:24px;background:#fff;border-radius:12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text);padding:12px 20px;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;box-shadow:var(--shadow2);}
-#toast.show{opacity:1;}
-#toast.success{color:var(--green);border:2px solid var(--green-light);}
-#toast.error{color:var(--red);border:2px solid var(--red-light);}
-#config-warning{background:#fef3c7;border-bottom:2px solid var(--gold);padding:10px 24px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;color:#92400e;display:none;}
-.empty{text-align:center;padding:40px 0;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text3);}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-@keyframes scan{0%{width:6px;opacity:0.5}50%{width:28px;opacity:1}100%{width:6px;opacity:0.5}}
+  :root {
+    --bg:       #07080f;
+    --bg2:      #0b0c1a;
+    --bg3:      #090a16;
+    --border:   #1a1535;
+    --border2:  #2a2060;
+    --purple:   #a78bfa;
+    --purple2:  #7c3aed;
+    --purple3:  #5b21b6;
+    --pink:     #f0abfc;
+    --blue:     #7dd3fc;
+    --gold:     #fbbf24;
+    --green:    #4ade80;
+    --red:      #f87171;
+    --text:     #c8d8ff;
+    --muted:    #4a4270;
+    --dim:      #2e2a50;
+    --mono:     'Share Tech Mono', monospace;
+    --head:     'Rajdhani', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--head); min-height: 100vh; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); }
+
+  /* TYPOGRAPHY */
+  .mono { font-family: var(--mono); }
+  .label { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--dim); text-transform: uppercase; }
+
+  /* INPUTS */
+  input[type=text], input[type=url], input[type=number], select, textarea {
+    background: #0d0b1e; border: 1px solid var(--border2);
+    color: var(--text); font-family: var(--mono); font-size: 12px;
+    padding: 9px 12px; width: 100%; outline: none;
+    transition: border-color 0.2s; border-radius: 0;
+    appearance: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--purple); }
+  input::placeholder, textarea::placeholder { color: var(--dim); }
+  select option { background: #0d0b1e; }
+
+  /* BUTTONS */
+  .btn { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; cursor: pointer; border: none; padding: 9px 18px; transition: all 0.15s; }
+  .btn-primary { background: var(--purple); color: var(--bg); font-weight: 600; }
+  .btn-primary:hover { background: #c4b5fd; }
+  .btn-ghost { background: transparent; color: var(--purple); border: 1px solid var(--border2); }
+  .btn-ghost:hover { border-color: var(--purple); }
+  .btn-danger { background: transparent; color: var(--red); border: 1px solid #3a1a1a; }
+  .btn-danger:hover { border-color: var(--red); }
+  .btn-sm { font-size: 10px; padding: 5px 12px; }
+  .btn-blue { background: transparent; color: var(--blue); border: 1px solid #1a2a3a; }
+  .btn-blue:hover { border-color: var(--blue); }
+
+  /* TAGS */
+  .tag { font-family: var(--mono); font-size: 9px; padding: 2px 8px; letter-spacing: 1px; }
+  .tag-active   { background: #0f2218; color: var(--green); }
+  .tag-prospect { background: #1a1505; color: var(--gold); }
+  .tag-scanning { background: #160e2a; color: var(--pink); }
+  .tag-error    { background: #1a0808; color: var(--red); }
+
+  /* LAYOUT */
+  #app { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* HEADER */
+  #header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px; border-bottom: 1px solid var(--border);
+    background: #090a16; position: sticky; top: 0; z-index: 100;
+  }
+  #header .logo { display: flex; align-items: center; gap: 14px; }
+  #header .logo-text-main { font-family: var(--head); font-size: 18px; color: var(--purple); letter-spacing: 4px; font-weight: 600; line-height: 1.1; }
+  #header .logo-text-sub  { font-family: var(--mono); font-size: 9px; color: var(--dim); letter-spacing: 3px; }
+  #header .status { display: flex; align-items: center; gap: 8px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* MISSION PANEL */
+  #mission {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 18px 24px;
+  }
+  #mission .mission-grid {
+    display: grid; grid-template-columns: 1fr 1fr auto;
+    gap: 16px; align-items: end;
+  }
+  .mission-field-label {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 7px;
+  }
+  .mission-field-label .dot-sq { width: 8px; height: 8px; }
+  .mission-field-label .dot-sq-purple { background: var(--purple); }
+  .mission-field-label .dot-sq-pink   { background: var(--pink); }
+  #context-pill {
+    margin-top: 12px; padding: 10px 14px;
+    border: 1px solid var(--border2); background: #0d0b1e;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  #context-pill .pill-dot { width: 6px; height: 6px; background: var(--purple); margin-top: 4px; flex-shrink: 0; }
+
+  /* STATS */
+  #stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); border-bottom: 1px solid var(--border); }
+  .stat-cell { padding: 13px 24px; border-right: 1px solid var(--border); }
+  .stat-cell:last-child { border-right: none; }
+  .stat-num { font-family: var(--mono); font-size: 26px; font-weight: 600; line-height: 1; margin-top: 4px; }
+  .stat-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+  /* MAIN CONTENT */
+  #main { display: grid; grid-template-columns: 1fr 260px; flex: 1; }
+
+  /* TABLE AREA */
+  #table-area { padding: 18px 24px; border-right: 1px solid var(--border); }
+  .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .filter-btns { display: flex; gap: 6px; }
+  .filter-btn { font-family: var(--mono); font-size: 9px; padding: 3px 10px; border: 1px solid var(--border); color: var(--dim); cursor: pointer; background: transparent; letter-spacing: 1px; }
+  .filter-btn.active { border-color: var(--purple); color: var(--purple); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th { text-align: left; padding: 6px 8px 6px 0; font-size: 9px; letter-spacing: 2px; color: var(--dim); font-weight: 400; font-family: var(--mono); border-bottom: 1px solid var(--border); }
+  tbody tr { border-bottom: 1px solid #0e0f1c; transition: background 0.1s; }
+  tbody tr:hover { background: #0d0e1f; }
+  tbody tr:nth-child(even) { background: #0a0b16; }
+  tbody tr:nth-child(even):hover { background: #0d0e1f; }
+  td { padding: 10px 8px 10px 0; vertical-align: middle; }
+  td:not(:first-child) { padding-left: 8px; }
+  .co-name { font-family: var(--mono); color: var(--text); font-size: 12px; }
+  .co-meta { font-family: var(--mono); color: var(--dim); font-size: 10px; margin-top: 1px; }
+  .signal-bar { display: flex; gap: 3px; align-items: center; }
+  .bar { height: 3px; }
+  .action-btns { display: flex; gap: 10px; justify-content: flex-end; }
+  .action-btn { font-family: var(--mono); font-size: 10px; cursor: pointer; background: none; border: none; letter-spacing: 0.5px; padding: 0; }
+
+  /* SCAN ANIMATION */
+  @keyframes scan { 0%{width:6px;opacity:0.5} 50%{width:28px;opacity:1} 100%{width:6px;opacity:0.5} }
+  .scan-bar { height: 3px; background: var(--pink); animation: scan 1.4s infinite; }
+
+  /* FEED PANEL */
+  #feed-panel { padding: 16px; background: var(--bg3); }
+  .feed-item { border-left: 2px solid; padding-left: 10px; margin-bottom: 10px; }
+  .feed-time { font-family: var(--mono); font-size: 9px; color: var(--dim); }
+  .feed-title { font-family: var(--mono); font-size: 11px; color: var(--text); margin-top: 2px; }
+  .feed-sub   { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 1px; }
+  #quick-actions { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; }
+  #quick-actions .qa-btn { display: block; width: 100%; text-align: left; margin-bottom: 6px; }
+
+  /* MODALS */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(7,8,15,0.88); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border2);
+    padding: 24px; width: 420px; max-width: 95vw;
+  }
+  .modal-title { font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: var(--purple); margin-bottom: 18px; }
+  .form-row { margin-bottom: 12px; }
+  .form-label { font-family: var(--mono); font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-bottom: 5px; display: block; }
+  .form-label span { color: var(--red); }
+  .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--bg2); border: 1px solid var(--border2);
+    font-family: var(--mono); font-size: 11px; color: var(--text);
+    padding: 10px 16px; z-index: 300; opacity: 0;
+    transition: opacity 0.3s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+  #toast.success { border-color: var(--green); color: var(--green); }
+  #toast.error   { border-color: var(--red);   color: var(--red); }
+
+  /* EMPTY STATE */
+  .empty { text-align: center; padding: 40px 0; font-family: var(--mono); font-size: 11px; color: var(--dim); }
+
+  /* CONFIG WARNING */
+  #config-warning {
+    background: #1a0f05; border: 1px solid #3a2a10;
+    padding: 10px 16px; font-family: var(--mono); font-size: 11px; color: var(--gold);
+    display: none;
+  }
 </style>
 </head>
 <body>
+<div id="app">
 
-<div id="config-warning">⚠ Configure your credentials — open index.html and fill in the CONFIG object with your Supabase and GitHub details.</div>
+  <!-- CONFIG WARNING -->
+  <div id="config-warning">
+    ⚠ CONFIGURE: Open this file and fill in the CONFIG object at the top of the &lt;script&gt; section with your Supabase and GitHub credentials.
+  </div>
 
-<!-- HEADER -->
-<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:var(--bg2);border-bottom:1px solid var(--border);box-shadow:var(--shadow);position:sticky;top:0;z-index:100;">
-  <div style="display:flex;align-items:center;gap:16px;">
-    <svg width="72" height="82" viewBox="0 0 130 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="72" cy="152" rx="22" ry="5" fill="#92400e" opacity="0.3"></ellipse>
-      <rect x="58" y="144" width="28" height="8" rx="4" fill="#d97706"></rect>
-      <rect x="55" y="141" width="34" height="5" rx="2.5" fill="#f59e0b"></rect>
-      <rect x="57" y="139" width="30" height="3" rx="1.5" fill="#fbbf24"></rect>
-      <ellipse cx="72" cy="128" rx="26" ry="14" fill="#92400e"></ellipse>
-      <ellipse cx="72" cy="126" rx="26" ry="14" fill="#d97706"></ellipse>
-      <ellipse cx="72" cy="124" rx="26" ry="13.5" fill="#f59e0b"></ellipse>
-      <ellipse cx="72" cy="123" rx="24" ry="12" fill="#fbbf24"></ellipse>
-      <ellipse cx="66" cy="119" rx="12" ry="5" fill="#fde68a" opacity="0.55"></ellipse>
-      <path d="M60 122 L62 119 L64 122Z" fill="#d97706" opacity="0.5"></path>
-      <path d="M68 123 L70 120 L72 123Z" fill="#d97706" opacity="0.5"></path>
-      <path d="M76 122 L78 119 L80 122Z" fill="#d97706" opacity="0.5"></path>
-      <ellipse cx="72" cy="111" rx="14" ry="5" fill="#d97706"></ellipse>
-      <ellipse cx="72" cy="110" rx="14" ry="5" fill="#f59e0b"></ellipse>
-      <ellipse cx="72" cy="109" rx="13" ry="4" fill="#fbbf24"></ellipse>
-      <path d="M60 110 Q62 104 72 102 Q82 104 84 110Z" fill="#f59e0b"></path>
-      <path d="M61 109 Q63 104 72 102 Q81 104 83 109Z" fill="#fbbf24"></path>
-      <ellipse cx="72" cy="103" rx="5" ry="3" fill="#f59e0b"></ellipse>
-      <ellipse cx="72" cy="100" rx="4" ry="3" fill="#d97706"></ellipse>
-      <ellipse cx="72" cy="99" rx="3.5" ry="2.5" fill="#fbbf24"></ellipse>
-      <circle cx="72" cy="97.5" r="2.5" fill="#f59e0b"></circle>
-      <circle cx="72" cy="97" r="1.5" fill="#fde68a"></circle>
-      <path d="M96 126 Q110 120 111 130 Q112 140 98 136" stroke="#d97706" stroke-width="5" fill="none" stroke-linecap="round"></path>
-      <path d="M96 125 Q109 119 110 129 Q111 138 98 135" stroke="#fbbf24" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
-      <path d="M48 122 Q36 117 30 108 Q24 98 28 91" stroke="#92400e" stroke-width="8" fill="none" stroke-linecap="round"></path>
-      <path d="M48 120 Q37 115 31 106 Q25 96 29 89" stroke="#d97706" stroke-width="5" fill="none" stroke-linecap="round"></path>
-      <path d="M48 119 Q37 114 32 105 Q26 95 30 88" stroke="#fbbf24" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
-      <ellipse cx="30.5" cy="87" rx="5" ry="3.5" fill="#fbbf24" transform="rotate(-30 30.5 87)"></ellipse>
-      <ellipse cx="30.5" cy="86" rx="3.5" ry="2.5" fill="#fde68a" transform="rotate(-30 30.5 86)"></ellipse>
-      <path d="M29 83 Q14 65 22 44 Q29 27 20 10" stroke="#86efac" stroke-width="22" stroke-linecap="round" fill="none" opacity="0.3"></path>
-      <path d="M31 82 Q46 61 37 39 Q28 18 37 4" stroke="#4ade80" stroke-width="16" stroke-linecap="round" fill="none" opacity="0.4"></path>
-      <path d="M30 81 Q16 62 24 41 Q31 23 25 7" stroke="#22c55e" stroke-width="11" stroke-linecap="round" fill="none" opacity="0.5"></path>
-      <path d="M31 80 Q44 60 36 38 Q28 17 35 3" stroke="#16a34a" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.65"></path>
-      <path d="M30 79 Q18 60 26 39 Q33 21 28 5" stroke="#15803d" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.8"></path>
-      <ellipse cx="32" cy="76" rx="12" ry="6" fill="#16a34a" opacity="0.6"></ellipse>
-      <ellipse cx="32" cy="62" rx="14" ry="17" fill="#15803d"></ellipse>
-      <ellipse cx="32" cy="60" rx="12" ry="15" fill="#16a34a"></ellipse>
-      <path d="M21 56 Q32 52 43 56" stroke="#22c55e" stroke-width="1.5" fill="none"></path>
-      <circle cx="32" cy="64" r="4.5" fill="#fbbf24" opacity="0.9"></circle>
-      <circle cx="32" cy="64" r="2.5" fill="#f59e0b"></circle>
-      <circle cx="32" cy="64" r="1" fill="#fde68a"></circle>
-      <path d="M20 57 Q11 49 6 51 Q2 53 4 58 Q6 63 12 60" stroke="#86efac" stroke-width="5" stroke-linecap="round" fill="none"></path>
-      <circle cx="4.5" cy="54.5" r="5.5" fill="#15803d"></circle>
-      <circle cx="4.5" cy="54.5" r="3.5" fill="#16a34a"></circle>
-      <path d="M44 55 Q53 47 59 50 Q63 52 61 57 Q59 62 53 59" stroke="#86efac" stroke-width="5" stroke-linecap="round" fill="none"></path>
-      <circle cx="62" cy="53" r="5.5" fill="#15803d"></circle>
-      <circle cx="62" cy="53" r="3.5" fill="#16a34a"></circle>
-      <rect x="27" y="44" width="10" height="7" rx="4" fill="#15803d"></rect>
-      <circle cx="32" cy="33" r="19" fill="#4ade80"></circle>
-      <circle cx="32" cy="33" r="18" fill="#86efac" stroke="#22c55e" stroke-width="0.75"></circle>
-      <circle cx="32" cy="37" r="14" fill="#4ade80" opacity="0.4"></circle>
-      <ellipse cx="25.5" cy="32" rx="4.5" ry="5" fill="#1e1b4b"></ellipse>
-      <ellipse cx="38.5" cy="32" rx="4.5" ry="5" fill="#1e1b4b"></ellipse>
-      <ellipse cx="25.5" cy="32" rx="3" ry="3.5" fill="#7c3aed"></ellipse>
-      <ellipse cx="38.5" cy="32" rx="3" ry="3.5" fill="#7c3aed"></ellipse>
-      <circle cx="26.5" cy="30.5" r="1.2" fill="#fff"></circle>
-      <circle cx="39.5" cy="30.5" r="1.2" fill="#fff"></circle>
-      <path d="M21 26 Q25.5 23 30 26" stroke="#14532d" stroke-width="2.2" fill="none" stroke-linecap="round"></path>
-      <path d="M34 26 Q38.5 23 43 26" stroke="#14532d" stroke-width="2.2" fill="none" stroke-linecap="round"></path>
-      <path d="M31 35 Q32 37.5 33 35" stroke="#14532d" stroke-width="1" fill="none" stroke-linecap="round"></path>
-      <path d="M25 40 Q32 46.5 39 40" stroke="#14532d" stroke-width="2" fill="none" stroke-linecap="round"></path>
-      <path d="M24 38 Q21 35.5 19.5 37.5 Q18 39.5 21 41 Q23.5 42 25.5 40 Q27 38.5 26 37.5 Q25 36.5 24 38Z" fill="#111"></path>
-      <ellipse cx="32" cy="38" rx="2.5" ry="1.5" fill="#111"></ellipse>
-      <path d="M40 38 Q43 35.5 44.5 37.5 Q46 39.5 43 41 Q40.5 42 38.5 40 Q37 38.5 38 37.5 Q39 36.5 40 38Z" fill="#111"></path>
-      <circle cx="20" cy="37" r="4.5" fill="#fca5a5" opacity="0.35"></circle>
-      <circle cx="44" cy="37" r="4.5" fill="#fca5a5" opacity="0.35"></circle>
-      <path d="M14 29 Q17 16 32 14 Q47 16 50 29 Q45 22 32 23 Q19 22 14 29Z" fill="#7c3aed"></path>
-      <path d="M15 27 Q20 19 32 18 Q44 19 49 27" stroke="#a78bfa" stroke-width="1.5" fill="none" stroke-dasharray="3 2"></path>
-      <ellipse cx="32" cy="15" rx="7" ry="5" fill="#6d28d9"></ellipse>
-      <circle cx="32" cy="19" r="4.5" fill="#fbbf24"></circle>
-      <circle cx="32" cy="19" r="2.8" fill="#f59e0b"></circle>
-      <circle cx="32" cy="19" r="1.1" fill="#fde68a"></circle>
-      <path d="M37 16 Q44 7 49 1 Q52 -4 49 -7" stroke="#a78bfa" stroke-width="1.5" fill="none" stroke-linecap="round"></path>
-      <path d="M37 16 Q43 8 47 1 Q50 -4 48 -7" stroke="#7c3aed" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.3"></path>
-      <path d="M39 12 Q45 5 48 -2" stroke="#c4b5fd" stroke-width="0.8" fill="none" opacity="0.6" stroke-linecap="round"></path>
-      <circle cx="49.5" cy="-8" r="2" fill="#fde68a"></circle>
-      <path d="M-4 42 L-3.2 45 L-0.2 45.8 L-3.2 46.6 L-4 49.6 L-4.8 46.6 L-7.8 45.8 L-4.8 45Z" fill="#f59e0b" opacity="0.8"></path>
-      <circle cx="5" cy="18" r="2" fill="#4ade80" opacity="0.7"></circle>
-    </svg>
-    <div>
-      <div style="font-family:&#39;Nunito&#39;,sans-serif;font-size:24px;font-weight:900;color:var(--purple);letter-spacing:0.5px;line-height:1.1;">PG Genie</div>
-      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;">Sales Intelligence Platform</div>
-    </div>
-  </div>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <div style="display:flex;align-items:center;gap:6px;background:var(--green-light);padding:6px 14px;border-radius:999px;">
-      <div style="width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;"></div>
-      <span style="font-family:&#39;Nunito&#39;,sans-serif;font-size:11px;font-weight:800;color:#15803d;">Systems Online</span>
-    </div>
-    <span style="font-size:12px;font-weight:600;color:var(--text3);" id="clock">--:--:--</span>
-  </div>
-</div>
-
-<!-- MISSION PANEL -->
-<div style="background:var(--bg3);border-bottom:1px solid var(--border);padding:20px 28px;">
-  <div class="label" style="margin-bottom:14px;">Research Mission</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:16px;align-items:end;">
-    <div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <div style="width:10px;height:10px;background:var(--purple);border-radius:3px;"></div>
-        <span style="font-family:&#39;Nunito&#39;,sans-serif;font-size:12px;font-weight:800;color:var(--purple);">MY COMPANY</span>
-      </div>
-      <input type="text" id="my-company" value="Saviynt" placeholder="Your company name" style="margin-bottom:8px;">
-      <input type="url" id="my-company-url" value="https://saviynt.com" placeholder="https://saviynt.com">
-      <div style="font-size:11px;font-weight:600;color:var(--text3);margin-top:6px;">The company whose value prop we align to</div>
-    </div>
-    <div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <div style="width:10px;height:10px;background:var(--pink);border-radius:3px;"></div>
-        <span style="font-family:&#39;Nunito&#39;,sans-serif;font-size:12px;font-weight:800;color:var(--pink);">TARGET COMPANY</span>
-      </div>
-      <input type="text" id="target-company" placeholder="e.g. Traveler&#39;s Insurance" style="margin-bottom:8px;">
-      <input type="url" id="target-company-url" placeholder="https://travelers.com">
-      <div style="font-size:11px;font-weight:600;color:var(--text3);margin-top:6px;">The prospect we're researching for pain point alignment</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px;padding-bottom:28px;">
-      <button class="btn btn-primary" onclick="grantWish()">Grant Wish ✦</button>
-      <button class="btn btn-ghost" onclick="openModal(&#39;add-modal&#39;)">+ Add to List</button>
-    </div>
-  </div>
-  <div id="context-pill" style="margin-top:14px;padding:12px 16px;background:#fff;border:1.5px solid var(--purple-light);border-radius:12px;display:flex;gap:10px;align-items:flex-start;">
-    <div style="width:8px;height:8px;background:var(--purple);border-radius:50%;margin-top:4px;flex-shrink:0;"></div>
-    <div>
-      <div style="font-family:&#39;Nunito&#39;,sans-serif;font-size:11px;font-weight:800;color:var(--purple);margin-bottom:3px;" id="pill-title">Company Profile Loaded — Saviynt</div>
-      <div style="font-size:12px;font-weight:600;color:var(--text2);line-height:1.7;" id="pill-body">AI-based identity security · IGA · PAM · NHI · External Identity · AI Agent Security<br>Pain points: legacy IGA modernization · access sprawl · non-human identity risk · compliance gaps</div>
-    </div>
-  </div>
-</div>
-
-<!-- STATS -->
-<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid var(--border);background:var(--bg2);">
-  <div style="padding:16px 28px;border-right:1px solid var(--border);">
-    <div class="label">Targets</div>
-    <div style="font-family:&#39;Nunito&#39;,sans-serif;font-size:30px;font-weight:900;color:var(--purple);margin-top:4px;line-height:1;" id="stat-companies">—</div>
-    <div style="font-size:12px;font-weight:600;color:var(--text3);margin-top:2px;">tracked companies</div>
-  </div>
-  <div style="padding:16px 28px;border-right:1px solid var(--border);">
-    <div class="label">Research Runs</div>
-    <div style="font-family:&#39;Nunito&#39;,sans-serif;font-size:30px;font-weight:900;color:var(--teal);margin-top:4px;line-height:1;" id="stat-runs">—</div>
-    <div style="font-size:12px;font-weight:600;color:var(--text3);margin-top:2px;">total completed</div>
-  </div>
-  <div style="padding:16px 28px;border-right:1px solid var(--border);">
-    <div class="label">Contacts</div>
-    <div style="font-family:&#39;Nunito&#39;,sans-serif;font-size:30px;font-weight:900;color:var(--purple);margin-top:4px;line-height:1;" id="stat-contacts">—</div>
-    <div style="font-size:12px;font-weight:600;color:var(--text3);margin-top:2px;">across all companies</div>
-  </div>
-  <div style="padding:16px 28px;">
-    <div class="label">Outreach Ready</div>
-    <div style="font-family:&#39;Nunito&#39;,sans-serif;font-size:30px;font-weight:900;color:var(--pink);margin-top:4px;line-height:1;" id="stat-content">—</div>
-    <div style="font-size:12px;font-weight:600;color:var(--text3);margin-top:2px;">outreach pieces</div>
-  </div>
-</div>
-
-<!-- MAIN -->
-<div style="display:grid;grid-template-columns:1fr 270px;">
-  <div style="padding:20px 28px;border-right:1px solid var(--border);">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
-      <span class="label">Target Companies</span>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-        <button id="filter-all" style="font-family:&#39;Nunito&#39;,sans-serif;font-size:11px;font-weight:800;padding:5px 14px;border-radius:999px;border:2px solid var(--purple);color:var(--purple);background:var(--purple-light);cursor:pointer;" onclick="setFilter(&#39;all&#39;,this)">All</button>
-        <button id="filter-active" style="font-family:&#39;Nunito&#39;,sans-serif;font-size:11px;font-weight:800;padding:5px 14px;border-radius:999px;border:2px solid var(--border);color:var(--text3);background:transparent;cursor:pointer;" onclick="setFilter(&#39;active&#39;,this)">Active</button>
-        <button id="filter-prospect" style="font-family:&#39;Nunito&#39;,sans-serif;font-size:11px;font-weight:800;padding:5px 14px;border-radius:999px;border:2px solid var(--border);color:var(--text3);background:transparent;cursor:pointer;" onclick="setFilter(&#39;prospect&#39;,this)">Prospect</button>
-        <button class="btn btn-gold btn-sm" onclick="openModal(&#39;batch-modal&#39;)">Batch Run</button>
-        <button class="btn btn-teal btn-sm" onclick="openModal(&#39;prospect-modal&#39;)">Prospect Search</button>
+  <!-- HEADER -->
+  <div id="header">
+    <div class="logo">
+      <!-- GENIE LOGO -->
+      <svg width="72" height="78" viewBox="0 0 120 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="82" cy="116" rx="30" ry="10" fill="#92400e"/>
+        <ellipse cx="82" cy="113" rx="30" ry="10" fill="#d97706"/>
+        <ellipse cx="82" cy="111" rx="30" ry="9" fill="#f59e0b"/>
+        <ellipse cx="82" cy="110" rx="27" ry="7" fill="#fbbf24"/>
+        <ellipse cx="78" cy="108" rx="14" ry="3" fill="#fde68a" opacity="0.5"/>
+        <path d="M110 112 Q122 107 122 116 Q122 125 110 121" stroke="#d97706" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+        <path d="M54 110 Q44 106 38 97 Q32 87 37 81" stroke="#92400e" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M54 108 Q45 104 39 95 Q33 85 38 79" stroke="#fbbf24" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="38.5" cy="77.5" rx="5.5" ry="3.5" fill="#fbbf24" transform="rotate(-25 38.5 77.5)"/>
+        <ellipse cx="38.5" cy="76.5" rx="4" ry="2.5" fill="#fde68a" transform="rotate(-25 38.5 76.5)"/>
+        <path d="M36 74 Q22 58 30 40 Q36 26 28 12" stroke="#2d1060" stroke-width="20" stroke-linecap="round" fill="none" opacity="0.45"/>
+        <path d="M38 73 Q52 54 44 34 Q36 16 44 4" stroke="#4c1d95" stroke-width="15" stroke-linecap="round" fill="none" opacity="0.55"/>
+        <path d="M37 72 Q24 54 32 35 Q38 20 33 6" stroke="#5b21b6" stroke-width="11" stroke-linecap="round" fill="none" opacity="0.65"/>
+        <path d="M38 71 Q50 52 43 32 Q36 14 42 2" stroke="#7c3aed" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.8"/>
+        <path d="M38 70 Q27 52 34 33 Q40 17 36 4" stroke="#a78bfa" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.9"/>
+        <ellipse cx="40" cy="68" rx="13" ry="6" fill="#4c1d95" opacity="0.7"/>
+        <ellipse cx="40" cy="54" rx="15" ry="18" fill="#4c1d95"/>
+        <ellipse cx="40" cy="52" rx="13" ry="16" fill="#5b21b6"/>
+        <path d="M28 48 Q40 44 52 48" stroke="#7c3aed" stroke-width="1.5" fill="none"/>
+        <circle cx="40" cy="56" r="4" fill="#f0abfc" opacity="0.6"/>
+        <circle cx="40" cy="56" r="2" fill="#fde68a" opacity="0.8"/>
+        <path d="M27 46 Q18 38 12 40 Q8 42 10 47 Q12 51 17 49" stroke="#c4b5fd" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+        <circle cx="10" cy="43.5" r="5" fill="#6d28d9"/>
+        <circle cx="10" cy="43.5" r="3.5" fill="#7c3aed"/>
+        <path d="M53 44 Q62 36 68 39 Q72 41 70 46 Q68 50 63 48" stroke="#c4b5fd" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+        <circle cx="70" cy="42" r="5" fill="#6d28d9"/>
+        <circle cx="70" cy="42" r="3.5" fill="#7c3aed"/>
+        <rect x="35" y="33" width="10" height="6" rx="3" fill="#4c1d95"/>
+        <circle cx="40" cy="26" r="18" fill="#0f0720"/>
+        <circle cx="40" cy="26" r="17" fill="#130930" stroke="#a78bfa" stroke-width="1"/>
+        <ellipse cx="34" cy="26" rx="4" ry="4.5" fill="#4c1d95"/>
+        <ellipse cx="46" cy="26" rx="4" ry="4.5" fill="#4c1d95"/>
+        <ellipse cx="34" cy="26" rx="2.8" ry="3.2" fill="#7c3aed"/>
+        <ellipse cx="46" cy="26" rx="2.8" ry="3.2" fill="#7c3aed"/>
+        <ellipse cx="34" cy="26" rx="1.8" ry="2" fill="#a78bfa"/>
+        <ellipse cx="46" cy="26" rx="1.8" ry="2" fill="#a78bfa"/>
+        <circle cx="35" cy="24.5" r="1" fill="#e9d5ff"/>
+        <circle cx="47" cy="24.5" r="1" fill="#e9d5ff"/>
+        <path d="M30 21 Q34 18.5 38 21" stroke="#c4b5fd" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M42 21 Q46 18.5 50 21" stroke="#c4b5fd" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M39 28 Q40 30 41 28" stroke="#a78bfa" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+        <path d="M33 32 Q40 37 47 32" stroke="#c4b5fd" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M23 22 Q26 10 40 8 Q54 10 57 22 Q52 16 40 17 Q28 16 23 22Z" fill="#5b21b6"/>
+        <path d="M23 22 Q28 14 40 13 Q52 14 57 22" stroke="#7c3aed" stroke-width="1" fill="none"/>
+        <path d="M24 20 Q29 13 40 12 Q51 13 56 20" stroke="#8b5cf6" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>
+        <ellipse cx="40" cy="9" rx="6" ry="4" fill="#6d28d9"/>
+        <circle cx="40" cy="13" r="3.5" fill="#f0abfc"/>
+        <circle cx="40" cy="13" r="1.5" fill="#fde68a"/>
+        <circle cx="40" cy="13" r="0.6" fill="#fff" opacity="0.8"/>
+        <path d="M44 10 Q50 2 54 -4 Q56 -8 53 -10" stroke="#c4b5fd" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M44 10 Q49 4 52 -2 Q54 -6 53 -9" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <path d="M44 10 Q48 5 51 -1 Q53 -5 52 -8" stroke="#a78bfa" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.55"/>
+        <path d="M47 6 Q51 1 53 -5" stroke="#f0abfc" stroke-width="0.8" fill="none" opacity="0.5" stroke-linecap="round"/>
+        <circle cx="53" cy="-10" r="1.5" fill="#e9d5ff" opacity="0.9"/>
+        <path d="M4 30 L4.8 33 L7.8 33.8 L4.8 34.6 L4 37.6 L3.2 34.6 L0.2 33.8 L3.2 33Z" fill="#f0abfc" opacity="0.85"/>
+        <path d="M74 18 L74.6 20.4 L77 21 L74.6 21.6 L74 24 L73.4 21.6 L71 21 L73.4 20.4Z" fill="#7dd3fc" opacity="0.8"/>
+        <circle cx="14" cy="10" r="2" fill="#fde68a" opacity="0.65"/>
+      </svg>
+      <div>
+        <div class="logo-text-main">PG GENIE</div>
+        <div class="logo-text-sub">SALES INTELLIGENCE PLATFORM</div>
       </div>
     </div>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;">
-      <thead>
-        <tr style="border-bottom:2px solid var(--border);">
-          <th style="text-align:left;padding:8px 10px 10px 0;font-size:10px;letter-spacing:1.5px;color:var(--text3);font-weight:800;font-family:&#39;Nunito&#39;,sans-serif;">COMPANY</th>
-          <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1.5px;color:var(--text3);font-weight:800;font-family:&#39;Nunito&#39;,sans-serif;">SECTOR</th>
-          <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1.5px;color:var(--text3);font-weight:800;font-family:&#39;Nunito&#39;,sans-serif;">STATUS</th>
-          <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1.5px;color:var(--text3);font-weight:800;font-family:&#39;Nunito&#39;,sans-serif;">ALIGNMENT</th>
-          <th style="text-align:right;padding:8px 0 10px 10px;font-size:10px;letter-spacing:1.5px;color:var(--text3);font-weight:800;font-family:&#39;Nunito&#39;,sans-serif;">ACTIONS</th>
-        </tr>
-      </thead>
-      <tbody id="companies-tbody">
-        <tr><td colspan="5" class="empty">Loading targets...</td></tr>
-      </tbody>
-    </table>
+    <div class="status">
+      <div class="dot"></div>
+      <span class="mono" style="font-size:10px;color:var(--green);letter-spacing:1px;">SYSTEMS ONLINE</span>
+      <span class="mono" style="font-size:10px;color:var(--dim);margin-left:16px;" id="clock">--:--:--</span>
+    </div>
   </div>
 
-  <!-- FEED -->
-  <div style="padding:20px;background:var(--bg2);">
-    <div class="label" style="margin-bottom:14px;">Intel Feed</div>
-    <div id="feed-list"><div class="empty" style="padding:20px 0;">No recent activity</div></div>
-    <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
-      <div class="label" style="margin-bottom:10px;">Quick Actions</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <button class="btn btn-ghost btn-sm" style="width:100%;text-align:left;" onclick="openModal(&#39;add-modal&#39;)">+ Add Target Company</button>
-        <button class="btn btn-gold btn-sm" style="width:100%;text-align:left;" onclick="openModal(&#39;batch-modal&#39;)">Run Batch Research</button>
-        <button class="btn btn-teal btn-sm" style="width:100%;text-align:left;" onclick="openModal(&#39;prospect-modal&#39;)">Prospect Search</button>
+  <!-- RESEARCH MISSION PANEL -->
+  <div id="mission">
+    <div class="label" style="margin-bottom:12px;">RESEARCH MISSION</div>
+    <div class="mission-grid">
+
+      <div>
+        <div class="mission-field-label">
+          <div class="dot-sq dot-sq-purple"></div>
+          <span class="mono" style="font-size:10px;color:var(--purple);letter-spacing:2px;">MY COMPANY</span>
+        </div>
+        <input type="text" id="my-company" placeholder="Your company name (e.g. Saviynt)" value="Saviynt"/>
+        <input type="url" id="my-company-url" placeholder="https://saviynt.com" value="https://saviynt.com" style="margin-top:6px;"/>
+        <div class="mono" style="font-size:9px;color:var(--dim);margin-top:5px;">The company whose value prop we align to</div>
+      </div>
+
+      <div>
+        <div class="mission-field-label">
+          <div class="dot-sq dot-sq-pink"></div>
+          <span class="mono" style="font-size:10px;color:var(--pink);letter-spacing:2px;">TARGET COMPANY</span>
+        </div>
+        <input type="text" id="target-company" placeholder="Target company name (e.g. Traveler's Insurance)"/>
+        <input type="url" id="target-company-url" placeholder="https://travelers.com" style="margin-top:6px;"/>
+        <div class="mono" style="font-size:9px;color:var(--dim);margin-top:5px;">The prospect we're researching for pain point alignment</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;padding-bottom:22px;">
+        <button class="btn btn-primary" onclick="grantWish()">GRANT WISH ✦</button>
+        <button class="btn btn-ghost" onclick="openModal('add-modal')">+ ADD TO LIST</button>
+      </div>
+    </div>
+
+    <!-- CONTEXT PILL -->
+    <div id="context-pill">
+      <div class="pill-dot"></div>
+      <div>
+        <div class="mono" style="font-size:10px;color:var(--purple);letter-spacing:1px;margin-bottom:3px;" id="pill-title">COMPANY PROFILE LOADED — SAVIYNT</div>
+        <div class="mono" style="font-size:10px;color:var(--muted);line-height:1.6;" id="pill-body">AI-based identity security · IGA · PAM · NHI · External Identity · AI Agent Security<br>Pain points to align: legacy IGA modernization · access sprawl · non-human identity risk · compliance gaps · privileged access exposure</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS BAR -->
+  <div id="stats">
+    <div class="stat-cell">
+      <div class="label">TARGETS</div>
+      <div class="stat-num" style="color:var(--purple);" id="stat-companies">—</div>
+      <div class="stat-sub">tracked companies</div>
+    </div>
+    <div class="stat-cell">
+      <div class="label">RESEARCH RUNS</div>
+      <div class="stat-num" style="color:var(--blue);" id="stat-runs">—</div>
+      <div class="stat-sub">total completed</div>
+    </div>
+    <div class="stat-cell">
+      <div class="label">CONTACTS</div>
+      <div class="stat-num" style="color:var(--purple);" id="stat-contacts">—</div>
+      <div class="stat-sub">across all companies</div>
+    </div>
+    <div class="stat-cell">
+      <div class="label">OUTREACH READY</div>
+      <div class="stat-num" style="color:var(--pink);" id="stat-content">—</div>
+      <div class="stat-sub">outreach pieces</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- TABLE -->
+    <div id="table-area">
+      <div class="table-header">
+        <span class="label">TARGET COMPANIES</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="filter-btns">
+            <button class="filter-btn active" onclick="setFilter('all',this)">ALL</button>
+            <button class="filter-btn" onclick="setFilter('active',this)">ACTIVE</button>
+            <button class="filter-btn" onclick="setFilter('prospect',this)">PROSPECT</button>
+            <button class="filter-btn" onclick="setFilter('archived',this)">ARCHIVED</button>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('batch-modal')">BATCH RUN</button>
+          <button class="btn btn-ghost btn-sm" onclick="openModal('prospect-modal')">PROSPECT SEARCH</button>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>COMPANY</th>
+            <th>SECTOR</th>
+            <th>STATUS</th>
+            <th>ALIGNMENT</th>
+            <th style="text-align:right;">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody id="companies-tbody">
+          <tr><td colspan="5" class="empty">Loading targets...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- FEED + QUICK ACTIONS -->
+    <div id="feed-panel">
+      <div class="label" style="margin-bottom:12px;">INTEL FEED</div>
+      <div id="feed-list">
+        <div class="empty" style="padding:20px 0;">No recent activity</div>
+      </div>
+      <div id="quick-actions">
+        <div class="label" style="margin-bottom:10px;">QUICK ACTIONS</div>
+        <button class="btn btn-ghost btn-sm qa-btn" onclick="openModal('add-modal')">+ ADD TARGET COMPANY</button>
+        <button class="btn btn-blue btn-sm qa-btn" onclick="openModal('batch-modal')">RUN BATCH RESEARCH</button>
+        <button class="btn qa-btn btn-sm" style="background:transparent;color:var(--pink);border:1px solid #2a1535;width:100%;text-align:left;" onclick="openModal('prospect-modal')">PROSPECT SEARCH</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- TOAST -->
 <div id="toast"></div>
 
 <!-- ADD COMPANY MODAL -->
 <div class="modal-overlay" id="add-modal">
   <div class="modal">
-    <div class="modal-title">Add Target Company</div>
-    <div class="form-row"><label class="form-label">Company Name <span>*</span></label><input type="text" id="add-name" placeholder="e.g. Traveler&#39;s Insurance"></div>
-    <div class="form-row"><label class="form-label">Domain</label><input type="text" id="add-domain" placeholder="e.g. travelers.com"></div>
-    <div class="form-row"><label class="form-label">Industry</label><input type="text" id="add-industry" placeholder="e.g. Insurance"></div>
-    <div class="form-row"><label class="form-label">Ticker (SEC filings)</label><input type="text" id="add-ticker" placeholder="e.g. TRV"></div>
-    <div class="form-row"><label class="form-label">Employee Count</label><input type="number" id="add-employees" placeholder="e.g. 30000"></div>
-    <div class="form-row"><label class="form-label">Status</label><select id="add-status"><option value="prospect">Prospect</option><option value="active">Active</option></select></div>
+    <div class="modal-title">ADD TARGET COMPANY</div>
+    <div class="form-row">
+      <label class="form-label">COMPANY NAME <span>*</span></label>
+      <input type="text" id="add-name" placeholder="e.g. Traveler's Insurance"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">DOMAIN</label>
+      <input type="text" id="add-domain" placeholder="e.g. travelers.com"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">INDUSTRY</label>
+      <input type="text" id="add-industry" placeholder="e.g. Insurance"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">TICKER (for SEC filings)</label>
+      <input type="text" id="add-ticker" placeholder="e.g. TRV"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">EMPLOYEE COUNT</label>
+      <input type="number" id="add-employees" placeholder="e.g. 30000"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">STATUS</label>
+      <select id="add-status">
+        <option value="prospect">Prospect</option>
+        <option value="active">Active</option>
+      </select>
+    </div>
     <div class="modal-btns">
-      <button class="btn btn-danger" onclick="closeModal(&#39;add-modal&#39;)">Cancel</button>
-      <button class="btn btn-primary" onclick="addCompany()">Add Company</button>
+      <button class="btn btn-danger" onclick="closeModal('add-modal')">CANCEL</button>
+      <button class="btn btn-primary" onclick="addCompany()">ADD COMPANY</button>
     </div>
   </div>
 </div>
@@ -290,13 +436,25 @@ select option{background:#fff;}
 <!-- BATCH MODAL -->
 <div class="modal-overlay" id="batch-modal">
   <div class="modal">
-    <div class="modal-title">Run Batch Research</div>
-    <div class="form-row"><label class="form-label">Target</label><select id="batch-target"><option value="prospect">All Prospect Companies</option><option value="active">All Active Companies</option></select></div>
-    <div class="form-row"><label class="form-label">Max Companies</label><input type="number" id="batch-max" value="5" min="1" max="50"></div>
-    <div class="form-row"><label class="form-label">Delay Between Runs (seconds)</label><input type="number" id="batch-delay" value="30" min="10" max="300"></div>
+    <div class="modal-title">RUN BATCH RESEARCH</div>
+    <div class="form-row">
+      <label class="form-label">TARGET</label>
+      <select id="batch-target">
+        <option value="prospect">All Prospect Companies</option>
+        <option value="active">All Active Companies</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">MAX COMPANIES</label>
+      <input type="number" id="batch-max" value="5" min="1" max="50"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">DELAY BETWEEN RUNS (seconds)</label>
+      <input type="number" id="batch-delay" value="30" min="10" max="300"/>
+    </div>
     <div class="modal-btns">
-      <button class="btn btn-danger" onclick="closeModal(&#39;batch-modal&#39;)">Cancel</button>
-      <button class="btn btn-gold" onclick="runBatch()">Start Batch</button>
+      <button class="btn btn-danger" onclick="closeModal('batch-modal')">CANCEL</button>
+      <button class="btn btn-primary" onclick="runBatch()">START BATCH</button>
     </div>
   </div>
 </div>
@@ -304,20 +462,35 @@ select option{background:#fff;}
 <!-- PROSPECT SEARCH MODAL -->
 <div class="modal-overlay" id="prospect-modal">
   <div class="modal">
-    <div class="modal-title">Prospect Search</div>
-    <p style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:16px;line-height:1.6;">Search Apollo for key leaders in identity, security, and AI at a target company.</p>
-    <div class="form-row"><label class="form-label">Company Name <span>*</span></label><input type="text" id="ps-company" placeholder="e.g. Traveler&#39;s Insurance"></div>
-    <div class="form-row"><label class="form-label">Company Domain</label><input type="text" id="ps-domain" placeholder="e.g. travelers.com"></div>
-    <div class="form-row"><label class="form-label">Max Contacts</label><input type="number" id="ps-max" value="10" min="1" max="50"></div>
-    <div class="form-row"><label class="form-label">Custom Keywords</label><input type="text" id="ps-keywords" placeholder="leave empty for defaults"></div>
+    <div class="modal-title">PROSPECT SEARCH</div>
+    <div class="mono" style="font-size:10px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Search Apollo for key leaders in identity, security, and AI at a target company.</div>
+    <div class="form-row">
+      <label class="form-label">COMPANY NAME <span>*</span></label>
+      <input type="text" id="ps-company" placeholder="e.g. Traveler's Insurance"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">COMPANY DOMAIN</label>
+      <input type="text" id="ps-domain" placeholder="e.g. travelers.com"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">MAX CONTACTS</label>
+      <input type="number" id="ps-max" value="10" min="1" max="50"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">CUSTOM KEYWORDS (comma-separated)</label>
+      <input type="text" id="ps-keywords" placeholder="leave empty for defaults"/>
+    </div>
     <div class="modal-btns">
-      <button class="btn btn-danger" onclick="closeModal(&#39;prospect-modal&#39;)">Cancel</button>
-      <button class="btn btn-teal" onclick="searchProspects()">Search Prospects</button>
+      <button class="btn btn-danger" onclick="closeModal('prospect-modal')">CANCEL</button>
+      <button class="btn btn-primary" onclick="searchProspects()">SEARCH PROSPECTS</button>
     </div>
   </div>
 </div>
 
 <script>
+// ============================================================
+// CONFIG — FILL IN YOUR CREDENTIALS
+// ============================================================
 const CONFIG = {
   SUPABASE_URL:      'YOUR_SUPABASE_URL',
   SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
@@ -325,167 +498,316 @@ const CONFIG = {
   GITHUB_REPO:       'BD-Intelligence-Tool',
   GITHUB_PAT:        'YOUR_GITHUB_PAT',
 };
+// ============================================================
 
- const isConfigured = true;
+// Check config
+const isConfigured = CONFIG.SUPABASE_URL !== 'YOUR_SUPABASE_URL';
 if (!isConfigured) document.getElementById('config-warning').style.display = 'block';
-var sb = null;
-if (isConfigured) sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-var companies = [], currentFilter = 'all';
 
-function tick(){const e=document.getElementById('clock');if(e)e.textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}
-tick();setInterval(tick,1000);
+// Supabase
+let supabase = null;
+if (isConfigured) {
+  supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+}
 
-document.getElementById('my-company').addEventListener('input',function(){
-  const val=this.value.trim();
-  const pill=document.getElementById('context-pill');
-  if(!val){pill.style.display='none';return;}
-  pill.style.display='flex';
-  document.getElementById('pill-title').textContent='Company Profile Loaded — '+val;
-  document.getElementById('pill-body').innerHTML=val.toLowerCase().includes('saviynt')
-    ?'AI-based identity security · IGA · PAM · NHI · External Identity · AI Agent Security<br>Pain points: legacy IGA modernization · access sprawl · non-human identity risk · compliance gaps'
-    :'Enter URL above to auto-load company profile and pain point alignment context.';
+// State
+let companies = [];
+let currentFilter = 'all';
+
+// Clock
+function tick() {
+  const el = document.getElementById('clock');
+  if (el) el.textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+}
+tick(); setInterval(tick, 1000);
+
+// ============================================================
+// MISSION PANEL
+// ============================================================
+document.getElementById('my-company').addEventListener('input', function () {
+  const val = this.value.trim();
+  const pill = document.getElementById('context-pill');
+  const title = document.getElementById('pill-title');
+  const body = document.getElementById('pill-body');
+  if (!val) { pill.style.display = 'none'; return; }
+  pill.style.display = 'flex';
+  title.textContent = 'COMPANY PROFILE LOADED — ' + val.toUpperCase();
+  if (val.toLowerCase().includes('saviynt')) {
+    body.innerHTML = 'AI-based identity security · IGA · PAM · NHI · External Identity · AI Agent Security<br>Pain points to align: legacy IGA modernization · access sprawl · non-human identity risk · compliance gaps · privileged access exposure';
+  } else {
+    body.textContent = 'Enter URL above to auto-load company profile and pain point alignment context.';
+  }
 });
 
-function grantWish(){
-  const tgt=document.getElementById('target-company').value.trim();
-  const myC=document.getElementById('my-company').value.trim();
-  if(!tgt){document.getElementById('target-company').style.borderColor='var(--pink)';document.getElementById('target-company').focus();return;}
-  document.getElementById('target-company').style.borderColor='';
-  const match=companies.find(c=>c.name.toLowerCase().includes(tgt.toLowerCase()));
-  if(match){triggerResearch(match.id,match.name);}
-  else{document.getElementById('add-name').value=tgt;showToast('Target not in list — add it first','error');openModal('add-modal');}
+function grantWish() {
+  const myC = document.getElementById('my-company').value.trim();
+  const tgt = document.getElementById('target-company').value.trim();
+  const tgtUrl = document.getElementById('target-company-url').value.trim();
+  if (!tgt) {
+    document.getElementById('target-company').style.borderColor = '#f0abfc';
+    document.getElementById('target-company').focus();
+    return;
+  }
+  document.getElementById('target-company').style.borderColor = '';
+  // Find company in list and trigger research, or prompt to add
+  const match = companies.find(c => c.name.toLowerCase().includes(tgt.toLowerCase()));
+  if (match) {
+    triggerResearch(match.id, match.name);
+  } else {
+    // Pre-fill add modal and open it
+    document.getElementById('add-name').value = tgt;
+    if (tgtUrl) document.getElementById('add-domain').value = tgtUrl.replace(/https?:\/\//,'').split('/')[0];
+    showToast('Target not in list — add it first', 'error');
+    openModal('add-modal');
+  }
 }
 
-async function loadData(){
-  if(!isConfigured){renderCompanies([]);return;}
-  try{
-    const[{data:cos},{data:runs},{data:contacts},{data:content}]=await Promise.all([
-      sb.from('companies').select('*').order('created_at',{ascending:false}),
-      sb.from('research_runs').select('id,status,company_id,created_at').order('created_at',{ascending:false}).limit(20),
-      sb.from('contacts').select('id,company_id'),
-      sb.from('outreach_content').select('id'),
+// ============================================================
+// SUPABASE DATA
+// ============================================================
+async function loadData() {
+  if (!isConfigured) {
+    renderCompanies([]);
+    return;
+  }
+  try {
+    const [{ data: cos }, { data: runs }, { data: contacts }, { data: content }] = await Promise.all([
+      supabase.from('companies').select('*').order('created_at', { ascending: false }),
+      supabase.from('research_runs').select('id, status, company_id, created_at').order('created_at', { ascending: false }).limit(20),
+      supabase.from('contacts').select('id, company_id'),
+      supabase.from('outreach_content').select('id'),
     ]);
-    companies=cos||[];
+    companies = cos || [];
     renderCompanies(companies);
-    document.getElementById('stat-companies').textContent=companies.length;
-    document.getElementById('stat-runs').textContent=runs?.filter(r=>r.status==='completed').length??'0';
-    document.getElementById('stat-contacts').textContent=contacts?.length??'0';
-    document.getElementById('stat-content').textContent=content?.length??'0';
-    renderFeed(runs,companies);
-  }catch(e){showToast('Failed to load data','error');}
+    renderStats(companies, runs, contacts, content);
+    renderFeed(runs, companies);
+  } catch (e) {
+    console.error(e);
+    showToast('Failed to load data', 'error');
+  }
 }
 
-function setFilter(f,btn){
-  currentFilter=f;
-  ['all','active','prospect'].forEach(id=>{
-    const b=document.getElementById('filter-'+id);
-    if(b){b.style.borderColor='var(--border)';b.style.color='var(--text3)';b.style.background='transparent';}
-  });
-  btn.style.borderColor='var(--purple)';btn.style.color='var(--purple)';btn.style.background='var(--purple-light)';
+function renderStats(cos, runs, contacts, content) {
+  document.getElementById('stat-companies').textContent = cos?.length ?? '—';
+  document.getElementById('stat-runs').textContent = runs?.filter(r => r.status === 'completed').length ?? '—';
+  document.getElementById('stat-contacts').textContent = contacts?.length ?? '—';
+  document.getElementById('stat-content').textContent = content?.length ?? '—';
+}
+
+// ============================================================
+// COMPANIES TABLE
+// ============================================================
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
   renderCompanies(companies);
 }
 
-function renderCompanies(list){
-  const filtered=currentFilter==='all'?list:list.filter(c=>c.status===currentFilter);
-  const tbody=document.getElementById('companies-tbody');
-  if(!filtered.length){tbody.innerHTML='<tr><td colspan="5" class="empty">'+(isConfigured?'No companies found — add your first target above.':'Configure credentials to load data.')+'</td></tr>';return;}
-  tbody.innerHTML=filtered.map(c=>{
-    const tagMap={active:'tag-active',prospect:'tag-prospect',archived:'tag-archived'};
-    const tagCls=tagMap[c.status]||'tag-prospect';
-    const tagLabel=(c.status||'prospect').charAt(0).toUpperCase()+(c.status||'prospect').slice(1);
-    const isActive=c.status==='active';
-    const signal=isActive
-      ?`<div style="display:flex;gap:3px;align-items:center;"><div style="width:22px;height:5px;background:var(--green);border-radius:3px;"></div><div style="width:16px;height:5px;background:var(--green);border-radius:3px;"></div><div style="width:10px;height:5px;background:var(--green);border-radius:3px;"></div><span style="font-size:10px;font-weight:800;color:var(--green);margin-left:5px;font-family:'Nunito',sans-serif;">HIGH</span></div>`
-      :`<div style="display:flex;gap:3px;align-items:center;"><div style="width:22px;height:5px;background:var(--gold);border-radius:3px;"></div><div style="width:14px;height:5px;background:var(--gold);border-radius:3px;"></div><div style="width:8px;height:5px;background:var(--border);border-radius:3px;"></div><span style="font-size:10px;font-weight:800;color:var(--gold);margin-left:5px;font-family:'Nunito',sans-serif;">MED</span></div>`;
-    return`<tr style="border-bottom:1px solid var(--border);" onmouseover="this.style.background='#fdf5ee'" onmouseout="this.style.background=''">
-      <td style="padding:12px 10px 12px 0;">
-        <div style="font-family:'Nunito',sans-serif;font-weight:800;color:var(--text);">${esc(c.name)}</div>
-        <div style="font-size:11px;font-weight:600;color:var(--text3);">${c.ticker?c.ticker+' · ':''}${c.employee_count?Number(c.employee_count).toLocaleString()+' emp':c.domain||''}</div>
+function renderCompanies(list) {
+  const filtered = currentFilter === 'all' ? list : list.filter(c => c.status === currentFilter);
+  const tbody = document.getElementById('companies-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">' + (isConfigured ? 'No companies found — add your first target above.' : 'Configure credentials to load data.') + '</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(c => {
+    const tag = statusTag(c.status);
+    const signal = signalBar(c.status);
+    return `<tr>
+      <td>
+        <div class="co-name">${esc(c.name)}</div>
+        <div class="co-meta">${c.ticker ? c.ticker + ' · ' : ''}${c.employee_count ? Number(c.employee_count).toLocaleString() + ' emp' : c.domain || ''}</div>
       </td>
-      <td style="padding:12px 10px;font-size:12px;font-weight:600;color:var(--text2);">${esc(c.industry||'—')}</td>
-      <td style="padding:12px 10px;"><span class="tag ${tagCls}">${tagLabel}</span></td>
-      <td style="padding:12px 10px;">${signal}</td>
-      <td style="padding:12px 0 12px 10px;text-align:right;">
-        <div style="display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;">
-          <button class="btn btn-primary btn-sm" onclick="triggerResearch('${c.id}','${esc(c.name)}')">Research</button>
-          <button class="btn btn-ghost btn-sm" onclick="viewCompany('${c.id}')">View</button>
-          <button class="btn btn-gold btn-sm" onclick="genPyramid('${c.id}','${esc(c.name)}','${esc(c.domain||'')}')">Pyramid ▲</button>
+      <td><span class="mono" style="font-size:11px;color:var(--muted);">${esc(c.industry || '—')}</span></td>
+      <td><span class="tag ${tag.cls} mono">${tag.label}</span></td>
+      <td>${signal}</td>
+      <td style="text-align:right;">
+        <div class="action-btns">
+          <button class="action-btn" style="color:var(--purple);" onclick="triggerResearch('${c.id}','${esc(c.name)}')">RESEARCH</button>
+          <button class="action-btn" style="color:var(--blue);" onclick="viewCompany('${c.id}')">VIEW</button>
         </div>
       </td>
     </tr>`;
   }).join('');
 }
 
-function renderFeed(runs,cos){
-  const el=document.getElementById('feed-list');
-  if(!runs?.length)return;
-  const colors={completed:'var(--green)',running:'var(--pink)',failed:'var(--red)',pending:'var(--gold)'};
-  el.innerHTML=runs.slice(0,6).map(r=>{
-    const co=cos?.find(c=>c.id===r.company_id);
-    const col=colors[r.status]||'var(--text3)';
-    const time=new Date(r.created_at).toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit'});
-    return`<div style="border-left:3px solid ${col};padding-left:12px;margin-bottom:12px;">
-      <div style="font-size:10px;font-weight:700;color:var(--text3);">${time}</div>
-      <div style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:var(--text);margin-top:2px;">${co?esc(co.name):'Unknown'}</div>
-      <div style="font-size:11px;font-weight:600;color:var(--text2);">Run ${r.status}</div>
+function statusTag(s) {
+  if (s === 'active')   return { cls: 'tag-active',   label: 'ACTIVE' };
+  if (s === 'archived') return { cls: 'tag-error',    label: 'ARCHIVED' };
+  return { cls: 'tag-prospect', label: 'PROSPECT' };
+}
+
+function signalBar(s) {
+  if (s === 'active') return `<div class="signal-bar"><div class="bar" style="width:28px;background:var(--green);"></div><div class="bar" style="width:20px;background:var(--green);"></div><div class="bar" style="width:14px;background:var(--green);"></div><span class="mono" style="font-size:9px;color:var(--green);margin-left:4px;">HIGH</span></div>`;
+  return `<div class="signal-bar"><div class="bar" style="width:28px;background:var(--gold);"></div><div class="bar" style="width:16px;background:var(--gold);"></div><div class="bar" style="width:10px;background:var(--border);"></div><span class="mono" style="font-size:9px;color:var(--gold);margin-left:4px;">MED</span></div>`;
+}
+
+// ============================================================
+// FEED
+// ============================================================
+function renderFeed(runs, cos) {
+  const el = document.getElementById('feed-list');
+  if (!runs?.length) return;
+  const colors = { completed: 'var(--green)', running: 'var(--pink)', failed: 'var(--red)', pending: 'var(--gold)' };
+  el.innerHTML = runs.slice(0, 6).map(r => {
+    const co = cos?.find(c => c.id === r.company_id);
+    const col = colors[r.status] || 'var(--muted)';
+    const time = new Date(r.created_at).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+    return `<div class="feed-item" style="border-color:${col};">
+      <div class="feed-time">${time}</div>
+      <div class="feed-title">${co ? esc(co.name) : 'Unknown'} — ${r.status}</div>
+      <div class="feed-sub">Research run ${r.status}</div>
     </div>`;
   }).join('');
 }
 
-async function addCompany(){
-  const name=document.getElementById('add-name').value.trim();
-  if(!name){showToast('Company name required','error');return;}
-  if(!isConfigured){showToast('Configure credentials first','error');return;}
-  const{error}=await sb.from('companies').insert({name,domain:document.getElementById('add-domain').value.trim()||null,industry:document.getElementById('add-industry').value.trim()||null,ticker:document.getElementById('add-ticker').value.trim()||null,employee_count:document.getElementById('add-employees').value||null,status:document.getElementById('add-status').value});
-  if(error){showToast('Error: '+error.message,'error');return;}
-  showToast('Company added!','success');closeModal('add-modal');loadData();
+// ============================================================
+// ACTIONS
+// ============================================================
+async function addCompany() {
+  const name = document.getElementById('add-name').value.trim();
+  if (!name) { showToast('Company name required', 'error'); return; }
+  if (!isConfigured) { showToast('Configure credentials first', 'error'); return; }
+  const { error } = await supabase.from('companies').insert({
+    name,
+    domain:         document.getElementById('add-domain').value.trim() || null,
+    industry:       document.getElementById('add-industry').value.trim() || null,
+    ticker:         document.getElementById('add-ticker').value.trim() || null,
+    employee_count: document.getElementById('add-employees').value || null,
+    status:         document.getElementById('add-status').value,
+  });
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  showToast('Company added', 'success');
+  closeModal('add-modal');
+  loadData();
 }
 
-async function triggerResearch(id,name){
-  if(!isConfigured){showToast('Configure credentials first','error');return;}
-  showToast('Triggering research for '+name+'...','');
-  try{
-    const res=await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/research.yml/dispatches`,{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{company_id:id}})});
-    if(res.status===204){showToast('Wish granted — research running for '+name+'!','success');loadData();}
-    else showToast('GitHub error: '+res.status,'error');
-  }catch(e){showToast('Network error: '+e.message,'error');}
+async function triggerResearch(companyId, companyName) {
+  if (!isConfigured) { showToast('Configure credentials first', 'error'); return; }
+  showToast('Triggering research for ' + companyName + '...', '');
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/research.yml/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + CONFIG.GITHUB_PAT,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ref: 'main', inputs: { company_id: companyId } }),
+      }
+    );
+    if (res.status === 204) {
+      showToast('Wish granted — research running for ' + companyName, 'success');
+      loadData();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showToast('GitHub error: ' + (err.message || res.status), 'error');
+    }
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  }
 }
 
-async function runBatch(){
-  if(!isConfigured){showToast('Configure credentials first','error');return;}
-  try{
-    const res=await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/batch.yml/dispatches`,{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{target_status:document.getElementById('batch-target').value,max_companies:document.getElementById('batch-max').value,delay_seconds:document.getElementById('batch-delay').value}})});
-    if(res.status===204){showToast('Batch run started!','success');closeModal('batch-modal');}
-    else showToast('GitHub error: '+res.status,'error');
-  }catch(e){showToast('Network error: '+e.message,'error');}
+async function runBatch() {
+  if (!isConfigured) { showToast('Configure credentials first', 'error'); return; }
+  const target = document.getElementById('batch-target').value;
+  const max = document.getElementById('batch-max').value;
+  const delay = document.getElementById('batch-delay').value;
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/batch.yml/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + CONFIG.GITHUB_PAT,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ref: 'main', inputs: { target_status: target, max_companies: max, delay_seconds: delay } }),
+      }
+    );
+    if (res.status === 204) {
+      showToast('Batch run started', 'success');
+      closeModal('batch-modal');
+    } else {
+      showToast('GitHub error: ' + res.status, 'error');
+    }
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  }
 }
 
-async function searchProspects(){
-  const company=document.getElementById('ps-company').value.trim();
-  if(!company){showToast('Company name required','error');return;}
-  if(!isConfigured){showToast('Configure credentials first','error');return;}
-  try{
-    const res=await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/research.yml/dispatches`,{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{prospect_search:'true',company_name:company,company_domain:document.getElementById('ps-domain').value.trim(),max_contacts:document.getElementById('ps-max').value,keywords:document.getElementById('ps-keywords').value.trim()}})});
-    if(res.status===204){showToast('Prospect search started for '+company+'!','success');closeModal('prospect-modal');}
-    else showToast('GitHub error: '+res.status,'error');
-  }catch(e){showToast('Network error: '+e.message,'error');}
+async function searchProspects() {
+  const company = document.getElementById('ps-company').value.trim();
+  if (!company) { showToast('Company name required', 'error'); return; }
+  if (!isConfigured) { showToast('Configure credentials first', 'error'); return; }
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/research.yml/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + CONFIG.GITHUB_PAT,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ref: 'main', inputs: {
+          prospect_search: 'true',
+          company_name: company,
+          company_domain: document.getElementById('ps-domain').value.trim(),
+          max_contacts: document.getElementById('ps-max').value,
+          keywords: document.getElementById('ps-keywords').value.trim(),
+        }}),
+      }
+    );
+    if (res.status === 204) {
+      showToast('Prospect search started for ' + company, 'success');
+      closeModal('prospect-modal');
+    } else {
+      showToast('GitHub error: ' + res.status, 'error');
+    }
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  }
 }
 
-function viewCompany(id){window.location.href='company.html?id='+id;}
-function genPyramid(id,name,domain){window.open('pyramid.html?company_id='+encodeURIComponent(id)+'&company_name='+encodeURIComponent(name)+'&company_domain='+encodeURIComponent(domain),'_blank');}
-function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+function viewCompany(id) {
+  window.location.href = 'company.html?id=' + id;
+}
 
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ============================================================
+// TOAST
+// ============================================================
 let toastTimer;
-function showToast(msg,type){
-  const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type||'');
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.className='',3500);
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + (type || '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = '', 3500);
 }
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
+// ============================================================
+// UTILS
+// ============================================================
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ============================================================
+// INIT
+// ============================================================
 loadData();
 </script>
-
-
-</body></html>
+</body>
+</html>
