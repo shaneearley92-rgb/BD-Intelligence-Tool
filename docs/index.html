@@ -506,9 +506,9 @@ const isConfigured = CONFIG.SUPABASE_URL !== 'YOUR_SUPABASE_URL';
 if (!isConfigured) document.getElementById('config-warning').style.display = 'block';
 
 // Supabase
-let supabase = null;
+let sb = null;
 if (isConfigured) {
-  supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+  sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 }
 
 // State
@@ -573,10 +573,10 @@ async function loadData() {
   }
   try {
     const [{ data: cos }, { data: runs }, { data: contacts }, { data: content }] = await Promise.all([
-      supabase.from('companies').select('*').order('created_at', { ascending: false }),
-      supabase.from('research_runs').select('id, status, company_id, created_at').order('created_at', { ascending: false }).limit(20),
-      supabase.from('contacts').select('id, company_id'),
-      supabase.from('outreach_content').select('id'),
+      sb.from('companies').select('*').order('created_at', { ascending: false }),
+      sb.from('research_runs').select('id, status, company_id, created_at').order('created_at', { ascending: false }).limit(20),
+      sb.from('contacts').select('id, company_id'),
+      sb.from('outreach_content').select('id'),
     ]);
     companies = cos || [];
     renderCompanies(companies);
@@ -670,7 +670,7 @@ async function addCompany() {
   const name = document.getElementById('add-name').value.trim();
   if (!name) { showToast('Company name required', 'error'); return; }
   if (!isConfigured) { showToast('Configure credentials first', 'error'); return; }
-  const { error } = await supabase.from('companies').insert({
+  const { error } = await sb.from('companies').insert({
     name,
     domain:         document.getElementById('add-domain').value.trim() || null,
     industry:       document.getElementById('add-industry').value.trim() || null,
