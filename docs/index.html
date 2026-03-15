@@ -478,7 +478,7 @@ function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 
-let toastTimer;
+var toastTimer;
 function showToast(msg,type){
   const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type||'');
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.className='',3500);
