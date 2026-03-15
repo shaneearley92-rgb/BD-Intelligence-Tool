@@ -318,15 +318,16 @@ select option{background:#fff;}
 </div>
 
 <script>
+
 const CONFIG = {
-  SUPABASE_URL:      'YOUR_SUPABASE_URL',
-  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
+  SUPABASE_URL:      'https://bmomiedymqjidgzynjld.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtb21pZWR5bXFqaWRnenluamxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MTEzMDgsImV4cCI6MjA4OTE4NzMwOH0.KPrT6M8GQRjxgOPTIRxhJDCRb_Al6GvDkldehI7Ap10',
   GITHUB_OWNER:      'shaneearley92-rgb',
   GITHUB_REPO:       'BD-Intelligence-Tool',
   GITHUB_PAT:        'YOUR_GITHUB_PAT',
 };
 
-const isConfigured = CONFIG.SUPABASE_URL !== 'YOUR_SUPABASE_URL';
+const isConfigured = CONFIG.SUPABASE_URL !== 'https://bmomiedymqjidgzynjld.supabase.co';
 if (!isConfigured) document.getElementById('config-warning').style.display = 'block';
 let supabase = null;
 if (isConfigured) supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
