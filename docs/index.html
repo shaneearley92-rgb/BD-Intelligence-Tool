@@ -326,7 +326,7 @@ const CONFIG = {
   GITHUB_PAT:        'YOUR_GITHUB_PAT',
 };
 
-const isConfigured = CONFIG.SUPABASE_URL !== 'YOUR_SUPABASE_URL';
+ const isConfigured = true;
 if (!isConfigured) document.getElementById('config-warning').style.display = 'block';
 var sb = null;
 if (isConfigured) sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
