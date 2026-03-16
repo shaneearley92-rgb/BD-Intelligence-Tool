@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -65,10 +64,7 @@ select option{background:#fff;}
 </style>
 </head>
 <body>
-
 <div id="config-warning">⚠ Configure your credentials — open index.html and fill in the CONFIG object with your Supabase and GitHub details.</div>
-
-<!-- HEADER -->
 <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:var(--bg2);border-bottom:1px solid var(--border);box-shadow:var(--shadow);position:sticky;top:0;z-index:100;">
   <div style="display:flex;align-items:center;gap:16px;">
     <svg width="72" height="82" viewBox="0 0 130 160" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -164,8 +160,6 @@ select option{background:#fff;}
     <span style="font-size:12px;font-weight:600;color:var(--text3);" id="clock">--:--:--</span>
   </div>
 </div>
-
-<!-- MISSION PANEL -->
 <div style="background:var(--bg3);border-bottom:1px solid var(--border);padding:20px 28px;">
   <div class="label" style="margin-bottom:14px;">Research Mission</div>
   <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:16px;align-items:end;">
@@ -200,8 +194,6 @@ select option{background:#fff;}
     </div>
   </div>
 </div>
-
-<!-- STATS -->
 <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid var(--border);background:var(--bg2);">
   <div style="padding:16px 28px;border-right:1px solid var(--border);">
     <div class="label">Targets</div>
@@ -224,8 +216,6 @@ select option{background:#fff;}
     <div style="font-size:12px;font-weight:600;color:var(--text3);margin-top:2px;">outreach pieces</div>
   </div>
 </div>
-
-<!-- MAIN -->
 <div style="display:grid;grid-template-columns:1fr 270px;">
   <div style="padding:20px 28px;border-right:1px solid var(--border);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
@@ -253,8 +243,6 @@ select option{background:#fff;}
       </tbody>
     </table>
   </div>
-
-  <!-- FEED -->
   <div style="padding:20px;background:var(--bg2);">
     <div class="label" style="margin-bottom:14px;">Intel Feed</div>
     <div id="feed-list"><div class="empty" style="padding:20px 0;">No recent activity</div></div>
@@ -268,10 +256,7 @@ select option{background:#fff;}
     </div>
   </div>
 </div>
-
 <div id="toast"></div>
-
-<!-- ADD COMPANY MODAL -->
 <div class="modal-overlay" id="add-modal">
   <div class="modal">
     <div class="modal-title">Add Target Company</div>
@@ -287,8 +272,6 @@ select option{background:#fff;}
     </div>
   </div>
 </div>
-
-<!-- BATCH MODAL -->
 <div class="modal-overlay" id="batch-modal">
   <div class="modal">
     <div class="modal-title">Run Batch Research</div>
@@ -301,8 +284,6 @@ select option{background:#fff;}
     </div>
   </div>
 </div>
-
-<!-- PROSPECT SEARCH MODAL -->
 <div class="modal-overlay" id="prospect-modal">
   <div class="modal">
     <div class="modal-title">Prospect Search</div>
@@ -317,7 +298,6 @@ select option{background:#fff;}
     </div>
   </div>
 </div>
-
 <script>
 const CONFIG = {
   SUPABASE_URL:      'https://bmomiedymqjidgzynjld.supabase.co',
@@ -326,16 +306,13 @@ const CONFIG = {
   GITHUB_REPO:       'BD-Intelligence-Tool',
   GITHUB_PAT:        'YOUR_GITHUB_PAT',
 };
-
 const isConfigured = true;
 if (!isConfigured) document.getElementById('config-warning').style.display = 'block';
 let supabase = null;
 if (isConfigured) supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 let companies = [], currentFilter = 'all';
-
 function tick(){const e=document.getElementById('clock');if(e)e.textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}
 tick();setInterval(tick,1000);
-
 document.getElementById('my-company').addEventListener('input',function(){
   const val=this.value.trim();
   const pill=document.getElementById('context-pill');
@@ -346,19 +323,15 @@ document.getElementById('my-company').addEventListener('input',function(){
     ?'AI-based identity security · IGA · PAM · NHI · External Identity · AI Agent Security<br>Pain points: legacy IGA modernization · access sprawl · non-human identity risk · compliance gaps'
     :'Enter URL above to auto-load company profile and pain point alignment context.';
 });
-
 function grantWish(){
   const tgt=document.getElementById('target-company').value.trim();
-  const myC=document.getElementById('my-company').value.trim();
   if(!tgt){document.getElementById('target-company').style.borderColor='var(--pink)';document.getElementById('target-company').focus();return;}
   document.getElementById('target-company').style.borderColor='';
   const match=companies.find(c=>c.name.toLowerCase().includes(tgt.toLowerCase()));
   if(match){triggerResearch(match.id,match.name);}
   else{document.getElementById('add-name').value=tgt;showToast('Target not in list — add it first','error');openModal('add-modal');}
 }
-
 async function loadData(){
-  if(!isConfigured){renderCompanies([]);return;}
   try{
     const[{data:cos},{data:runs},{data:contacts},{data:content}]=await Promise.all([
       supabase.from('companies').select('*').order('created_at',{ascending:false}),
@@ -375,7 +348,6 @@ async function loadData(){
     renderFeed(runs,companies);
   }catch(e){showToast('Failed to load data','error');}
 }
-
 function setFilter(f,btn){
   currentFilter=f;
   ['all','active','prospect'].forEach(id=>{
@@ -385,11 +357,10 @@ function setFilter(f,btn){
   btn.style.borderColor='var(--purple)';btn.style.color='var(--purple)';btn.style.background='var(--purple-light)';
   renderCompanies(companies);
 }
-
 function renderCompanies(list){
   const filtered=currentFilter==='all'?list:list.filter(c=>c.status===currentFilter);
   const tbody=document.getElementById('companies-tbody');
-  if(!filtered.length){tbody.innerHTML='<tr><td colspan="5" class="empty">'+(isConfigured?'No companies found — add your first target above.':'Configure credentials to load data.')+'</td></tr>';return;}
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="5" class="empty">No companies found — add your first target above.</td></tr>';return;}
   tbody.innerHTML=filtered.map(c=>{
     const tagMap={active:'tag-active',prospect:'tag-prospect',archived:'tag-archived'};
     const tagCls=tagMap[c.status]||'tag-prospect';
@@ -416,7 +387,6 @@ function renderCompanies(list){
     </tr>`;
   }).join('');
 }
-
 function renderFeed(runs,cos){
   const el=document.getElementById('feed-list');
   if(!runs?.length)return;
@@ -432,18 +402,14 @@ function renderFeed(runs,cos){
     </div>`;
   }).join('');
 }
-
 async function addCompany(){
   const name=document.getElementById('add-name').value.trim();
   if(!name){showToast('Company name required','error');return;}
-  if(!isConfigured){showToast('Configure credentials first','error');return;}
   const{error}=await supabase.from('companies').insert({name,domain:document.getElementById('add-domain').value.trim()||null,industry:document.getElementById('add-industry').value.trim()||null,ticker:document.getElementById('add-ticker').value.trim()||null,employee_count:document.getElementById('add-employees').value||null,status:document.getElementById('add-status').value});
   if(error){showToast('Error: '+error.message,'error');return;}
   showToast('Company added!','success');closeModal('add-modal');loadData();
 }
-
 async function triggerResearch(id,name){
-  if(!isConfigured){showToast('Configure credentials first','error');return;}
   showToast('Triggering research for '+name+'...','');
   try{
     const res=await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/research.yml/dispatches`,{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{company_id:id}})});
@@ -451,40 +417,33 @@ async function triggerResearch(id,name){
     else showToast('GitHub error: '+res.status,'error');
   }catch(e){showToast('Network error: '+e.message,'error');}
 }
-
 async function runBatch(){
-  if(!isConfigured){showToast('Configure credentials first','error');return;}
   try{
     const res=await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/batch.yml/dispatches`,{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{target_status:document.getElementById('batch-target').value,max_companies:document.getElementById('batch-max').value,delay_seconds:document.getElementById('batch-delay').value}})});
     if(res.status===204){showToast('Batch run started!','success');closeModal('batch-modal');}
     else showToast('GitHub error: '+res.status,'error');
   }catch(e){showToast('Network error: '+e.message,'error');}
 }
-
 async function searchProspects(){
   const company=document.getElementById('ps-company').value.trim();
   if(!company){showToast('Company name required','error');return;}
-  if(!isConfigured){showToast('Configure credentials first','error');return;}
   try{
     const res=await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/research.yml/dispatches`,{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{prospect_search:'true',company_name:company,company_domain:document.getElementById('ps-domain').value.trim(),max_contacts:document.getElementById('ps-max').value,keywords:document.getElementById('ps-keywords').value.trim()}})});
     if(res.status===204){showToast('Prospect search started for '+company+'!','success');closeModal('prospect-modal');}
     else showToast('GitHub error: '+res.status,'error');
   }catch(e){showToast('Network error: '+e.message,'error');}
 }
-
 function viewCompany(id){window.location.href='company.html?id='+id;}
 function genPyramid(id,name,domain){window.open('pyramid.html?company_id='+encodeURIComponent(id)+'&company_name='+encodeURIComponent(name)+'&company_domain='+encodeURIComponent(domain),'_blank');}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
-
 let toastTimer;
 function showToast(msg,type){
   const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type||'');
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.className='',3500);
 }
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
 loadData();
 </script>
 </body>
