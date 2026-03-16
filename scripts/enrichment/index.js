@@ -212,9 +212,9 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
         const body = {
             person_titles: titles.length > 0 ? titles : undefined,
             q_organization_name: companyName || undefined,
+            organization_domains: criteria.domain ? [criteria.domain] : undefined,
             person_seniorities: seniorities,
             person_locations: geography,
-            q_keywords: keywords.length > 0 ? keywords.join(' ') : undefined,
             page,
             per_page: perPage
         };

@@ -145,8 +145,8 @@ async function searchProspects(companyName, companyDomain, options = {}) {
         try {
             const result = await apollo.searchContacts({
                 companyName,
+                domain: companyDomain || undefined,
                 titles,
-                keywords,
                 seniorities: ['c_suite', 'vp', 'director', 'manager'],
                 perPage,
                 page,
