@@ -311,6 +311,29 @@ select option{background:#fff;}
   </div>
 </div>
 <script>
+/* ── UI utilities in isolated script block — always available ── */
+var toastTimer;
+function openModal(id){
+  if(id==='pat-modal'){var el=document.getElementById('pat-input');if(el)el.value=localStorage.getItem('bd_github_pat')||'';}
+  var m=document.getElementById(id);if(m)m.classList.add('open');
+}
+function closeModal(id){var m=document.getElementById(id);if(m)m.classList.remove('open');}
+function showToast(msg,type){
+  var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.className='show '+(type||'');
+  clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.className='';},3500);
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/\x3c/g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function viewCompany(id){window.location.href='company.html?id='+id;}
+function genPyramid(id,name,domain){window.open('pyramid.html?company_id='+encodeURIComponent(id)+'&company_name='+encodeURIComponent(name)+'&company_domain='+encodeURIComponent(domain),'_blank');}
+function savePat(){
+  var val=document.getElementById('pat-input').value.trim();
+  if(val){localStorage.setItem('bd_github_pat',val);if(typeof CONFIG!=='undefined')CONFIG.GITHUB_PAT=val;showToast('GitHub PAT saved!','success');}
+  else{localStorage.removeItem('bd_github_pat');if(typeof CONFIG!=='undefined')CONFIG.GITHUB_PAT='';showToast('GitHub PAT cleared','');}
+  closeModal('pat-modal');
+}
+document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
+</script>
+<script>
 const CONFIG = {
   SUPABASE_URL:      'https://bmomiedymqjidgzynjld.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtb21pZWR5bXFqaWRnenluamxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MTEzMDgsImV4cCI6MjA4OTE4NzMwOH0.KPrT6M8GQRjxgOPTIRxhJDCRb_Al6GvDkldehI7Ap10',
@@ -447,26 +470,6 @@ async function searchProspects(){
     else showToast('GitHub error: '+res.status,'error');
   }catch(e){showToast('Network error: '+e.message,'error');}
 }
-function viewCompany(id){window.location.href='company.html?id='+id;}
-function genPyramid(id,name,domain){window.open('pyramid.html?company_id='+encodeURIComponent(id)+'&company_name='+encodeURIComponent(name)+'&company_domain='+encodeURIComponent(domain),'_blank');}
-function openModal(id){
-  if(id==='pat-modal'){document.getElementById('pat-input').value=localStorage.getItem('bd_github_pat')||'';}
-  document.getElementById(id).classList.add('open');
-}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-function savePat(){
-  const val=document.getElementById('pat-input').value.trim();
-  if(val){localStorage.setItem('bd_github_pat',val);CONFIG.GITHUB_PAT=val;showToast('GitHub PAT saved!','success');}
-  else{localStorage.removeItem('bd_github_pat');CONFIG.GITHUB_PAT='';showToast('GitHub PAT cleared','');}
-  closeModal('pat-modal');
-}
-document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
-let toastTimer;
-function showToast(msg,type){
-  const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type||'');
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.className='',3500);
-}
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 loadData();
 </script>
 </body>
