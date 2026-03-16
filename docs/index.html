@@ -308,7 +308,7 @@ const CONFIG = {
 };
 const isConfigured = true;
 if (!isConfigured) document.getElementById('config-warning').style.display = 'block';
-let supabase = null;
+
 if (isConfigured) supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 let companies = [], currentFilter = 'all';
 function tick(){const e=document.getElementById('clock');if(e)e.textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}
