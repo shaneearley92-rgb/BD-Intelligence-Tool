@@ -456,7 +456,9 @@ async function triggerResearch(id,name){
 }
 async function runBatch(){
   try{
-    const res=await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/batch.yml/dispatches`,{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{target_status:document.getElementById('batch-target').value,max_companies:document.getElementById('batch-max').value,delay_seconds:document.getElementById('batch-delay').value}})});
+    const statusMap={prospect:'all_pending',active:'all_active'};
+    const companyIds=statusMap[document.getElementById('batch-target').value]||'all_pending';
+    const res=await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/batch.yml/dispatches`,{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{company_ids:companyIds,max_companies:document.getElementById('batch-max').value,delay_seconds:document.getElementById('batch-delay').value}})});
     if(res.status===204){showToast('Batch run started!','success');closeModal('batch-modal');}
     else showToast('GitHub error: '+res.status,'error');
   }catch(e){showToast('Network error: '+e.message,'error');}
@@ -465,7 +467,7 @@ async function searchProspects(){
   const company=document.getElementById('ps-company').value.trim();
   if(!company){showToast('Company name required','error');return;}
   try{
-    const res=await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/research.yml/dispatches`,{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{prospect_search:'true',company_name:company,company_domain:document.getElementById('ps-domain').value.trim(),max_contacts:document.getElementById('ps-max').value,keywords:document.getElementById('ps-keywords').value.trim()}})});
+    const res=await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/prospect-search.yml/dispatches`,{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{company_name:company,company_domain:document.getElementById('ps-domain').value.trim(),max_contacts:document.getElementById('ps-max').value,search_keywords:document.getElementById('ps-keywords').value.trim()}})});
     if(res.status===204){showToast('Prospect search started for '+company+'!','success');closeModal('prospect-modal');}
     else showToast('GitHub error: '+res.status,'error');
   }catch(e){showToast('Network error: '+e.message,'error');}
