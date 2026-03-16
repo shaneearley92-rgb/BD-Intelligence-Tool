@@ -133,10 +133,13 @@ async function searchProspects(companyName, companyDomain, options = {}) {
 
     console.log(`Company ID: ${company.id}`);
 
-    // 2. Search Apollo for contacts across multiple pages
+    // 2. Search Apollo for contacts
+    // Strategy: first search by domain + seniority (broad), then filter by relevant titles.
+    // Apollo's person_titles filter is strict and returns 0 if titles don't match exactly,
+    // so we search broadly and filter client-side for relevance.
     console.log('\n--- Apollo Contact Search ---');
     const allContacts = [];
-    const perPage = Math.min(maxContacts, 25); // Apollo max per_page is 25 in some tiers
+    const perPage = Math.min(maxContacts, 25);
     const totalPages = Math.ceil(maxContacts / perPage);
 
     for (let page = 1; page <= totalPages && allContacts.length < maxContacts; page++) {
@@ -146,7 +149,6 @@ async function searchProspects(companyName, companyDomain, options = {}) {
             const result = await apollo.searchContacts({
                 companyName,
                 domain: companyDomain || undefined,
-                titles,
                 seniorities: ['c_suite', 'vp', 'director', 'manager'],
                 perPage,
                 page,
@@ -170,8 +172,36 @@ async function searchProspects(companyName, companyDomain, options = {}) {
         }
     }
 
+    // Score and sort contacts by title relevance to our ICP
+    const titlePatterns = titles.map(t => t.toLowerCase());
+    const keywordPatterns = keywords.map(k => k.toLowerCase());
+
+    const scored = allContacts.map(c => {
+        const titleLower = (c.title || '').toLowerCase();
+        const headlineLower = (c.headline || '').toLowerCase();
+        let score = 0;
+
+        // Exact or partial title match
+        for (const pattern of titlePatterns) {
+            if (titleLower.includes(pattern)) { score += 10; break; }
+        }
+        // Keyword match in title or headline
+        for (const kw of keywordPatterns) {
+            if (titleLower.includes(kw) || headlineLower.includes(kw)) { score += 5; break; }
+        }
+        // Seniority bonus
+        if (c.seniority === 'c_suite') score += 4;
+        else if (c.seniority === 'vp') score += 3;
+        else if (c.seniority === 'director') score += 2;
+        else if (c.seniority === 'manager') score += 1;
+
+        return { ...c, _score: score };
+    });
+
+    scored.sort((a, b) => b._score - a._score);
+
     // Trim to max
-    const contacts = allContacts.slice(0, maxContacts);
+    const contacts = scored.slice(0, maxContacts);
     console.log(`\nTotal contacts found: ${contacts.length}`);
 
     if (contacts.length === 0) {
