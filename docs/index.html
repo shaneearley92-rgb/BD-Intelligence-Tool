@@ -320,7 +320,7 @@ const CONFIG = {
 };
 const isConfigured = true;
 if (!isConfigured) document.getElementById('config-warning').style.display = 'block';
-let supabase = null;
+
 try {
   if (isConfigured && window.supabase) supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 } catch(e) { console.error('Supabase init failed:', e); }
