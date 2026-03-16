@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>PG Genie — Sales Intelligence Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.99.1"></script>
 <style>
 :root{
   --bg:#fdf8f2;--bg2:#fff9f4;--bg3:#fef3e8;
@@ -383,7 +383,7 @@ async function loadData(){
     document.getElementById('stat-contacts').textContent=contacts?.length??'0';
     document.getElementById('stat-content').textContent=content?.length??'0';
     renderFeed(runs,companies);
-  }catch(e){showToast('Failed to load data','error');}
+  }catch(e){console.error('loadData error:',e);showToast('Failed to load data','error');}
 }
 function setFilter(f,btn){
   currentFilter=f;
@@ -443,7 +443,7 @@ async function addCompany(){
   const name=document.getElementById('add-name').value.trim();
   if(!name){showToast('Company name required','error');return;}
   const{error}=await supabase.from('companies').insert({name,domain:document.getElementById('add-domain').value.trim()||null,industry:document.getElementById('add-industry').value.trim()||null,ticker:document.getElementById('add-ticker').value.trim()||null,employee_count:document.getElementById('add-employees').value||null,research_status:document.getElementById('add-status').value});
-  if(error){showToast('Error: '+error.message,'error');return;}
+  if(error){console.error('Insert error:',JSON.stringify(error));showToast('Error: '+error.message,'error');return;}
   showToast('Company added!','success');closeModal('add-modal');loadData();
 }
 async function triggerResearch(id,name){
