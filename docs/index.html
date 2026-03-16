@@ -158,6 +158,18 @@ select option{background:#fff;}
       <span style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;color:#15803d;">Systems Online</span>
     </div>
     <span style="font-size:12px;font-weight:600;color:var(--text3);" id="clock">--:--:--</span>
+    <button class="btn btn-ghost btn-sm" onclick="openModal('pat-modal')" title="Settings" style="padding:6px 12px;">Settings</button>
+  </div>
+</div>
+<div class="modal-overlay" id="pat-modal">
+  <div class="modal">
+    <div class="modal-title">GitHub PAT Settings</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Enter your GitHub Personal Access Token (needs <code>repo</code> and <code>actions</code> scopes). Stored in your browser only.</p>
+    <div class="form-row"><label class="form-label">GitHub PAT</label><input type="password" id="pat-input" placeholder="ghp_..." value=""></div>
+    <div class="modal-btns">
+      <button class="btn btn-danger" onclick="closeModal('pat-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePat()">Save</button>
+    </div>
   </div>
 </div>
 <div style="background:var(--bg3);border-bottom:1px solid var(--border);padding:20px 28px;">
@@ -304,12 +316,14 @@ const CONFIG = {
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtb21pZWR5bXFqaWRnenluamxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MTEzMDgsImV4cCI6MjA4OTE4NzMwOH0.KPrT6M8GQRjxgOPTIRxhJDCRb_Al6GvDkldehI7Ap10',
   GITHUB_OWNER:      'shaneearley92-rgb',
   GITHUB_REPO:       'BD-Intelligence-Tool',
-  GITHUB_PAT:        'YOUR_GITHUB_PAT',
+  GITHUB_PAT:        localStorage.getItem('bd_github_pat') || '',
 };
 const isConfigured = true;
 if (!isConfigured) document.getElementById('config-warning').style.display = 'block';
 let supabase = null;
-if (isConfigured) supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+try {
+  if (isConfigured && window.supabase) supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+} catch(e) { console.error('Supabase init failed:', e); }
 let companies = [], currentFilter = 'all';
 function tick(){const e=document.getElementById('clock');if(e)e.textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}
 tick();setInterval(tick,1000);
@@ -435,8 +449,17 @@ async function searchProspects(){
 }
 function viewCompany(id){window.location.href='company.html?id='+id;}
 function genPyramid(id,name,domain){window.open('pyramid.html?company_id='+encodeURIComponent(id)+'&company_name='+encodeURIComponent(name)+'&company_domain='+encodeURIComponent(domain),'_blank');}
-function openModal(id){document.getElementById(id).classList.add('open');}
+function openModal(id){
+  if(id==='pat-modal'){document.getElementById('pat-input').value=localStorage.getItem('bd_github_pat')||'';}
+  document.getElementById(id).classList.add('open');
+}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
+function savePat(){
+  const val=document.getElementById('pat-input').value.trim();
+  if(val){localStorage.setItem('bd_github_pat',val);CONFIG.GITHUB_PAT=val;showToast('GitHub PAT saved!','success');}
+  else{localStorage.removeItem('bd_github_pat');CONFIG.GITHUB_PAT='';showToast('GitHub PAT cleared','');}
+  closeModal('pat-modal');
+}
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 let toastTimer;
 function showToast(msg,type){
