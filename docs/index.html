@@ -322,7 +322,7 @@ function showToast(msg,type){
   var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.className='show '+(type||'');
   clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.className='';},3500);
 }
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/\x3c/g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function viewCompany(id){window.location.href='company.html?id='+id;}
 function genPyramid(id,name,domain){window.open('pyramid.html?company_id='+encodeURIComponent(id)+'&company_name='+encodeURIComponent(name)+'&company_domain='+encodeURIComponent(domain),'_blank');}
 function savePat(){
