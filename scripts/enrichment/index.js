@@ -93,7 +93,7 @@ class ExaEnrichmentProvider extends BaseEnrichmentProvider {
                 includeDomains: ['linkedin.com']
             });
             return (results.results || []).map(r => ({
-                name: r.title,
+                name: parseLinkedInName(r.title),
                 url: r.url,
                 source: 'exa'
             }));
@@ -237,9 +237,9 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
         const data = await res.json();
         return {
             people: (data.people || []).map(p => ({
-                firstName: p.first_name,
-                lastName: p.last_name,
-                name: `${p.first_name} ${p.last_name}`,
+                firstName: p.first_name || '',
+                lastName: p.last_name || '',
+                name: [p.first_name, p.last_name].filter(Boolean).join(' '),
                 title: p.title,
                 company: p.organization?.name,
                 companyDomain: p.organization?.website_url,
@@ -285,6 +285,24 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
             return { source: 'apollo', structured: true, technologies: [], techCategories: [] };
         }
     }
+}
+
+// ============================================
+// HELPERS
+// ============================================
+
+/**
+ * Parse a person's name from a LinkedIn page title.
+ * LinkedIn titles look like: "Bill O'Hern - VP & CISO at Travelers | LinkedIn"
+ * We want just the name part before the first " - " or " | ".
+ */
+function parseLinkedInName(title) {
+    if (!title) return 'Unknown';
+    // Strip common LinkedIn suffixes
+    let name = title.split(' - ')[0].split(' | ')[0].trim();
+    // Remove trailing "| LinkedIn" if split didn't catch it
+    name = name.replace(/\s*\|\s*LinkedIn$/i, '').trim();
+    return name || 'Unknown';
 }
 
 // ============================================
