@@ -235,24 +235,35 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
         }
 
         const data = await res.json();
+        // mixed_people endpoint can return results in 'people' or 'contacts' arrays
+        const rawPeople = data.people || data.contacts || [];
+        if (rawPeople.length > 0) {
+            console.log(`  Apollo returned ${rawPeople.length} results. Sample fields:`, Object.keys(rawPeople[0]).join(', '));
+        }
         return {
-            people: (data.people || []).map(p => ({
-                firstName: p.first_name || '',
-                lastName: p.last_name || '',
-                name: [p.first_name, p.last_name].filter(Boolean).join(' '),
-                title: p.title,
-                company: p.organization?.name,
-                companyDomain: p.organization?.website_url,
-                email: p.email,
-                linkedinUrl: p.linkedin_url,
-                seniority: p.seniority,
-                departments: p.departments,
-                headline: p.headline,
-                city: p.city,
-                state: p.state,
-                country: p.country,
-                source: 'apollo'
-            })),
+            people: rawPeople.map(p => {
+                const firstName = (p.first_name || '').trim();
+                const lastName = (p.last_name || '').trim();
+                const fullName = [firstName, lastName].filter(Boolean).join(' ') || p.name || 'Unknown';
+                return {
+                    firstName,
+                    lastName,
+                    name: fullName,
+                    title: p.title || '',
+                    company: p.organization?.name || '',
+                    companyDomain: p.organization?.website_url || '',
+                    email: p.email || p.contact?.email || '',
+                    phone: p.phone_numbers?.[0]?.sanitized_number || '',
+                    linkedinUrl: p.linkedin_url || '',
+                    seniority: p.seniority || '',
+                    departments: p.departments || [],
+                    headline: p.headline || '',
+                    city: p.city || '',
+                    state: p.state || '',
+                    country: p.country || '',
+                    source: 'apollo'
+                };
+            }),
             totalEntries: data.pagination?.total_entries || 0,
             page: data.pagination?.page || page,
             totalPages: data.pagination?.total_pages || 1

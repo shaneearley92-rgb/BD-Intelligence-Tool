@@ -214,6 +214,7 @@ async function searchProspects(companyName, companyDomain, options = {}) {
     const storedContacts = [];
 
     for (const c of contacts) {
+        console.log(`  ${c.name} | email: ${c.email || 'none'} | linkedin: ${c.linkedinUrl || 'none'}`);
         // Check if contact already exists
         const { data: existing } = await supabase
             .from('contacts')
@@ -227,13 +228,17 @@ async function searchProspects(companyName, companyDomain, options = {}) {
             const { data: updated } = await supabase
                 .from('contacts')
                 .update({
+                    name: c.name,
                     title: c.title,
-                    email: c.email,
-                    linkedin_url: c.linkedinUrl,
+                    email: c.email || null,
+                    phone: c.phone || null,
+                    linkedin_url: c.linkedinUrl || null,
                     seniority: c.seniority,
                     department: c.departments?.[0] || null,
                     enrichment_source: 'apollo',
                     enrichment_data: {
+                        firstName: c.firstName,
+                        lastName: c.lastName,
                         headline: c.headline,
                         departments: c.departments,
                         city: c.city,
@@ -255,12 +260,15 @@ async function searchProspects(companyName, companyDomain, options = {}) {
                     company_id: company.id,
                     name: c.name,
                     title: c.title,
-                    email: c.email,
-                    linkedin_url: c.linkedinUrl,
+                    email: c.email || null,
+                    phone: c.phone || null,
+                    linkedin_url: c.linkedinUrl || null,
                     seniority: c.seniority,
                     department: c.departments?.[0] || null,
                     enrichment_source: 'apollo',
                     enrichment_data: {
+                        firstName: c.firstName,
+                        lastName: c.lastName,
                         headline: c.headline,
                         departments: c.departments,
                         city: c.city,
