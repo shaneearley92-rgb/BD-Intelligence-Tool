@@ -395,14 +395,14 @@ function setFilter(f,btn){
   renderCompanies(companies);
 }
 function renderCompanies(list){
-  const filtered=currentFilter==='all'?list:list.filter(c=>c.status===currentFilter);
+  const filtered=currentFilter==='all'?list:list.filter(c=>c.research_status===currentFilter);
   const tbody=document.getElementById('companies-tbody');
   if(!filtered.length){tbody.innerHTML='<tr><td colspan="5" class="empty">No companies found — add your first target above.</td></tr>';return;}
   tbody.innerHTML=filtered.map(c=>{
     const tagMap={active:'tag-active',prospect:'tag-prospect',archived:'tag-archived'};
-    const tagCls=tagMap[c.status]||'tag-prospect';
-    const tagLabel=(c.status||'prospect').charAt(0).toUpperCase()+(c.status||'prospect').slice(1);
-    const isActive=c.status==='active';
+    const tagCls=tagMap[c.research_status]||'tag-prospect';
+    const tagLabel=(c.research_status||'prospect').charAt(0).toUpperCase()+(c.research_status||'prospect').slice(1);
+    const isActive=c.research_status==='active';
     const signal=isActive
       ?`<div style="display:flex;gap:3px;align-items:center;"><div style="width:22px;height:5px;background:var(--green);border-radius:3px;"></div><div style="width:16px;height:5px;background:var(--green);border-radius:3px;"></div><div style="width:10px;height:5px;background:var(--green);border-radius:3px;"></div><span style="font-size:10px;font-weight:800;color:var(--green);margin-left:5px;font-family:'Nunito',sans-serif;">HIGH</span></div>`
       :`<div style="display:flex;gap:3px;align-items:center;"><div style="width:22px;height:5px;background:var(--gold);border-radius:3px;"></div><div style="width:14px;height:5px;background:var(--gold);border-radius:3px;"></div><div style="width:8px;height:5px;background:var(--border);border-radius:3px;"></div><span style="font-size:10px;font-weight:800;color:var(--gold);margin-left:5px;font-family:'Nunito',sans-serif;">MED</span></div>`;
@@ -442,7 +442,7 @@ function renderFeed(runs,cos){
 async function addCompany(){
   const name=document.getElementById('add-name').value.trim();
   if(!name){showToast('Company name required','error');return;}
-  const{error}=await supabase.from('companies').insert({name,domain:document.getElementById('add-domain').value.trim()||null,industry:document.getElementById('add-industry').value.trim()||null,ticker:document.getElementById('add-ticker').value.trim()||null,employee_count:document.getElementById('add-employees').value||null,status:document.getElementById('add-status').value});
+  const{error}=await supabase.from('companies').insert({name,domain:document.getElementById('add-domain').value.trim()||null,industry:document.getElementById('add-industry').value.trim()||null,ticker:document.getElementById('add-ticker').value.trim()||null,employee_count:document.getElementById('add-employees').value||null,research_status:document.getElementById('add-status').value});
   if(error){showToast('Error: '+error.message,'error');return;}
   showToast('Company added!','success');closeModal('add-modal');loadData();
 }
