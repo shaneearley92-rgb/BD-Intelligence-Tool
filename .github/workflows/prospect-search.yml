@@ -1,4 +1,5 @@
 name: Prospect Search
+# Triggered from PG Genie dashboard
 
 on:
   workflow_dispatch:

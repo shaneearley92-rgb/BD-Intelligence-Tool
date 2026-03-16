@@ -1,4 +1,5 @@
 name: Batch Company Research
+# Triggered from PG Genie dashboard
 
 on:
   # Manual trigger from GitHub UI
