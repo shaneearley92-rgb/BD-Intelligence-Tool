@@ -201,12 +201,19 @@ async function searchProspects(companyName, companyDomain, options = {}) {
     scored.sort((a, b) => b._score - a._score);
 
     // Trim to max
-    const contacts = scored.slice(0, maxContacts);
+    let contacts = scored.slice(0, maxContacts);
     console.log(`\nTotal contacts found: ${contacts.length}`);
 
     if (contacts.length === 0) {
         console.log('No contacts found. Check your search criteria.');
         return { company, contacts: [], analysis: null };
+    }
+
+    // 2b. Reveal contacts to get email + LinkedIn (uses Apollo credits)
+    const missingData = contacts.some(c => !c.email || !c.linkedinUrl);
+    if (missingData) {
+        console.log('\n--- Revealing Contacts (email/LinkedIn) ---');
+        contacts = await apollo.revealContacts(contacts, companyName);
     }
 
     // 3. Store contacts in Supabase

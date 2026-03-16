@@ -219,7 +219,8 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
             per_page: perPage
         };
 
-        const res = await fetch(`${this.baseUrl}/mixed_people/api_search`, {
+        // Use /mixed_people/search (not api_search)
+        const res = await fetch(`${this.baseUrl}/mixed_people/search`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -235,11 +236,25 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
         }
 
         const data = await res.json();
-        // mixed_people endpoint can return results in 'people' or 'contacts' arrays
         const rawPeople = data.people || data.contacts || [];
+
+        // Debug: log raw response structure
         if (rawPeople.length > 0) {
-            console.log(`  Apollo returned ${rawPeople.length} results. Sample fields:`, Object.keys(rawPeople[0]).join(', '));
+            const sample = rawPeople[0];
+            console.log(`  Apollo returned ${rawPeople.length} results.`);
+            console.log(`  Sample top-level keys:`, Object.keys(sample).join(', '));
+            console.log(`  Sample name fields: first_name="${sample.first_name}" last_name="${sample.last_name}" name="${sample.name}"`);
+            console.log(`  Sample contact fields: email="${sample.email}" linkedin_url="${sample.linkedin_url}"`);
+            if (sample.organization) {
+                console.log(`  Sample org keys:`, Object.keys(sample.organization).join(', '));
+            }
+        } else {
+            console.log(`  Apollo returned 0 results. Response keys:`, Object.keys(data).join(', '));
+            if (data.people === undefined && data.contacts === undefined) {
+                console.log(`  Raw response (first 500 chars):`, JSON.stringify(data).substring(0, 500));
+            }
         }
+
         return {
             people: rawPeople.map(p => {
                 const firstName = (p.first_name || '').trim();
@@ -251,9 +266,9 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
                     name: fullName,
                     title: p.title || '',
                     company: p.organization?.name || '',
-                    companyDomain: p.organization?.website_url || '',
-                    email: p.email || p.contact?.email || '',
-                    phone: p.phone_numbers?.[0]?.sanitized_number || '',
+                    companyDomain: p.organization?.website_url || p.organization?.primary_domain || '',
+                    email: p.email || '',
+                    phone: p.phone_numbers?.[0]?.sanitized_number || p.sanitized_phone || '',
                     linkedinUrl: p.linkedin_url || '',
                     seniority: p.seniority || '',
                     departments: p.departments || [],
@@ -268,6 +283,65 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
             page: data.pagination?.page || page,
             totalPages: data.pagination?.total_pages || 1
         };
+    }
+
+    /**
+     * Enrich/reveal a list of contacts to get email + LinkedIn.
+     * Uses Apollo's /people/bulk_match endpoint.
+     * Call this after searchContacts if email/linkedin are missing.
+     */
+    async revealContacts(contacts, companyName) {
+        const revealed = [];
+        for (const c of contacts) {
+            if (c.email && c.linkedinUrl) {
+                revealed.push(c);
+                continue;
+            }
+            try {
+                const res = await fetch(`${this.baseUrl}/people/match`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache',
+                        'X-Api-Key': this.apiKey
+                    },
+                    body: JSON.stringify({
+                        first_name: c.firstName,
+                        last_name: c.lastName,
+                        organization_name: companyName,
+                        reveal_personal_emails: true,
+                        reveal_phone_number: false,
+                    })
+                });
+
+                if (!res.ok) {
+                    console.warn(`  Reveal failed for ${c.name}: ${res.status}`);
+                    revealed.push(c);
+                    continue;
+                }
+
+                const data = await res.json();
+                const person = data.person;
+                if (person) {
+                    revealed.push({
+                        ...c,
+                        email: person.email || c.email,
+                        linkedinUrl: person.linkedin_url || c.linkedinUrl,
+                        phone: person.phone_numbers?.[0]?.sanitized_number || c.phone,
+                    });
+                    console.log(`  Revealed ${c.name}: email=${person.email || 'none'} linkedin=${person.linkedin_url || 'none'}`);
+                } else {
+                    revealed.push(c);
+                }
+
+                // Rate limit: small delay between reveal calls
+                await new Promise(r => setTimeout(r, 300));
+            } catch (err) {
+                console.warn(`  Reveal error for ${c.name}:`, err.message);
+                revealed.push(c);
+            }
+        }
+        return revealed;
     }
 
     async getCompanyTechStack(companyDomain) {
