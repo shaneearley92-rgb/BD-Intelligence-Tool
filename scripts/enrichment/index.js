@@ -151,6 +151,7 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
                     'X-Api-Key': this.apiKey
                 },
                 body: JSON.stringify({
+                    api_key: this.apiKey,
                     first_name: firstName,
                     last_name: lastName,
                     organization_name: companyName,
@@ -210,6 +211,7 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
         } = criteria;
 
         const body = {
+            api_key: this.apiKey,
             person_titles: titles.length > 0 ? titles : undefined,
             q_organization_name: companyName || undefined,
             organization_domains: criteria.domain ? [criteria.domain] : undefined,
@@ -218,6 +220,8 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
             page,
             per_page: perPage
         };
+
+        console.log(`  Apollo search request: org="${companyName}" domain="${criteria.domain || 'none'}" seniorities=${JSON.stringify(seniorities)} page=${page}`);
 
         // Use /mixed_people/search (not api_search)
         const res = await fetch(`${this.baseUrl}/mixed_people/search`, {
@@ -250,8 +254,9 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
             }
         } else {
             console.log(`  Apollo returned 0 results. Response keys:`, Object.keys(data).join(', '));
-            if (data.people === undefined && data.contacts === undefined) {
-                console.log(`  Raw response (first 500 chars):`, JSON.stringify(data).substring(0, 500));
+            console.log(`  Raw response (first 1000 chars):`, JSON.stringify(data).substring(0, 1000));
+            if (data.pagination) {
+                console.log(`  Pagination:`, JSON.stringify(data.pagination));
             }
         }
 
@@ -306,6 +311,7 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
                         'X-Api-Key': this.apiKey
                     },
                     body: JSON.stringify({
+                        api_key: this.apiKey,
                         first_name: c.firstName,
                         last_name: c.lastName,
                         organization_name: companyName,
@@ -346,7 +352,7 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
 
     async getCompanyTechStack(companyDomain) {
         try {
-            const res = await fetch(`${this.baseUrl}/organizations/enrich?domain=${encodeURIComponent(companyDomain)}`, {
+            const res = await fetch(`${this.baseUrl}/organizations/enrich?domain=${encodeURIComponent(companyDomain)}&api_key=${encodeURIComponent(this.apiKey)}`, {
                 method: 'GET',
                 headers: {
                     'Cache-Control': 'no-cache',
