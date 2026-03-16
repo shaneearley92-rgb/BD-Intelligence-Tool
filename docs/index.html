@@ -234,8 +234,8 @@ select option{background:#fff;}
       <span class="label">Target Companies</span>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
         <button id="filter-all" style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;padding:5px 14px;border-radius:999px;border:2px solid var(--purple);color:var(--purple);background:var(--purple-light);cursor:pointer;" onclick="setFilter('all',this)">All</button>
-        <button id="filter-active" style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;padding:5px 14px;border-radius:999px;border:2px solid var(--border);color:var(--text3);background:transparent;cursor:pointer;" onclick="setFilter('active',this)">Active</button>
-        <button id="filter-prospect" style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;padding:5px 14px;border-radius:999px;border:2px solid var(--border);color:var(--text3);background:transparent;cursor:pointer;" onclick="setFilter('prospect',this)">Prospect</button>
+        <button id="filter-complete" style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;padding:5px 14px;border-radius:999px;border:2px solid var(--border);color:var(--text3);background:transparent;cursor:pointer;" onclick="setFilter('complete',this)">Complete</button>
+        <button id="filter-pending" style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;padding:5px 14px;border-radius:999px;border:2px solid var(--border);color:var(--text3);background:transparent;cursor:pointer;" onclick="setFilter('pending',this)">Pending</button>
         <button class="btn btn-gold btn-sm" onclick="openModal('batch-modal')">Batch Run</button>
         <button class="btn btn-teal btn-sm" onclick="openModal('prospect-modal')">Prospect Search</button>
       </div>
@@ -277,7 +277,7 @@ select option{background:#fff;}
     <div class="form-row"><label class="form-label">Industry</label><input type="text" id="add-industry" placeholder="e.g. Insurance"/></div>
     <div class="form-row"><label class="form-label">Ticker (SEC filings)</label><input type="text" id="add-ticker" placeholder="e.g. TRV"/></div>
     <div class="form-row"><label class="form-label">Employee Count</label><input type="number" id="add-employees" placeholder="e.g. 30000"/></div>
-    <div class="form-row"><label class="form-label">Status</label><select id="add-status"><option value="prospect">Prospect</option><option value="active">Active</option></select></div>
+    <div class="form-row"><label class="form-label">Status</label><select id="add-status"><option value="pending">Pending</option><option value="complete">Complete</option></select></div>
     <div class="modal-btns">
       <button class="btn btn-danger" onclick="closeModal('add-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="addCompany()">Add Company</button>
@@ -387,7 +387,7 @@ async function loadData(){
 }
 function setFilter(f,btn){
   currentFilter=f;
-  ['all','active','prospect'].forEach(id=>{
+  ['all','complete','pending'].forEach(id=>{
     const b=document.getElementById('filter-'+id);
     if(b){b.style.borderColor='var(--border)';b.style.color='var(--text3)';b.style.background='transparent';}
   });
@@ -399,11 +399,11 @@ function renderCompanies(list){
   const tbody=document.getElementById('companies-tbody');
   if(!filtered.length){tbody.innerHTML='<tr><td colspan="5" class="empty">No companies found — add your first target above.</td></tr>';return;}
   tbody.innerHTML=filtered.map(c=>{
-    const tagMap={active:'tag-active',prospect:'tag-prospect',archived:'tag-archived'};
+    const tagMap={complete:'tag-active',pending:'tag-prospect',running:'tag-prospect',error:'tag-archived',stale:'tag-archived'};
     const tagCls=tagMap[c.research_status]||'tag-prospect';
-    const tagLabel=(c.research_status||'prospect').charAt(0).toUpperCase()+(c.research_status||'prospect').slice(1);
-    const isActive=c.research_status==='active';
-    const signal=isActive
+    const tagLabel=(c.research_status||'pending').charAt(0).toUpperCase()+(c.research_status||'pending').slice(1);
+    const isComplete=c.research_status==='complete';
+    const signal=isComplete
       ?`<div style="display:flex;gap:3px;align-items:center;"><div style="width:22px;height:5px;background:var(--green);border-radius:3px;"></div><div style="width:16px;height:5px;background:var(--green);border-radius:3px;"></div><div style="width:10px;height:5px;background:var(--green);border-radius:3px;"></div><span style="font-size:10px;font-weight:800;color:var(--green);margin-left:5px;font-family:'Nunito',sans-serif;">HIGH</span></div>`
       :`<div style="display:flex;gap:3px;align-items:center;"><div style="width:22px;height:5px;background:var(--gold);border-radius:3px;"></div><div style="width:14px;height:5px;background:var(--gold);border-radius:3px;"></div><div style="width:8px;height:5px;background:var(--border);border-radius:3px;"></div><span style="font-size:10px;font-weight:800;color:var(--gold);margin-left:5px;font-family:'Nunito',sans-serif;">MED</span></div>`;
     return`<tr style="border-bottom:1px solid var(--border);" onmouseover="this.style.background='#fdf5ee'" onmouseout="this.style.background=''">
