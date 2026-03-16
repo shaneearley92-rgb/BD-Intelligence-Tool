@@ -382,9 +382,9 @@
                         <div class="contact-name">${c.name}</div>
                         <div class="contact-title">${c.title || 'No title'} ${c.seniority ? `| ${c.seniority}` : ''}</div>
                         <div class="contact-meta">
-                            ${c.email ? `<span>Email: ${c.email}</span>` : ''}
-                            ${c.linkedin_url ? `<a href="${c.linkedin_url}" target="_blank">LinkedIn</a>` : ''}
-                            <span>Source: ${c.enrichment_source || 'manual'}</span>
+                            ${c.email ? `<div><strong>Email:</strong> <a href="mailto:${c.email}">${c.email}</a></div>` : '<div><em>Email not available</em></div>'}
+                            ${c.linkedin_url ? `<div><strong>LinkedIn:</strong> <a href="${c.linkedin_url}" target="_blank" rel="noopener">${c.linkedin_url}</a></div>` : '<div><em>LinkedIn not available</em></div>'}
+                            <div>Source: ${c.enrichment_source || 'manual'}</div>
                         </div>
                     </div>`).join('');
             } catch (e) {
