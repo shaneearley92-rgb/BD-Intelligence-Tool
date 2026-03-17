@@ -266,26 +266,29 @@ Return ONLY valid JSON, no markdown, no preamble:
   }
 }`;
 
-  try{
-   const res = await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/generate-pyramid`,{
-  method:'POST',
-  headers:{
-    'Content-Type':'application/json',
-    'apikey': CONFIG.SUPABASE_ANON_KEY,
-  },
-  body:JSON.stringify({ prompt })
-});
-const data = await res.json();    const raw = data.content?.map(b=>b.text||'').join('')||'';
-    const clean = raw.replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(clean);
-    render(parsed);
+ try{
+    const pat=localStorage.getItem('bd_github_pat')||'';
+    if(!pat){throw new Error('GitHub PAT not set — click Settings in the dashboard to add it');}
+    await fetch(`https://api.github.com/repos/shaneearley92-rgb/BD-Intelligence-Tool/actions/workflows/generate-pyramid.yml/dispatches`,{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+pat,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
+      body:JSON.stringify({ref:'main',client_payload:{company_id:coId,company_name:coName,company_domain:coDomain}})
+    });
+    document.getElementById('load-status').textContent='Workflow triggered — waiting for Claude...';
+    let attempts=0;
+    const poll=setInterval(async()=>{
+      attempts++;
+      if(attempts>20){clearInterval(poll);document.getElementById('loading').style.display='none';document.getElementById('error-msg').style.display='block';document.getElementById('err-detail').textContent='Timed out. Check GitHub Actions for errors.';return;}
+      document.getElementById('load-status').textContent=`Waiting for result... (${attempts*3}s)`;
+      const sb=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+      const{data}=await sb.from('research_snapshots').select('signals,summary,created_at').eq('company_id',coId).eq('source','pyramid').order('created_at',{ascending:false}).limit(1);
+      if(data?.length){const age=(Date.now()-new Date(data[0].created_at).getTime())/1000;if(age<120){clearInterval(poll);render(data[0].signals);}}
+    },3000);
   }catch(e){
     document.getElementById('loading').style.display='none';
     document.getElementById('error-msg').style.display='block';
-    document.getElementById('err-detail').textContent='Error: '+e.message+'. Check that your Anthropic API key is configured in the file.';
+    document.getElementById('err-detail').textContent='Error: '+e.message;
   }
-}
-
 function render(d){
   if(d.company_meta) document.getElementById('s-meta').textContent = d.company_meta;
   const tiers = ['goals','strategies','initiatives','obstacles','needs'];
