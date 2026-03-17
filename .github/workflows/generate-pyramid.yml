@@ -1,0 +1,27 @@
+name: Generate Sales Pyramid
+
+on:
+  repository_dispatch:
+    types: [generate-pyramid]
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+
+      - name: Generate pyramid
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          COMPANY_ID: ${{ github.event.client_payload.company_id }}
+          COMPANY_NAME: ${{ github.event.client_payload.company_name }}
+          COMPANY_DOMAIN: ${{ github.event.client_payload.company_domain }}
+        run: node scripts/generate-pyramid.js
