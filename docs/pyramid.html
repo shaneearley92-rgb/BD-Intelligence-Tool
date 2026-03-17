@@ -267,13 +267,15 @@ Return ONLY valid JSON, no markdown, no preamble:
 }`;
 
   try{
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
-    });
-    const data = await res.json();
-    const raw = data.content?.map(b=>b.text||'').join('')||'';
+   const res = await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/generate-pyramid`,{
+  method:'POST',
+  headers:{
+    'Content-Type':'application/json',
+    'apikey': CONFIG.SUPABASE_ANON_KEY,
+  },
+  body:JSON.stringify({ prompt })
+});
+const data = await res.json();    const raw = data.content?.map(b=>b.text||'').join('')||'';
     const clean = raw.replace(/```json|```/g,'').trim();
     const parsed = JSON.parse(clean);
     render(parsed);
