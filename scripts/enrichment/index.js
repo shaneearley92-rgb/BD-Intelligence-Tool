@@ -155,6 +155,7 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
                     first_name: firstName,
                     last_name: lastName,
                     organization_name: companyName,
+                    reveal_personal_emails: true,
                 })
             });
 
@@ -264,7 +265,10 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
             people: rawPeople.map(p => {
                 const firstName = (p.first_name || '').trim();
                 const lastName = (p.last_name || '').trim();
-                const fullName = [firstName, lastName].filter(Boolean).join(' ') || p.name || 'Unknown';
+                // Prefer Apollo's full name field when last_name is missing
+                const fullName = (firstName && lastName)
+                    ? `${firstName} ${lastName}`
+                    : (p.name || firstName || 'Unknown');
                 return {
                     firstName,
                     lastName,

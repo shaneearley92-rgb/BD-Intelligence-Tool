@@ -15,7 +15,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const edgar = require('./fetchers/edgar');
 const exa = require('./fetchers/exa');
 const youtube = require('./fetchers/youtube');
-const { enrichContacts } = require('./enrichment');
+const { enrichContacts, getProvider } = require('./enrichment');
 
 // ============================================
 // INITIALIZATION
@@ -75,18 +75,44 @@ async function runResearch(companyId) {
     }
 
     try {
-        // 3. Enrich contacts (Apollo-ready, currently uses Exa fallback)
+        // 3. Enrich contacts (Apollo)
         console.log('\n--- Contact Enrichment ---');
         const enrichedContacts = await enrichContacts(contacts || [], company.name);
 
+        // 3b. Reveal contacts missing email/LinkedIn via Apollo
+        const provider = getProvider();
+        let revealedContacts = enrichedContacts;
+        if (provider.name === 'apollo' && typeof provider.revealContacts === 'function') {
+            const missingData = enrichedContacts.some(c => !c.email || !c.linkedin_url);
+            if (missingData) {
+                console.log('\n--- Revealing Contacts (email/LinkedIn) ---');
+                // Map to the format revealContacts expects (camelCase linkedinUrl)
+                const mapped = enrichedContacts.map(c => ({
+                    ...c,
+                    firstName: c.firstName || c.name?.split(/\s+/)[0] || '',
+                    lastName: c.lastName || c.name?.split(/\s+/).slice(1).join(' ') || '',
+                    linkedinUrl: c.linkedinUrl || c.linkedin_url || '',
+                }));
+                const revealed = await provider.revealContacts(mapped, company.name);
+                // Map back to DB field names
+                revealedContacts = revealed.map((r, i) => ({
+                    ...enrichedContacts[i],
+                    email: r.email || enrichedContacts[i].email,
+                    linkedin_url: r.linkedinUrl || enrichedContacts[i].linkedin_url,
+                    phone: r.phone || enrichedContacts[i].phone,
+                }));
+            }
+        }
+
         // Update contacts with enrichment data
-        for (const contact of enrichedContacts) {
+        for (const contact of revealedContacts) {
             const updateFields = {
                 enrichment_data: contact.enrichment_data,
                 enrichment_source: contact.enrichment_source,
             };
             if (contact.email) updateFields.email = contact.email;
             if (contact.linkedin_url) updateFields.linkedin_url = contact.linkedin_url;
+            if (contact.phone) updateFields.phone = contact.phone;
             await supabase
                 .from('contacts')
                 .update(updateFields)
