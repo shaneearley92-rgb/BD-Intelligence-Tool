@@ -235,23 +235,21 @@ async function generatePyramid(){
 
     document.getElementById('load-status').textContent = 'Triggering research workflow...';
 
-    var triggerRes = await fetch('https://api.github.com/repos/shaneearley92-rgb/BD-Intelligence-Tool/dispatches', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer '+pat,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        ref: 'main',
-        client_payload: {
-          company_id: coId,
-          company_name: coName,
-          company_domain: coDomain
-        }
-      })
-    });
-
+var triggerRes = await fetch('https://api.github.com/repos/shaneearley92-rgb/BD-Intelligence-Tool/dispatches', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer '+pat,
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    event_type: 'generate-pyramid',
+    client_payload: {
+      company_id: coId,
+      company_name: coName,
+      company_domain: coDomain
+    }
+  })
     if(!triggerRes.ok){ throw new Error('GitHub API error: '+triggerRes.status); }
 
     document.getElementById('load-status').textContent = 'Workflow triggered — waiting for Claude to generate your pyramid...';
