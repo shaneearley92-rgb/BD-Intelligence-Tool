@@ -1,189 +1,230 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>PG Genie — Sales Intelligence Platform</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.99.1"></script>
 <style>
-:root{
-  --bg:#fdf8f2;--bg2:#fff9f4;--bg3:#fef3e8;
-  --border:#ecddd0;--border2:#ddc9b5;
-  --purple:#7c3aed;--purple-light:#ede9fe;
-  --gold:#f59e0b;--gold-light:#fef3c7;
-  --pink:#e879a0;--pink-light:#fce7f3;
-  --teal:#0d9488;--teal-light:#ccfbf1;
-  --green:#16a34a;--green-light:#dcfce7;
-  --red:#dc2626;--red-light:#fee2e2;
-  --text:#2d1f0e;--text2:#6b4f35;--text3:#a07850;
-  --shadow:0 2px 12px rgba(124,58,237,0.10);
-  --shadow2:0 4px 24px rgba(124,58,237,0.13);
+:root {
+  --bg:         #f6f4ef;
+  --bg2:        #ffffff;
+  --bg3:        #f0ede6;
+  --bg4:        #e8e4da;
+  --border:     #e0dcd2;
+  --border2:    #c8c4b8;
+  --gold:       #a86c0a;
+  --gold-lt:    #e8a800;
+  --gold-bg:    #fdf6e3;
+  --gold-brd:   #f0cc70;
+  --purple:     #6b3fd4;
+  --purple-lt:  #8b5cf6;
+  --purple-bg:  #f2eeff;
+  --purple-brd: #c4aff0;
+  --green:      #166534;
+  --green-bg:   #f0fdf4;
+  --green-brd:  #86efac;
+  --teal:       #0e7490;
+  --teal-bg:    #f0fdff;
+  --teal-brd:   #67e8f9;
+  --amber:      #92400e;
+  --amber-bg:   #fffbeb;
+  --amber-brd:  #fcd34d;
+  --pink:       #be185d;
+  --pink-bg:    #fdf2f8;
+  --pink-brd:   #f9a8d4;
+  --red:        #dc2626;
+  --red-bg:     #fee2e2;
+  --text1:      #1a1714;
+  --text2:      #4a4640;
+  --text3:      #8c887a;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.07);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.09);
+  --shadow-lg:  0 10px 32px rgba(0,0,0,0.11);
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Nunito Sans',sans-serif;min-height:100vh;}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bg); color:var(--text1); font-family:'DM Sans',sans-serif; font-size:13px; min-height:100vh; }
 ::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
-input[type=text],input[type=url],input[type=number],select,textarea{background:#fff;border:2px solid var(--border);color:var(--text);font-family:'Nunito Sans',sans-serif;font-size:14px;font-weight:600;padding:10px 16px;width:100%;outline:none;border-radius:12px;transition:border-color 0.2s,box-shadow 0.2s;appearance:none;}
-input:focus,select:focus,textarea:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(124,58,237,0.1);}
+input[type=text],input[type=url],input[type=number],input[type=password],select,textarea{background:var(--bg3);border:1px solid var(--border);color:var(--text1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:9px 14px;width:100%;outline:none;border-radius:8px;transition:border-color 0.15s,box-shadow 0.15s;appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--purple-lt);background:var(--bg2);box-shadow:0 0 0 3px rgba(107,63,212,0.1);}
 input::placeholder,textarea::placeholder{color:var(--text3);font-weight:400;}
 select option{background:#fff;}
-.btn{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;border:none;padding:10px 22px;border-radius:999px;transition:all 0.18s;letter-spacing:0.3px;white-space:nowrap;display:inline-block;}
-.btn-primary{background:var(--purple);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,0.3);}
-.btn-primary:hover{background:#6d28d9;transform:translateY(-1px);}
-.btn-ghost{background:#fff;color:var(--purple);border:2px solid var(--border2);}
-.btn-ghost:hover{border-color:var(--purple);background:var(--purple-light);}
-.btn-gold{background:var(--gold);color:#fff;box-shadow:0 4px 14px rgba(245,158,11,0.3);}
-.btn-gold:hover{background:#d97706;transform:translateY(-1px);}
-.btn-teal{background:var(--teal);color:#fff;box-shadow:0 4px 14px rgba(13,148,136,0.25);}
-.btn-teal:hover{background:#0f766e;transform:translateY(-1px);}
-.btn-danger{background:#fff;color:var(--red);border:2px solid var(--red-light);}
-.btn-danger:hover{background:var(--red-light);}
-.btn-sm{font-size:12px;padding:7px 16px;}
-.tag{font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;padding:3px 12px;border-radius:999px;}
-.tag-active{background:var(--green-light);color:#15803d;}
-.tag-prospect{background:var(--gold-light);color:#b45309;}
-.tag-scanning{background:var(--pink-light);color:#be185d;}
-.tag-archived{background:#f1f5f9;color:#64748b;}
-.label{font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;letter-spacing:2px;color:var(--text3);text-transform:uppercase;}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(45,31,14,0.5);z-index:200;align-items:center;justify-content:center;}
+.btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:none;padding:8px 18px;border-radius:8px;transition:all 0.15s;letter-spacing:0.3px;white-space:nowrap;display:inline-block;box-shadow:var(--shadow-sm);}
+.btn-primary{background:var(--purple);color:#fff;box-shadow:0 3px 12px rgba(107,63,212,0.28);}
+.btn-primary:hover{background:var(--purple-lt);transform:translateY(-1px);box-shadow:0 5px 18px rgba(107,63,212,0.38);}
+.btn-ghost{background:var(--bg2);color:var(--text2);border:1px solid var(--border2);}
+.btn-ghost:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-bg);}
+.btn-gold{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-brd);}
+.btn-gold:hover{background:var(--gold-lt);color:#fff;border-color:var(--gold-lt);transform:translateY(-1px);}
+.btn-teal{background:var(--teal-bg);color:var(--teal);border:1px solid var(--teal-brd);}
+.btn-teal:hover{background:var(--teal);color:#fff;border-color:var(--teal);transform:translateY(-1px);}
+.btn-danger{background:var(--bg2);color:var(--red);border:1px solid var(--red-bg);}
+.btn-danger:hover{background:var(--red-bg);}
+.btn-sm{font-size:11px;padding:6px 14px;}
+.tag{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;letter-spacing:0.3px;}
+.tag-active{background:var(--green-bg);color:var(--green);border:1px solid var(--green-brd);}
+.tag-prospect{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-brd);}
+.tag-scanning{background:var(--pink-bg);color:var(--pink);border:1px solid var(--pink-brd);}
+.tag-archived{background:var(--bg3);color:var(--text3);border:1px solid var(--border);}
+.label{font-family:'DM Sans',sans-serif;font-size:9px;font-weight:700;letter-spacing:3px;color:var(--text3);text-transform:uppercase;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,23,20,0.5);z-index:200;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
-.modal{background:#fff;border-radius:20px;padding:28px;width:440px;max-width:95vw;box-shadow:var(--shadow2);}
-.modal-title{font-family:'Nunito',sans-serif;font-size:16px;font-weight:900;color:var(--purple);margin-bottom:20px;}
+.modal{background:var(--bg2);border-radius:16px;padding:28px;width:440px;max-width:95vw;box-shadow:var(--shadow-lg);border:1px solid var(--border);}
+.modal-title{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;color:var(--purple);margin-bottom:18px;}
 .form-row{margin-bottom:14px;}
-.form-label{font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;color:var(--text3);letter-spacing:1px;margin-bottom:6px;display:block;text-transform:uppercase;}
+.form-label{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:6px;display:block;text-transform:uppercase;}
 .form-label span{color:var(--red);}
 .modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
-#toast{position:fixed;bottom:24px;right:24px;background:#fff;border-radius:12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text);padding:12px 20px;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;box-shadow:var(--shadow2);}
+#toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text1);padding:11px 18px;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;box-shadow:var(--shadow-lg);border:1px solid var(--border);}
 #toast.show{opacity:1;}
-#toast.success{color:var(--green);border:2px solid var(--green-light);}
-#toast.error{color:var(--red);border:2px solid var(--red-light);}
-#config-warning{background:#fef3c7;border-bottom:2px solid var(--gold);padding:10px 24px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;color:#92400e;display:none;}
-.empty{text-align:center;padding:40px 0;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text3);}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+#toast.success{color:var(--green);border-color:var(--green-brd);}
+#toast.error{color:var(--red);border-color:var(--red-bg);}
+#config-warning{background:var(--amber-bg);border-bottom:2px solid var(--amber-brd);padding:10px 24px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--amber);display:none;}
+.empty{text-align:center;padding:40px 0;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text3);}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.75);}}
 @keyframes scan{0%{width:6px;opacity:0.5}50%{width:28px;opacity:1}100%{width:6px;opacity:0.5}}
+.btn-wish{padding:11px 22px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--purple-lt));border:none;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.3px;transition:all 0.15s;box-shadow:0 4px 14px rgba(107,63,212,0.3);white-space:nowrap;width:100%;}
+.btn-wish:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(107,63,212,0.42);}
+.btn-wish:active{transform:scale(0.97);}
+.btn-wish.chimed{animation:wishPop 0.5s ease-out;}
+@keyframes wishPop{0%{transform:scale(1);}30%{transform:scale(1.07);box-shadow:0 0 0 8px rgba(232,168,0,0.2),0 6px 28px rgba(107,63,212,0.5);}60%{transform:scale(0.98);}100%{transform:scale(1);}}
+.sparkle{position:fixed;pointer-events:none;z-index:9999;animation:floatUp 1.2s ease-out forwards;}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1) rotate(0deg);}100%{opacity:0;transform:translateY(-90px) scale(0.4) rotate(40deg);}}
+.csuite-row{display:flex;gap:4px;margin-top:4px;}
+.csuite-badge{padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:0.5px;font-family:'DM Mono',monospace;}
+.csuite-cio{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-brd);}
+.csuite-ciso{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-brd);}
+.csuite-wild{background:var(--teal-bg);color:var(--teal);border:1px solid var(--teal-brd);}
+.intel-item{padding:11px 13px;border-radius:9px;background:var(--bg2);border:1px solid var(--border);margin-bottom:7px;transition:border-color 0.15s,box-shadow 0.15s;box-shadow:var(--shadow-sm);}
+.intel-item:hover{border-color:var(--border2);box-shadow:var(--shadow-md);}
+.intel-time{font-size:10px;color:var(--text3);margin-top:4px;font-family:'DM Mono',monospace;}
 </style>
 </head>
 <body>
 <div id="config-warning">⚠ Configure your credentials — open index.html and fill in the CONFIG object with your Supabase and GitHub details.</div>
-<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:var(--bg2);border-bottom:1px solid var(--border);box-shadow:var(--shadow);position:sticky;top:0;z-index:100;">
-  <div style="display:flex;align-items:center;gap:16px;">
-<img src="genie.png" style="width:80px;height:100px;object-fit:contain;" alt="PG Genie"/>
-      <div style="font-family:'Nunito',sans-serif;font-size:24px;font-weight:900;color:var(--purple);letter-spacing:0.5px;line-height:1.1;">PG Genie</div>
-      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;">Sales Intelligence Platform</div>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:66px;background:var(--bg2);border-bottom:1px solid var(--border);box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:100;">
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div style="width:46px;height:56px;border-radius:10px;overflow:hidden;border:2px solid var(--gold-brd);box-shadow:0 2px 12px rgba(168,108,10,0.2);flex-shrink:0;">
+      <img src="genie.png" style="width:100%;height:100%;object-fit:cover;object-position:top center;" alt="PG Genie"/>
+    </div>
+    <div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:27px;letter-spacing:3px;color:var(--text1);line-height:1;">PG <span style="color:var(--gold);">Genie</span></div>
+      <div style="font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--text3);">Sales Intelligence Platform</div>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <div style="display:flex;align-items:center;gap:6px;background:var(--green-light);padding:6px 14px;border-radius:999px;">
-      <div style="width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;"></div>
-      <span style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;color:#15803d;">Systems Online</span>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div style="display:flex;align-items:center;gap:6px;background:var(--green-bg);padding:5px 12px;border-radius:999px;border:1px solid var(--green-brd);">
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;"></div>
+      <span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;color:var(--green);">Systems Online</span>
     </div>
-    <span style="font-size:12px;font-weight:600;color:var(--text3);" id="clock">--:--:--</span>
-    <button class="btn btn-ghost btn-sm" onclick="openModal('pat-modal')" title="Settings" style="padding:6px 12px;">Settings</button>
+    <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);letter-spacing:1px;" id="clock">--:--:--</span>
+    <button class="btn btn-ghost btn-sm" onclick="openModal('pat-modal')">⚙ Settings</button>
   </div>
 </div>
 <div class="modal-overlay" id="pat-modal">
   <div class="modal">
     <div class="modal-title">GitHub PAT Settings</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Enter your GitHub Personal Access Token (needs <code>repo</code> and <code>actions</code> scopes). Stored in your browser only.</p>
-    <div class="form-row"><label class="form-label">GitHub PAT</label><input type="password" id="pat-input" placeholder="ghp_..." value=""></div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">Enter your GitHub Personal Access Token (needs <code>repo</code> and <code>actions</code> scopes). Stored in your browser only.</p>
+    <div class="form-row"><label class="form-label">GitHub PAT</label><input type="password" id="pat-input" placeholder="ghp_..." value=""/></div>
     <div class="modal-btns">
       <button class="btn btn-danger" onclick="closeModal('pat-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="savePat()">Save</button>
     </div>
   </div>
 </div>
-<div style="background:var(--bg3);border-bottom:1px solid var(--border);padding:20px 28px;">
-  <div class="label" style="margin-bottom:14px;">Research Mission</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:16px;align-items:end;">
+<div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:18px 32px;">
+  <div class="label" style="color:var(--gold);margin-bottom:12px;">⚡ Research Mission</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:16px;align-items:start;">
     <div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <div style="width:10px;height:10px;background:var(--purple);border-radius:3px;"></div>
-        <span style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:var(--purple);">MY COMPANY</span>
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">
+        <div style="width:7px;height:7px;background:var(--purple);border-radius:50%;"></div>
+        <span style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);">My Company</span>
       </div>
-      <input type="text" id="my-company" value="Saviynt" placeholder="Your company name" style="margin-bottom:8px;"/>
-      <input type="url" id="my-company-url" value="https://saviynt.com" placeholder="https://saviynt.com"/>
-      <div style="font-size:11px;font-weight:600;color:var(--text3);margin-top:6px;">The company whose value prop we align to</div>
+      <div id="context-pill" style="padding:8px 14px;background:var(--purple-bg);border:1px solid var(--purple-brd);border-radius:8px;font-size:11px;color:var(--purple);font-weight:600;line-height:1.5;margin-bottom:7px;">
+        ✦ Profile Loaded — <span id="pill-title">Saviynt</span><br/>
+        <span id="pill-body" style="color:var(--text2);font-weight:400;">AI-based identity security · IGA · PAM · NHI · External Identity · AI Agent Security</span>
+      </div>
+      <input type="text" id="my-company" value="Saviynt" placeholder="Your company name" style="margin-bottom:7px;"/>
+      <input type="url" id="my-company-url" value="https://saviynt.com" placeholder="https://yourcompany.com"/>
+      <div style="font-size:11px;font-weight:500;color:var(--text3);margin-top:5px;">The company whose value prop we align to</div>
     </div>
     <div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <div style="width:10px;height:10px;background:var(--pink);border-radius:3px;"></div>
-        <span style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:var(--pink);">TARGET COMPANY</span>
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">
+        <div style="width:7px;height:7px;background:var(--gold-lt);border-radius:50%;"></div>
+        <span style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);">Target Company</span>
       </div>
-      <input type="text" id="target-company" placeholder="e.g. Traveler's Insurance" style="margin-bottom:8px;"/>
+      <input type="text" id="target-company" placeholder="e.g. Traveler's Insurance" style="margin-bottom:7px;"/>
       <input type="url" id="target-company-url" placeholder="https://travelers.com"/>
-      <div style="font-size:11px;font-weight:600;color:var(--text3);margin-top:6px;">The prospect we're researching for pain point alignment</div>
+      <div style="font-size:11px;font-weight:500;color:var(--text3);margin-top:5px;">The prospect we're researching for pain point alignment</div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;padding-bottom:28px;">
-      <button class="btn btn-primary" onclick="grantWish()">Grant Wish ✦</button>
-      <button class="btn btn-ghost" onclick="openModal('add-modal')">+ Add to List</button>
-    </div>
-  </div>
-  <div id="context-pill" style="margin-top:14px;padding:12px 16px;background:#fff;border:1.5px solid var(--purple-light);border-radius:12px;display:flex;gap:10px;align-items:flex-start;">
-    <div style="width:8px;height:8px;background:var(--purple);border-radius:50%;margin-top:4px;flex-shrink:0;"></div>
-    <div>
-      <div style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;color:var(--purple);margin-bottom:3px;" id="pill-title">Company Profile Loaded — Saviynt</div>
-      <div style="font-size:12px;font-weight:600;color:var(--text2);line-height:1.7;" id="pill-body">AI-based identity security · IGA · PAM · NHI · External Identity · AI Agent Security<br>Pain points: legacy IGA modernization · access sprawl · non-human identity risk · compliance gaps</div>
+    <div style="display:flex;flex-direction:column;gap:8px;padding-top:22px;">
+      <button class="btn-wish" id="grantWishBtn" onclick="grantWishChime(this)">✦ Grant Wish</button>
+      <button class="btn btn-ghost" onclick="openModal('add-modal')" style="text-align:center;width:100%;">+ Add to List</button>
     </div>
   </div>
 </div>
-<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid var(--border);background:var(--bg2);">
-  <div style="padding:16px 28px;border-right:1px solid var(--border);">
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--bg2);border-bottom:2px solid var(--border);box-shadow:var(--shadow-sm);">
+  <div style="padding:18px 32px;border-right:1px solid var(--border);">
     <div class="label">Targets</div>
-    <div style="font-family:'Nunito',sans-serif;font-size:30px;font-weight:900;color:var(--purple);margin-top:4px;line-height:1;" id="stat-companies">—</div>
-    <div style="font-size:12px;font-weight:600;color:var(--text3);margin-top:2px;">tracked companies</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:1;color:var(--gold);margin:4px 0 2px;" id="stat-companies">—</div>
+    <div style="font-size:11px;color:var(--text3);">tracked companies</div>
   </div>
-  <div style="padding:16px 28px;border-right:1px solid var(--border);">
+  <div style="padding:18px 32px;border-right:1px solid var(--border);">
     <div class="label">Research Runs</div>
-    <div style="font-family:'Nunito',sans-serif;font-size:30px;font-weight:900;color:var(--teal);margin-top:4px;line-height:1;" id="stat-runs">—</div>
-    <div style="font-size:12px;font-weight:600;color:var(--text3);margin-top:2px;">total completed</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:1;color:var(--text3);margin:4px 0 2px;" id="stat-runs">—</div>
+    <div style="font-size:11px;color:var(--text3);">total completed</div>
   </div>
-  <div style="padding:16px 28px;border-right:1px solid var(--border);">
+  <div style="padding:18px 32px;border-right:1px solid var(--border);">
     <div class="label">Contacts</div>
-    <div style="font-family:'Nunito',sans-serif;font-size:30px;font-weight:900;color:var(--purple);margin-top:4px;line-height:1;" id="stat-contacts">—</div>
-    <div style="font-size:12px;font-weight:600;color:var(--text3);margin-top:2px;">across all companies</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:1;color:var(--gold);margin:4px 0 2px;" id="stat-contacts">—</div>
+    <div style="font-size:11px;color:var(--text3);">across all companies</div>
   </div>
-  <div style="padding:16px 28px;">
+  <div style="padding:18px 32px;">
     <div class="label">Outreach Ready</div>
-    <div style="font-family:'Nunito',sans-serif;font-size:30px;font-weight:900;color:var(--pink);margin-top:4px;line-height:1;" id="stat-content">—</div>
-    <div style="font-size:12px;font-weight:600;color:var(--text3);margin-top:2px;">outreach pieces</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:1;color:var(--green);margin:4px 0 2px;" id="stat-content">—</div>
+    <div style="font-size:11px;color:var(--text3);">outreach pieces</div>
   </div>
 </div>
-<div style="display:grid;grid-template-columns:1fr 270px;">
-  <div style="padding:20px 28px;border-right:1px solid var(--border);">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+<div style="display:grid;grid-template-columns:1fr 272px;">
+  <div style="padding:24px 32px;border-right:1px solid var(--border);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
       <span class="label">Target Companies</span>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-        <button id="filter-all" style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;padding:5px 14px;border-radius:999px;border:2px solid var(--purple);color:var(--purple);background:var(--purple-light);cursor:pointer;" onclick="setFilter('all',this)">All</button>
-        <button id="filter-complete" style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;padding:5px 14px;border-radius:999px;border:2px solid var(--border);color:var(--text3);background:transparent;cursor:pointer;" onclick="setFilter('complete',this)">Complete</button>
-        <button id="filter-pending" style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;padding:5px 14px;border-radius:999px;border:2px solid var(--border);color:var(--text3);background:transparent;cursor:pointer;" onclick="setFilter('pending',this)">Pending</button>
-        <button class="btn btn-gold btn-sm" onclick="openModal('batch-modal')">Batch Run</button>
-        <button class="btn btn-teal btn-sm" onclick="openModal('prospect-modal')">Prospect Search</button>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
+        <button id="filter-all" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:5px 13px;border-radius:6px;border:1px solid var(--purple-brd);color:var(--purple);background:var(--purple-bg);cursor:pointer;" onclick="setFilter('all',this)">All</button>
+        <button id="filter-complete" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:5px 13px;border-radius:6px;border:1px solid var(--border);color:var(--text3);background:transparent;cursor:pointer;" onclick="setFilter('complete',this)">Complete</button>
+        <button id="filter-pending" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:5px 13px;border-radius:6px;border:1px solid var(--border);color:var(--text3);background:transparent;cursor:pointer;" onclick="setFilter('pending',this)">Pending</button>
+        <button class="btn btn-gold btn-sm" onclick="openModal('batch-modal')">⚡ Batch Run</button>
+        <button class="btn btn-teal btn-sm" onclick="openModal('prospect-modal')">🔍 Prospect Search</button>
       </div>
     </div>
     <table style="width:100%;border-collapse:collapse;font-size:13px;">
       <thead>
         <tr style="border-bottom:2px solid var(--border);">
-          <th style="text-align:left;padding:8px 10px 10px 0;font-size:10px;letter-spacing:1.5px;color:var(--text3);font-weight:800;font-family:'Nunito',sans-serif;">COMPANY</th>
-          <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1.5px;color:var(--text3);font-weight:800;font-family:'Nunito',sans-serif;">SECTOR</th>
-          <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1.5px;color:var(--text3);font-weight:800;font-family:'Nunito',sans-serif;">STATUS</th>
-          <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1.5px;color:var(--text3);font-weight:800;font-family:'Nunito',sans-serif;">ALIGNMENT</th>
-          <th style="text-align:right;padding:8px 0 10px 10px;font-size:10px;letter-spacing:1.5px;color:var(--text3);font-weight:800;font-family:'Nunito',sans-serif;">ACTIONS</th>
+          <th style="text-align:left;padding:8px 10px 10px 0;font-size:9px;letter-spacing:2px;color:var(--text3);font-weight:700;font-family:'DM Sans',sans-serif;">COMPANY</th>
+          <th style="text-align:left;padding:8px 10px;font-size:9px;letter-spacing:2px;color:var(--text3);font-weight:700;font-family:'DM Sans',sans-serif;">SECTOR</th>
+          <th style="text-align:left;padding:8px 10px;font-size:9px;letter-spacing:2px;color:var(--text3);font-weight:700;font-family:'DM Sans',sans-serif;">STATUS</th>
+          <th style="text-align:left;padding:8px 10px;font-size:9px;letter-spacing:2px;color:var(--text3);font-weight:700;font-family:'DM Sans',sans-serif;">ALIGNMENT</th>
+          <th style="text-align:left;padding:8px 10px;font-size:9px;letter-spacing:2px;color:var(--text3);font-weight:700;font-family:'DM Sans',sans-serif;">C-SUITE</th>
+          <th style="text-align:right;padding:8px 0 10px 10px;font-size:9px;letter-spacing:2px;color:var(--text3);font-weight:700;font-family:'DM Sans',sans-serif;">ACTIONS</th>
         </tr>
       </thead>
       <tbody id="companies-tbody">
-        <tr><td colspan="5" class="empty">Loading targets...</td></tr>
+        <tr><td colspan="6" class="empty">Loading targets...</td></tr>
       </tbody>
     </table>
   </div>
-  <div style="padding:20px;background:var(--bg2);">
-    <div class="label" style="margin-bottom:14px;">Intel Feed</div>
-    <div id="feed-list"><div class="empty" style="padding:20px 0;">No recent activity</div></div>
-    <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
-      <div class="label" style="margin-bottom:10px;">Quick Actions</div>
+  <div style="padding:24px 20px;background:var(--bg2);display:flex;flex-direction:column;gap:22px;">
+    <div>
+      <div class="label" style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">Intel Feed<span style="flex:1;height:1px;background:var(--border);display:block;"></span></div>
+      <div id="feed-list"><div class="empty" style="padding:20px 0;border:1px dashed var(--border);border-radius:8px;">No recent activity</div></div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:20px;">
+      <div class="label" style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">Quick Actions<span style="flex:1;height:1px;background:var(--border);display:block;"></span></div>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <button class="btn btn-ghost btn-sm" style="width:100%;text-align:left;" onclick="openModal('add-modal')">+ Add Target Company</button>
-        <button class="btn btn-gold btn-sm" style="width:100%;text-align:left;" onclick="openModal('batch-modal')">Run Batch Research</button>
-        <button class="btn btn-teal btn-sm" style="width:100%;text-align:left;" onclick="openModal('prospect-modal')">Prospect Search</button>
+        <button class="btn btn-primary btn-sm" style="width:100%;text-align:left;box-shadow:0 3px 10px rgba(107,63,212,0.22);" onclick="openModal('add-modal')">+ Add Target Company</button>
+        <button class="btn btn-gold btn-sm" style="width:100%;text-align:left;" onclick="openModal('batch-modal')">⚡ Run Batch Research</button>
+        <button class="btn btn-teal btn-sm" style="width:100%;text-align:left;" onclick="openModal('prospect-modal')">🔍 Prospect Search</button>
       </div>
     </div>
   </div>
@@ -219,10 +260,10 @@ select option{background:#fff;}
 <div class="modal-overlay" id="prospect-modal">
   <div class="modal">
     <div class="modal-title">Prospect Search</div>
-    <p style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:16px;line-height:1.6;">Search Apollo for key leaders in identity, security, and AI at a target company.</p>
+    <p style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:16px;line-height:1.6;">Search Apollo for CIO, CISO, and key C-suite leaders at a target company.</p>
     <div class="form-row"><label class="form-label">Company Name <span>*</span></label><input type="text" id="ps-company" placeholder="e.g. Traveler's Insurance"/></div>
     <div class="form-row"><label class="form-label">Company Domain</label><input type="text" id="ps-domain" placeholder="e.g. travelers.com"/></div>
-    <div class="form-row"><label class="form-label">Max Contacts</label><input type="number" id="ps-max" value="10" min="1" max="50"/></div>
+    <div class="form-row"><label class="form-label">Max Contacts</label><input type="number" id="ps-max" value="15" min="1" max="50"/></div>
     <div class="form-row"><label class="form-label">Custom Keywords</label><input type="text" id="ps-keywords" placeholder="leave empty for defaults"/></div>
     <div class="modal-btns">
       <button class="btn btn-danger" onclick="closeModal('prospect-modal')">Cancel</button>
@@ -231,7 +272,6 @@ select option{background:#fff;}
   </div>
 </div>
 <script>
-/* ── UI utilities in isolated script block — always available ── */
 var toastTimer;
 function openModal(id){
   if(id==='pat-modal'){var el=document.getElementById('pat-input');if(el)el.value=localStorage.getItem('bd_github_pat')||'';}
@@ -239,7 +279,8 @@ function openModal(id){
 }
 function closeModal(id){var m=document.getElementById(id);if(m)m.classList.remove('open');}
 function showToast(msg,type){
-  var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.className='show '+(type||'');
+  var t=document.getElementById('toast');if(!t)return;
+  t.textContent=msg;t.className='show '+(type||'');
   clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.className='';},3500);
 }
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/\x3c/g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -251,7 +292,66 @@ function savePat(){
   else{localStorage.removeItem('bd_github_pat');if(typeof CONFIG!=='undefined')CONFIG.GITHUB_PAT='';showToast('GitHub PAT cleared','');}
   closeModal('pat-modal');
 }
-document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
+document.querySelectorAll('.modal-overlay').forEach(function(m){
+  m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});
+});
+function playGenieChime(){
+  try{
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    var notes=[
+      {freq:523.25,start:0.00,dur:0.35,gain:0.28},
+      {freq:659.25,start:0.10,dur:0.35,gain:0.26},
+      {freq:783.99,start:0.20,dur:0.40,gain:0.24},
+      {freq:987.77,start:0.32,dur:0.50,gain:0.22},
+      {freq:1318.5,start:0.46,dur:0.70,gain:0.18},
+      {freq:1567.9,start:0.54,dur:0.60,gain:0.12},
+    ];
+    notes.forEach(function(n){
+      var osc=ctx.createOscillator(),g=ctx.createGain();
+      osc.type='sine';
+      osc.frequency.setValueAtTime(n.freq,ctx.currentTime+n.start);
+      g.gain.setValueAtTime(0,ctx.currentTime+n.start);
+      g.gain.linearRampToValueAtTime(n.gain,ctx.currentTime+n.start+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+n.start+n.dur);
+      var osc2=ctx.createOscillator(),g2=ctx.createGain();
+      osc2.type='sine';
+      osc2.frequency.setValueAtTime(n.freq*1.005,ctx.currentTime+n.start);
+      g2.gain.setValueAtTime(0,ctx.currentTime+n.start);
+      g2.gain.linearRampToValueAtTime(n.gain*0.4,ctx.currentTime+n.start+0.03);
+      g2.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+n.start+n.dur*1.2);
+      osc.connect(g);g.connect(ctx.destination);
+      osc2.connect(g2);g2.connect(ctx.destination);
+      osc.start(ctx.currentTime+n.start);osc.stop(ctx.currentTime+n.start+n.dur+0.1);
+      osc2.start(ctx.currentTime+n.start);osc2.stop(ctx.currentTime+n.start+n.dur*1.2+0.1);
+    });
+    setTimeout(function(){ctx.close();},2000);
+  }catch(e){console.log('Audio not supported');}
+}
+function launchSparkles(btn){
+  var rect=btn.getBoundingClientRect();
+  var cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  var emojis=['✨','⭐','💫','🌟','✦','❇️'];
+  for(var i=0;i<10;i++){
+    var el=document.createElement('div');
+    el.className='sparkle';
+    el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.left=(cx+(Math.random()-0.5)*120)+'px';
+    el.style.top=(cy+(Math.random()-0.5)*60)+'px';
+    el.style.animationDelay=(Math.random()*0.3)+'s';
+    el.style.fontSize=(14+Math.random()*12)+'px';
+    document.body.appendChild(el);
+    setTimeout(function(){el.remove();},1500);
+  }
+}
+function grantWishChime(btn){
+  playGenieChime();
+  launchSparkles(btn);
+  btn.classList.remove('chimed');
+  void btn.offsetWidth;
+  btn.classList.add('chimed');
+  setTimeout(function(){btn.classList.remove('chimed');},600);
+  grantWish();
+}
 </script>
 <script>
 const CONFIG = {
@@ -261,13 +361,12 @@ const CONFIG = {
   GITHUB_REPO:       'BD-Intelligence-Tool',
   GITHUB_PAT:        localStorage.getItem('bd_github_pat') || '',
 };
-  const isConfigured = true;
-if (!isConfigured) document.getElementById('config-warning').style.display = 'block';
-
-try {
-  if (isConfigured && window.supabase) supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-} catch(e) { console.error('Supabase init failed:', e); }
-let companies = [], currentFilter = 'all';
+const isConfigured = true;
+if(!isConfigured) document.getElementById('config-warning').style.display='block';
+try{
+  if(isConfigured && window.supabase) supabase=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+}catch(e){console.error('Supabase init failed:',e);}
+let companies=[],currentFilter='all';
 function tick(){const e=document.getElementById('clock');if(e)e.textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}
 tick();setInterval(tick,1000);
 document.getElementById('my-company').addEventListener('input',function(){
@@ -275,9 +374,9 @@ document.getElementById('my-company').addEventListener('input',function(){
   const pill=document.getElementById('context-pill');
   if(!val){pill.style.display='none';return;}
   pill.style.display='flex';
-  document.getElementById('pill-title').textContent='Company Profile Loaded — '+val;
+  document.getElementById('pill-title').textContent=val;
   document.getElementById('pill-body').innerHTML=val.toLowerCase().includes('saviynt')
-    ?'AI-based identity security · IGA · PAM · NHI · External Identity · AI Agent Security<br>Pain points: legacy IGA modernization · access sprawl · non-human identity risk · compliance gaps'
+    ?'AI-based identity security · IGA · PAM · NHI · External Identity · AI Agent Security'
     :'Enter URL above to auto-load company profile and pain point alignment context.';
 });
 function grantWish(){
@@ -311,34 +410,43 @@ function setFilter(f,btn){
     const b=document.getElementById('filter-'+id);
     if(b){b.style.borderColor='var(--border)';b.style.color='var(--text3)';b.style.background='transparent';}
   });
-  btn.style.borderColor='var(--purple)';btn.style.color='var(--purple)';btn.style.background='var(--purple-light)';
+  btn.style.borderColor='var(--purple-brd)';btn.style.color='var(--purple)';btn.style.background='var(--purple-bg)';
   renderCompanies(companies);
+}
+function getWildcard(industry){
+  const ind=(industry||'').toLowerCase();
+  if(ind.includes('health')||ind.includes('pharma'))return'CDO';
+  if(ind.includes('finance')||ind.includes('insurance')||ind.includes('bank'))return'CAO';
+  if(ind.includes('tech')||ind.includes('software'))return'CTO';
+  return'CDO';
 }
 function renderCompanies(list){
   const filtered=currentFilter==='all'?list:list.filter(c=>c.research_status===currentFilter);
   const tbody=document.getElementById('companies-tbody');
-  if(!filtered.length){tbody.innerHTML='<tr><td colspan="5" class="empty">No companies found — add your first target above.</td></tr>';return;}
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="6" class="empty">No companies found — add your first target above.</td></tr>';return;}
   tbody.innerHTML=filtered.map(c=>{
     const tagMap={complete:'tag-active',pending:'tag-prospect',running:'tag-prospect',error:'tag-archived',stale:'tag-archived'};
     const tagCls=tagMap[c.research_status]||'tag-prospect';
     const tagLabel=(c.research_status||'pending').charAt(0).toUpperCase()+(c.research_status||'pending').slice(1);
     const isComplete=c.research_status==='complete';
     const signal=isComplete
-      ?`<div style="display:flex;gap:3px;align-items:center;"><div style="width:22px;height:5px;background:var(--green);border-radius:3px;"></div><div style="width:16px;height:5px;background:var(--green);border-radius:3px;"></div><div style="width:10px;height:5px;background:var(--green);border-radius:3px;"></div><span style="font-size:10px;font-weight:800;color:var(--green);margin-left:5px;font-family:'Nunito',sans-serif;">HIGH</span></div>`
-      :`<div style="display:flex;gap:3px;align-items:center;"><div style="width:22px;height:5px;background:var(--gold);border-radius:3px;"></div><div style="width:14px;height:5px;background:var(--gold);border-radius:3px;"></div><div style="width:8px;height:5px;background:var(--border);border-radius:3px;"></div><span style="font-size:10px;font-weight:800;color:var(--gold);margin-left:5px;font-family:'Nunito',sans-serif;">MED</span></div>`;
-    return`<tr style="border-bottom:1px solid var(--border);" onmouseover="this.style.background='#fdf5ee'" onmouseout="this.style.background=''">
+      ?`<div style="display:flex;gap:3px;align-items:center;"><div style="width:22px;height:5px;background:var(--green);border-radius:3px;"></div><div style="width:16px;height:5px;background:var(--green);border-radius:3px;"></div><div style="width:10px;height:5px;background:var(--green);border-radius:3px;"></div><span style="font-size:10px;font-weight:700;color:var(--green);margin-left:5px;font-family:'DM Mono',monospace;">HIGH</span></div>`
+      :`<div style="display:flex;gap:3px;align-items:center;"><div style="width:22px;height:5px;background:var(--gold-lt);border-radius:3px;"></div><div style="width:14px;height:5px;background:var(--gold-lt);border-radius:3px;"></div><div style="width:8px;height:5px;background:var(--border);border-radius:3px;"></div><span style="font-size:10px;font-weight:700;color:var(--gold);margin-left:5px;font-family:'DM Mono',monospace;">MED</span></div>`;
+    const wildcard=getWildcard(c.industry);
+    return`<tr style="border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
       <td style="padding:12px 10px 12px 0;">
-        <div style="font-family:'Nunito',sans-serif;font-weight:800;color:var(--text);">${esc(c.name)}</div>
-        <div style="font-size:11px;font-weight:600;color:var(--text3);">${c.ticker?c.ticker+' · ':''}${c.employee_count?Number(c.employee_count).toLocaleString()+' emp':c.domain||''}</div>
+        <div style="font-family:'DM Sans',sans-serif;font-weight:700;color:var(--text1);">${esc(c.name)}</div>
+        <div style="font-size:11px;font-weight:500;color:var(--text3);font-family:'DM Mono',monospace;">${c.ticker?c.ticker+' · ':''}${c.employee_count?Number(c.employee_count).toLocaleString()+' emp':c.domain||''}</div>
       </td>
-      <td style="padding:12px 10px;font-size:12px;font-weight:600;color:var(--text2);">${esc(c.industry||'—')}</td>
+      <td style="padding:12px 10px;"><span style="display:inline-block;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:600;background:var(--bg3);color:var(--text2);border:1px solid var(--border);">${esc(c.industry||'—')}</span></td>
       <td style="padding:12px 10px;"><span class="tag ${tagCls}">${tagLabel}</span></td>
       <td style="padding:12px 10px;">${signal}</td>
+      <td style="padding:12px 10px;"><div class="csuite-row"><span class="csuite-badge csuite-cio">CIO</span><span class="csuite-badge csuite-ciso">CISO</span><span class="csuite-badge csuite-wild">${wildcard}</span></div></td>
       <td style="padding:12px 0 12px 10px;text-align:right;">
         <div style="display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;">
           <button class="btn btn-primary btn-sm" onclick="triggerResearch('${c.id}','${esc(c.name)}')">Research</button>
           <button class="btn btn-ghost btn-sm" onclick="viewCompany('${c.id}')">View</button>
-          <button class="btn btn-gold btn-sm" onclick="genPyramid('${c.id}','${esc(c.name)}','${esc(c.domain||'')}')">Pyramid ▲</button>
+          <button class="btn btn-gold btn-sm" onclick="genPyramid('${c.id}','${esc(c.name)}','${esc(c.domain||'')}')">▲ Pyramid</button>
         </div>
       </td>
     </tr>`;
@@ -347,15 +455,18 @@ function renderCompanies(list){
 function renderFeed(runs,cos){
   const el=document.getElementById('feed-list');
   if(!runs?.length)return;
-  const colors={completed:'var(--green)',running:'var(--pink)',failed:'var(--red)',pending:'var(--gold)'};
+  const colors={completed:'var(--green)',running:'var(--pink)',failed:'var(--red)',pending:'var(--gold-lt)'};
   el.innerHTML=runs.slice(0,6).map(r=>{
     const co=cos?.find(c=>c.id===r.company_id);
     const col=colors[r.status]||'var(--text3)';
     const time=new Date(r.created_at).toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit'});
-    return`<div style="border-left:3px solid ${col};padding-left:12px;margin-bottom:12px;">
-      <div style="font-size:10px;font-weight:700;color:var(--text3);">${time}</div>
-      <div style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:var(--text);margin-top:2px;">${co?esc(co.name):'Unknown'}</div>
-      <div style="font-size:11px;font-weight:600;color:var(--text2);">Run ${r.status}</div>
+    return`<div class="intel-item">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+        <div style="width:3px;height:3px;border-radius:50%;background:${col};flex-shrink:0;"></div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);">${r.status}</div>
+        <div class="intel-time" style="margin-top:0;">${time}</div>
+      </div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:var(--text1);">${co?esc(co.name):'Unknown'}</div>
     </div>`;
   }).join('');
 }
