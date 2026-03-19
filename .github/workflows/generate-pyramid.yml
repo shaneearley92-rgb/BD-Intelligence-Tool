@@ -1,8 +1,18 @@
 name: Generate Sales Pyramid
 
 on:
-  repository_dispatch:
-    types: [generate-pyramid]
+  workflow_dispatch:
+    inputs:
+      company_id:
+        description: 'Company ID'
+        required: true
+      company_name:
+        description: 'Company name'
+        required: true
+      company_domain:
+        description: 'Company domain'
+        required: false
+        default: ''
 
 jobs:
   generate:
@@ -21,7 +31,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          COMPANY_ID: ${{ github.event.client_payload.company_id }}
-          COMPANY_NAME: ${{ github.event.client_payload.company_name }}
-          COMPANY_DOMAIN: ${{ github.event.client_payload.company_domain }}
+          COMPANY_ID: ${{ github.event.inputs.company_id }}
+          COMPANY_NAME: ${{ github.event.inputs.company_name }}
+          COMPANY_DOMAIN: ${{ github.event.inputs.company_domain }}
         run: node scripts/generate-pyramid.js
