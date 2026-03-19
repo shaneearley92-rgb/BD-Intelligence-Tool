@@ -1,165 +1,204 @@
-html<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Sales Value Pyramid — PG Genie</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{
-  --bg:#fdf8f2;--bg2:#fff9f4;--border:#ecddd0;
-  --purple:#7c3aed;--purple-light:#ede9fe;
-  --gold:#f59e0b;--teal:#0d9488;--green:#16a34a;--green-light:#dcfce7;
-  --red:#dc2626;--red-light:#fee2e2;
-  --text:#2d1f0e;--text2:#6b4f35;--text3:#a07850;
-  --shadow:0 2px 12px rgba(124,58,237,0.10);
-  --shadow2:0 4px 24px rgba(124,58,237,0.13);
+:root {
+  --bg:#f6f4ef; --bg2:#ffffff; --bg3:#f0ede6;
+  --border:#e0dcd2; --border2:#c8c4b8;
+  --gold:#a86c0a; --gold-lt:#e8a800; --gold-bg:#fdf6e3; --gold-brd:#f0cc70;
+  --purple:#6b3fd4; --purple-lt:#8b5cf6; --purple-bg:#f2eeff; --purple-brd:#c4aff0;
+  --green:#166534; --red:#dc2626; --red-bg:#fee2e2;
+  --text1:#1a1714; --text2:#4a4640; --text3:#8c887a;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.07);
+  --shadow-lg:0 10px 32px rgba(0,0,0,0.11);
+  --t1:#1e2a4a; --t2:#2d4070; --t3:#3b5690; --t4:#7c5a1e; --t5:#a86c0a;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Nunito Sans',sans-serif;min-height:100vh;}
-.btn{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;border:none;padding:10px 22px;border-radius:999px;transition:all 0.18s;white-space:nowrap;display:inline-block;}
-.btn-primary{background:var(--purple);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,0.3);}
-.btn-primary:hover{background:#6d28d9;transform:translateY(-1px);}
-.btn-ghost{background:#fff;color:var(--purple);border:2px solid var(--border);}
-.btn-ghost:hover{border-color:var(--purple);background:var(--purple-light);}
-.btn-teal{background:var(--teal);color:#fff;}
-.btn-teal:hover{background:#0f766e;}
-.btn-sm{font-size:12px;padding:7px 16px;}
-#loading{text-align:center;padding:80px 20px;font-family:'Nunito',sans-serif;font-weight:800;color:var(--purple);}
-#error-msg{text-align:center;padding:80px 20px;font-family:'Nunito',sans-serif;font-weight:800;color:var(--red);display:none;}
-.spinner{width:48px;height:48px;border:4px solid var(--purple-light);border-top-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px;}
+body{background:var(--bg);color:var(--text1);font-family:'DM Sans',sans-serif;font-size:13px;min-height:100vh;}
+#controls{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm);}
+.back-link{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:var(--purple);text-decoration:none;}
+.back-link:hover{opacity:0.7;}
+#ctrl-name{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--text1);}
+.btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:none;padding:7px 16px;border-radius:8px;transition:all 0.15s;white-space:nowrap;}
+.btn-ghost{background:var(--bg2);color:var(--text2);border:1px solid var(--border2);}
+.btn-ghost:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-bg);}
+.btn-navy{background:var(--t1);color:#fff;}
+.btn-navy:hover{background:var(--t2);transform:translateY(-1px);}
+.btn-gold{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-brd);}
+.btn-gold:hover{background:var(--gold-lt);color:#fff;border-color:var(--gold-lt);}
+#loading{text-align:center;padding:100px 20px;}
+.spinner{width:44px;height:44px;border:3px solid var(--purple-bg);border-top-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px;}
 @keyframes spin{to{transform:rotate(360deg)}}
-#slide-wrapper{display:none;background:var(--bg);padding:32px;}
-#slide{background:#fff;border-radius:20px;box-shadow:var(--shadow2);padding:40px 48px;max-width:1100px;margin:0 auto;}
-.tier-desc{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
-.tier-desc:last-child{border-bottom:none;}
-.tier-dot{width:14px;height:14px;border-radius:3px;flex-shrink:0;margin-top:3px;}
-.tier-tag{display:inline-block;font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;padding:2px 10px;border-radius:999px;margin:2px 3px 2px 0;}
+#load-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--purple);margin-bottom:8px;}
+#load-status{font-size:12px;color:var(--text3);font-weight:500;}
+#error-msg{text-align:center;padding:100px 20px;display:none;}
+#err-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--red);margin-bottom:8px;}
+#err-detail{font-size:12px;color:var(--text3);font-weight:500;margin-bottom:20px;}
+#slide-wrapper{display:none;padding:32px;background:var(--bg);}
+#slide{background:#fff;border-radius:16px;box-shadow:var(--shadow-lg);max-width:1140px;margin:0 auto;overflow:hidden;}
+.slide-header{background:var(--t1);padding:28px 40px;display:flex;align-items:center;justify-content:space-between;}
+.slide-eyebrow{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:6px;}
+.slide-company{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;color:#fff;line-height:1;margin-bottom:6px;}
+.slide-meta{font-size:12px;font-weight:500;color:rgba(255,255,255,0.55);}
+#logo-area{width:120px;height:56px;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);overflow:hidden;}
+#logo-area img{width:100%;height:100%;object-fit:contain;padding:8px;background:#fff;border-radius:8px;}
+.slide-date{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.35);margin-top:8px;text-align:right;}
+.slide-body{display:grid;grid-template-columns:240px 1fr;}
+.pyramid-col{background:var(--t1);padding:16px 16px 28px;display:flex;flex-direction:column;align-items:center;}
+.pyramid-attribution{font-size:9px;font-weight:600;color:rgba(255,255,255,0.25);text-align:center;letter-spacing:1px;text-transform:uppercase;margin-top:10px;}
+.tiers-col{display:flex;flex-direction:column;}
+.tier-row{display:flex;align-items:stretch;border-bottom:1px solid var(--border);transition:background 0.15s;}
+.tier-row:last-child{border-bottom:none;}
+.tier-row:hover{background:var(--bg3);}
+.tier-accent{width:4px;flex-shrink:0;}
+.tier-content{padding:14px 22px;flex:1;}
+.tier-label{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;margin-bottom:4px;}
+.tier-desc{font-size:12px;font-weight:400;color:var(--text2);line-height:1.6;margin-bottom:6px;}
+.tier-contacts{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:5px;font-family:'DM Mono',monospace;}
+.tier-tags{display:flex;flex-wrap:wrap;gap:4px;}
+.tier-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;}
+.slide-footer{background:var(--bg3);border-top:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between;}
+.footer-brand-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:var(--purple);}
+.footer-brand-sub{font-size:10px;font-weight:500;color:var(--text3);}
+.footer-center{font-size:10px;font-weight:600;color:var(--text3);}
+.footer-right{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);}
 @media print{
   body{background:#fff;}
   #controls{display:none!important;}
   #slide-wrapper{padding:0!important;background:#fff!important;}
   #slide{box-shadow:none!important;border-radius:0!important;max-width:100%!important;}
-  @page{size:landscape;margin:0.5in;}
+  @page{size:landscape;margin:0.4in;}
 }
 </style>
 </head>
 <body>
 
-<div id="controls" style="background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);">
-  <div style="display:flex;align-items:center;gap:12px;">
-    <a href="index.html" style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:var(--purple);text-decoration:none;">← Back to Dashboard</a>
-    <span style="color:var(--border);font-size:16px;">|</span>
-    <span style="font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:var(--text);" id="ctrl-name">Loading...</span>
+<div id="controls">
+  <div style="display:flex;align-items:center;gap:14px;">
+    <a href="index.html" class="back-link">← Dashboard</a>
+    <span style="color:var(--border2);font-size:16px;">|</span>
+    <span id="ctrl-name">Loading...</span>
   </div>
   <div style="display:flex;gap:8px;">
-    <button class="btn btn-ghost btn-sm" onclick="generatePyramid()">↻ Regenerate</button>
-    <button class="btn btn-teal btn-sm" onclick="window.print()">Download PDF</button>
-    <button class="btn btn-primary btn-sm" onclick="window.print()">Print Slide</button>
+    <button class="btn btn-ghost" onclick="generatePyramid()">↻ Regenerate</button>
+    <button class="btn btn-gold" onclick="window.print()">⬇ Download PDF</button>
+    <button class="btn btn-navy" onclick="window.print()">Print Slide</button>
   </div>
 </div>
 
 <div id="loading">
   <div class="spinner"></div>
-  <div style="font-size:16px;">Genie is building your pyramid...</div>
-  <div style="font-size:13px;color:var(--text3);margin-top:8px;font-weight:600;" id="load-status">Triggering research workflow...</div>
+  <div id="load-title">Building Your Pyramid</div>
+  <div id="load-status">Triggering research workflow...</div>
 </div>
 
 <div id="error-msg">
-  <div style="font-size:16px;" id="err-title">Something went wrong</div>
-  <div style="font-size:13px;margin-top:8px;font-weight:600;" id="err-detail"></div>
-  <button class="btn btn-primary" style="margin-top:16px;" onclick="generatePyramid()">Try Again</button>
+  <div id="err-title">Something Went Wrong</div>
+  <div id="err-detail"></div>
+  <button class="btn btn-navy" style="margin-top:4px;" onclick="generatePyramid()">Try Again</button>
 </div>
 
 <div id="slide-wrapper">
   <div id="slide">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;">
+
+    <div class="slide-header">
       <div>
-        <div style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Sales Value Pyramid</div>
-        <div style="font-family:'Nunito',sans-serif;font-size:28px;font-weight:900;color:var(--text);line-height:1.1;" id="s-title">Company</div>
-        <div style="font-size:13px;font-weight:600;color:var(--text3);margin-top:4px;" id="s-meta"></div>
-        <div style="font-size:11px;font-weight:600;color:var(--text3);margin-top:2px;" id="s-date"></div>
+        <div class="slide-eyebrow">Sales Value Pyramid · PG Genie</div>
+        <div class="slide-company" id="s-title">Company Name</div>
+        <div class="slide-meta" id="s-meta"></div>
       </div>
-      <div id="logo-area" style="width:130px;height:65px;background:var(--purple-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;color:var(--purple);text-align:center;padding:8px;">Company Logo</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+        <div id="logo-area">Logo</div>
+        <div class="slide-date" id="s-date"></div>
+      </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:300px 1fr;gap:40px;align-items:start;">
-      <div>
-        <svg width="300" height="380" viewBox="0 0 300 380" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="150,18 206,88 94,88" fill="#b2dfdb" stroke="#fff" stroke-width="2"/>
-          <text x="150" y="60" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="12" fill="#004d40">GOALS</text>
-          <polygon points="94,91 206,91 232,156 68,156" fill="#80cbc4" stroke="#fff" stroke-width="2"/>
-          <text x="150" y="130" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="12" fill="#004d40">STRATEGIES</text>
-          <polygon points="68,159 232,159 258,224 42,224" fill="#4db6ac" stroke="#fff" stroke-width="2"/>
-          <text x="150" y="198" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="12" fill="#fff">INITIATIVES</text>
-          <polygon points="42,227 258,227 284,292 16,292" fill="#26a69a" stroke="#fff" stroke-width="2"/>
-          <text x="150" y="266" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="12" fill="#fff">OBSTACLES</text>
-          <polygon points="16,295 284,295 300,360 0,360" fill="#00796b" stroke="#fff" stroke-width="2"/>
-          <text x="150" y="334" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="12" fill="#fff">NEEDS</text>
+    <div class="slide-body">
+
+      <div class="pyramid-col">
+        <svg viewBox="0 0 220 390" xmlns="http://www.w3.org/2000/svg" style="width:100%;">
+          <polygon points="110,8 160,74 60,74" fill="#1e2a4a"/>
+          <text x="110" y="46" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" letter-spacing="2" fill="rgba(255,255,255,0.85)">GOALS</text>
+          <polygon points="60,78 160,78 182,144 38,144" fill="#2d4070"/>
+          <text x="110" y="116" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" letter-spacing="2" fill="rgba(255,255,255,0.85)">STRATEGIES</text>
+          <polygon points="38,148 182,148 204,214 16,214" fill="#3b5690"/>
+          <text x="110" y="186" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" letter-spacing="2" fill="rgba(255,255,255,0.85)">INITIATIVES</text>
+          <polygon points="16,218 204,218 212,284 8,284" fill="#7c5a1e"/>
+          <text x="110" y="256" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" letter-spacing="2" fill="rgba(255,255,255,0.85)">OBSTACLES</text>
+          <polygon points="8,288 212,288 220,354 0,354" fill="#a86c0a"/>
+          <text x="110" y="326" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" letter-spacing="2" fill="rgba(255,255,255,0.85)">NEEDS</text>
+          <line x1="60" y1="74" x2="160" y2="74" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <line x1="38" y1="144" x2="182" y2="144" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <line x1="16" y1="214" x2="204" y2="214" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <line x1="8" y1="284" x2="212" y2="284" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <text x="110" y="378" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="rgba(255,255,255,0.25)" letter-spacing="1">ALIGNED TO SAVIYNT</text>
         </svg>
-        <div style="font-size:10px;font-weight:700;color:var(--text3);text-align:center;margin-top:6px;">Adapted from MEDDICC.COM</div>
+        <div class="pyramid-attribution">Adapted from MEDDICC.COM</div>
       </div>
 
-      <div id="tiers-content">
-        <div class="tier-desc">
-          <div class="tier-dot" style="background:#b2dfdb;border:1px solid #80cbc4;"></div>
-          <div>
-            <div style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:900;letter-spacing:1px;color:#00796b;text-transform:uppercase;margin-bottom:4px;">Goals</div>
-            <div style="font-size:13px;font-weight:600;color:var(--text2);line-height:1.6;margin-bottom:5px;" id="d-goals">—</div>
-            <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;" id="c-goals"></div>
-            <div id="sa-goals"></div>
+      <div class="tiers-col" id="tiers-content">
+        <div class="tier-row">
+          <div class="tier-accent" style="background:var(--t1);"></div>
+          <div class="tier-content">
+            <div class="tier-label" style="color:var(--t1);">Goals</div>
+            <div class="tier-desc" id="d-goals">—</div>
+            <div class="tier-contacts" id="c-goals"></div>
+            <div class="tier-tags" id="sa-goals"></div>
           </div>
         </div>
-        <div class="tier-desc">
-          <div class="tier-dot" style="background:#80cbc4;"></div>
-          <div>
-            <div style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:900;letter-spacing:1px;color:#00796b;text-transform:uppercase;margin-bottom:4px;">Strategies</div>
-            <div style="font-size:13px;font-weight:600;color:var(--text2);line-height:1.6;margin-bottom:5px;" id="d-strategies">—</div>
-            <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;" id="c-strategies"></div>
-            <div id="sa-strategies"></div>
+        <div class="tier-row">
+          <div class="tier-accent" style="background:var(--t2);"></div>
+          <div class="tier-content">
+            <div class="tier-label" style="color:var(--t2);">Strategies</div>
+            <div class="tier-desc" id="d-strategies">—</div>
+            <div class="tier-contacts" id="c-strategies"></div>
+            <div class="tier-tags" id="sa-strategies"></div>
           </div>
         </div>
-        <div class="tier-desc">
-          <div class="tier-dot" style="background:#4db6ac;"></div>
-          <div>
-            <div style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:900;letter-spacing:1px;color:#00796b;text-transform:uppercase;margin-bottom:4px;">Initiatives</div>
-            <div style="font-size:13px;font-weight:600;color:var(--text2);line-height:1.6;margin-bottom:5px;" id="d-initiatives">—</div>
-            <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;" id="c-initiatives"></div>
-            <div id="sa-initiatives"></div>
+        <div class="tier-row">
+          <div class="tier-accent" style="background:var(--t3);"></div>
+          <div class="tier-content">
+            <div class="tier-label" style="color:var(--t3);">Initiatives</div>
+            <div class="tier-desc" id="d-initiatives">—</div>
+            <div class="tier-contacts" id="c-initiatives"></div>
+            <div class="tier-tags" id="sa-initiatives"></div>
           </div>
         </div>
-        <div class="tier-desc">
-          <div class="tier-dot" style="background:#26a69a;"></div>
-          <div>
-            <div style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:900;letter-spacing:1px;color:#00796b;text-transform:uppercase;margin-bottom:4px;">Obstacles</div>
-            <div style="font-size:13px;font-weight:600;color:var(--text2);line-height:1.6;margin-bottom:5px;" id="d-obstacles">—</div>
-            <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;" id="c-obstacles"></div>
-            <div id="sa-obstacles"></div>
+        <div class="tier-row">
+          <div class="tier-accent" style="background:var(--t4);"></div>
+          <div class="tier-content">
+            <div class="tier-label" style="color:var(--t4);">Obstacles</div>
+            <div class="tier-desc" id="d-obstacles">—</div>
+            <div class="tier-contacts" id="c-obstacles"></div>
+            <div class="tier-tags" id="sa-obstacles"></div>
           </div>
         </div>
-        <div class="tier-desc">
-          <div class="tier-dot" style="background:#00796b;"></div>
-          <div>
-            <div style="font-family:'Nunito',sans-serif;font-size:11px;font-weight:900;letter-spacing:1px;color:#00796b;text-transform:uppercase;margin-bottom:4px;">Needs</div>
-            <div style="font-size:13px;font-weight:600;color:var(--text2);line-height:1.6;margin-bottom:5px;" id="d-needs">—</div>
-            <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;" id="c-needs"></div>
-            <div id="sa-needs"></div>
+        <div class="tier-row">
+          <div class="tier-accent" style="background:var(--t5);"></div>
+          <div class="tier-content">
+            <div class="tier-label" style="color:var(--t5);">Needs</div>
+            <div class="tier-desc" id="d-needs">—</div>
+            <div class="tier-contacts" id="c-needs"></div>
+            <div class="tier-tags" id="sa-needs"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <div style="margin-top:24px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div>
-          <div style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:900;color:var(--purple);">PG Genie</div>
-          <div style="font-size:10px;font-weight:600;color:var(--text3);">AI-Powered Sales Intelligence</div>
-        </div>
+    <div class="slide-footer">
+      <div>
+        <div class="footer-brand-name">PG Genie</div>
+        <div class="footer-brand-sub">AI-Powered Sales Intelligence</div>
       </div>
-      <div style="font-size:11px;font-weight:600;color:var(--text3);">Powered by Claude AI · Aligned to Saviynt Identity Security</div>
-      <div style="font-size:11px;font-weight:600;color:var(--text3);" id="footer-date"></div>
+      <div class="footer-center">Powered by Claude AI · Aligned to Saviynt Identity Security</div>
+      <div class="footer-right" id="footer-date"></div>
     </div>
+
   </div>
 </div>
 
@@ -168,126 +207,98 @@ const CONFIG = {
   SUPABASE_URL:      'https://axoociwagtamyepfvyeq.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_cqrID5e3KxU2YONXLzTlCA_QK__Lim3',
 };
-
 const params   = new URLSearchParams(window.location.search);
-const coId     = params.get('company_id') || '';
-const coName   = params.get('company_name') || 'Unknown Company';
+const coId     = params.get('company_id')     || '';
+const coName   = params.get('company_name')   || 'Unknown Company';
 const coDomain = params.get('company_domain') || '';
-
-document.getElementById('ctrl-name').textContent = coName + ' — Sales Value Pyramid';
-document.getElementById('s-title').textContent   = coName;
-document.getElementById('s-date').textContent    = 'Generated ' + new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+document.getElementById('ctrl-name').textContent   = coName + ' — Sales Value Pyramid';
+document.getElementById('s-title').textContent     = coName;
+document.getElementById('s-date').textContent      = 'Generated ' + new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 document.getElementById('footer-date').textContent = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-
 if(coDomain){
-  const domain = coDomain.replace(/https?:\/\//,'').split('/')[0];
-  const img = new Image();
-  img.onload = () => { document.getElementById('logo-area').innerHTML = '<img src="https://logo.clearbit.com/'+domain+'" style="width:130px;height:65px;object-fit:contain;border-radius:10px;" alt="'+coName+'"/>'; };
-  img.onerror = () => { document.getElementById('logo-area').textContent = coName; };
-  img.src = 'https://logo.clearbit.com/'+domain;
-} else {
-  document.getElementById('logo-area').textContent = coName;
-}
-
+  var domain=coDomain.replace(/https?:\/\//,'').split('/')[0];
+  var img=new Image();
+  img.onload=function(){document.getElementById('logo-area').innerHTML='<img src="https://logo.clearbit.com/'+domain+'" alt="'+coName+'"/>';};
+  img.onerror=function(){document.getElementById('logo-area').textContent=coName;};
+  img.src='https://logo.clearbit.com/'+domain;
+}else{document.getElementById('logo-area').textContent=coName;}
+var tagColors={
+  goals:      {bg:'rgba(30,42,74,0.1)',   color:'var(--t1)'},
+  strategies: {bg:'rgba(45,64,112,0.1)',  color:'var(--t2)'},
+  initiatives:{bg:'rgba(59,86,144,0.1)',  color:'var(--t3)'},
+  obstacles:  {bg:'rgba(124,90,30,0.1)',  color:'var(--t4)'},
+  needs:      {bg:'rgba(168,108,10,0.1)', color:'var(--t5)'},
+};
 function render(d){
-  if(d.company_meta) document.getElementById('s-meta').textContent = d.company_meta;
-  const tiers = ['goals','strategies','initiatives','obstacles','needs'];
-  const tagColors = {
-    goals:['#b2dfdb','#004d40'], strategies:['#80cbc4','#004d40'],
-    initiatives:['#4db6ac','#fff'], obstacles:['#26a69a','#fff'], needs:['#00796b','#fff']
-  };
-  tiers.forEach(function(t){
-    var td = d[t]; if(!td) return;
-    var de = document.getElementById('d-'+t);
-    var ce = document.getElementById('c-'+t);
-    var se = document.getElementById('sa-'+t);
-    if(de) de.textContent = td.description || '';
-    if(ce && td.contacts && td.contacts.length) ce.innerHTML = '<strong style="color:var(--text);">Key Contacts:</strong> '+td.contacts.join(' · ');
-    if(se && td.saviynt_alignment && td.saviynt_alignment.length){
-      var bg = tagColors[t][0]; var fg = tagColors[t][1];
-      se.innerHTML = td.saviynt_alignment.map(function(s){ return '<span class="tier-tag" style="background:'+bg+'33;color:'+(fg==='#fff'?'#00796b':fg)+';border:1px solid '+bg+';">✓ '+s+'</span>'; }).join('');
+  if(d.company_meta)document.getElementById('s-meta').textContent=d.company_meta;
+  ['goals','strategies','initiatives','obstacles','needs'].forEach(function(t){
+    var td=d[t];if(!td)return;
+    var de=document.getElementById('d-'+t);
+    var ce=document.getElementById('c-'+t);
+    var se=document.getElementById('sa-'+t);
+    if(de)de.textContent=td.description||'';
+    if(ce&&td.contacts&&td.contacts.length)ce.innerHTML='<span style="color:var(--text2);font-weight:600;">Contacts:</span> '+td.contacts.join(' · ');
+    if(se&&td.saviynt_alignment&&td.saviynt_alignment.length){
+      var tc=tagColors[t];
+      se.innerHTML=td.saviynt_alignment.map(function(s){return'<span class="tier-tag" style="background:'+tc.bg+';color:'+tc.color+';border:1px solid currentColor;">✓ '+s+'</span>';}).join('');
     }
   });
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('slide-wrapper').style.display = 'block';
+  document.getElementById('loading').style.display='none';
+  document.getElementById('slide-wrapper').style.display='block';
 }
-
 async function generatePyramid(){
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('slide-wrapper').style.display = 'none';
-  document.getElementById('error-msg').style.display = 'none';
-
+  document.getElementById('loading').style.display='block';
+  document.getElementById('slide-wrapper').style.display='none';
+  document.getElementById('error-msg').style.display='none';
   if(coId){
     try{
-      document.getElementById('load-status').textContent = 'Loading company data...';
-      var sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-      var res = await sb.from('companies').select('*').eq('id',coId).single();
-      var co = res.data;
-      if(co && (co.industry || co.employee_count)){
-        document.getElementById('s-meta').textContent = [co.industry, co.employee_count ? Number(co.employee_count).toLocaleString()+' employees' : null, co.ticker].filter(Boolean).join(' · ');
+      document.getElementById('load-status').textContent='Loading company data...';
+      var sb=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+      var res=await sb.from('companies').select('*').eq('id',coId).single();
+      var co=res.data;
+      if(co&&(co.industry||co.employee_count)){
+        document.getElementById('s-meta').textContent=[co.industry,co.employee_count?Number(co.employee_count).toLocaleString()+' employees':null,co.ticker].filter(Boolean).join(' · ');
       }
-    } catch(e){ console.warn('Company load failed:',e); }
+    }catch(e){console.warn('Company load failed:',e);}
   }
-
   try{
-    var pat = localStorage.getItem('bd_github_pat') || '';
-    if(!pat){ throw new Error('GitHub PAT not set — click Settings in the dashboard to add it'); }
-
-    document.getElementById('load-status').textContent = 'Triggering research workflow...';
-
-    var triggerRes = await fetch('https://api.github.com/repos/shaneearley92-rgb/BD-Intelligence-Tool/actions/workflows/generate-pyramid.yml/dispatches', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer '+pat,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        ref: 'main',
-        inputs: {
-          company_id: coId,
-          company_name: coName,
-          company_domain: coDomain
-        }
-      })
+    var pat=localStorage.getItem('bd_github_pat')||'';
+    if(!pat){throw new Error('GitHub PAT not set — click Settings in the dashboard to add it');}
+    document.getElementById('load-status').textContent='Triggering research workflow...';
+    var triggerRes=await fetch('https://api.github.com/repos/shaneearley92-rgb/BD-Intelligence-Tool/actions/workflows/generate-pyramid.yml/dispatches',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+pat,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
+      body:JSON.stringify({ref:'main',inputs:{company_id:coId,company_name:coName,company_domain:coDomain}})
     });
-
-    if(!triggerRes.ok){ throw new Error('GitHub API error: '+triggerRes.status); }
-
-    document.getElementById('load-status').textContent = 'Workflow triggered — waiting for Claude to generate your pyramid...';
-
-    var attempts = 0;
-    var poll = setInterval(async function(){
+    if(!triggerRes.ok){throw new Error('GitHub API error: '+triggerRes.status);}
+    document.getElementById('load-status').textContent='Claude is generating your pyramid...';
+    var attempts=0;
+    var poll=setInterval(async function(){
       attempts++;
-      if(attempts > 20){
+      if(attempts>20){
         clearInterval(poll);
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('error-msg').style.display = 'block';
-        document.getElementById('err-detail').textContent = 'Timed out after 60 seconds. Check GitHub Actions tab for errors.';
+        document.getElementById('loading').style.display='none';
+        document.getElementById('error-msg').style.display='block';
+        document.getElementById('err-detail').textContent='Timed out after 60 seconds. Check GitHub Actions tab for errors.';
         return;
       }
-      document.getElementById('load-status').textContent = 'Waiting for result... ('+(attempts*3)+'s)';
+      document.getElementById('load-status').textContent='Waiting for result... ('+(attempts*3)+'s)';
       try{
-        var sb2 = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-        var snapRes = await sb2.from('research_snapshots').select('signals,summary,created_at').eq('company_id',coId).eq('source','pyramid').order('created_at',{ascending:false}).limit(1);
-        var data = snapRes.data;
-        if(data && data.length){
-          var age = (Date.now() - new Date(data[0].created_at).getTime()) / 1000;
-          if(age < 120){
-            clearInterval(poll);
-            render(data[0].signals);
-          }
+        var sb2=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+        var snapRes=await sb2.from('research_snapshots').select('signals,summary,created_at').eq('company_id',coId).eq('source','pyramid').order('created_at',{ascending:false}).limit(1);
+        var data=snapRes.data;
+        if(data&&data.length){
+          var age=(Date.now()-new Date(data[0].created_at).getTime())/1000;
+          if(age<120){clearInterval(poll);render(data[0].signals);}
         }
-      } catch(e){ console.warn('Poll error:',e); }
-    }, 3000);
-
-  } catch(e){
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('error-msg').style.display = 'block';
-    document.getElementById('err-detail').textContent = 'Error: '+e.message;
+      }catch(e){console.warn('Poll error:',e);}
+    },3000);
+  }catch(e){
+    document.getElementById('loading').style.display='none';
+    document.getElementById('error-msg').style.display='block';
+    document.getElementById('err-detail').textContent='Error: '+e.message;
   }
 }
-
 generatePyramid();
 </script>
 </body>
