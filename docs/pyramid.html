@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+html<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -235,21 +235,23 @@ async function generatePyramid(){
 
     document.getElementById('load-status').textContent = 'Triggering research workflow...';
 
-var triggerRes = await fetch('https://api.github.com/repos/shaneearley92-rgb/BD-Intelligence-Tool/dispatches', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Bearer '+pat,
-    'Accept': 'application/vnd.github.v3+json',
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    event_type: 'generate-pyramid',
-    client_payload: {
-      company_id: coId,
-      company_name: coName,
-      company_domain: coDomain
-    }
-  })
+    var triggerRes = await fetch('https://api.github.com/repos/shaneearley92-rgb/BD-Intelligence-Tool/actions/workflows/generate-pyramid.yml/dispatches', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer '+pat,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ref: 'main',
+        inputs: {
+          company_id: coId,
+          company_name: coName,
+          company_domain: coDomain
+        }
+      })
+    });
+
     if(!triggerRes.ok){ throw new Error('GitHub API error: '+triggerRes.status); }
 
     document.getElementById('load-status').textContent = 'Workflow triggered — waiting for Claude to generate your pyramid...';
@@ -264,7 +266,7 @@ var triggerRes = await fetch('https://api.github.com/repos/shaneearley92-rgb/BD-
         document.getElementById('err-detail').textContent = 'Timed out after 60 seconds. Check GitHub Actions tab for errors.';
         return;
       }
-      document.getElementById('load-status').textContent = 'Waiting for result... ('+( attempts*3)+'s)';
+      document.getElementById('load-status').textContent = 'Waiting for result... ('+(attempts*3)+'s)';
       try{
         var sb2 = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
         var snapRes = await sb2.from('research_snapshots').select('signals,summary,created_at').eq('company_id',coId).eq('source','pyramid').order('created_at',{ascending:false}).limit(1);
@@ -289,4 +291,4 @@ var triggerRes = await fetch('https://api.github.com/repos/shaneearley92-rgb/BD-
 generatePyramid();
 </script>
 </body>
-</html>      
+</html>
