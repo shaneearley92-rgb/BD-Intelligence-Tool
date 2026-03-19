@@ -48,8 +48,8 @@ body{background:var(--bg);color:var(--text1);font-family:'DM Sans',sans-serif;fo
 #logo-area{width:120px;height:56px;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);overflow:hidden;}
 #logo-area img{width:100%;height:100%;object-fit:contain;padding:8px;background:#fff;border-radius:8px;}
 .slide-date{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.35);margin-top:8px;text-align:right;}
-.slide-body{display:grid;grid-template-columns:300px 1fr;}
-.pyramid-col{background:var(--t1);padding:16px 16px 28px;display:flex;flex-direction:column;align-items:center;min-width:300px;}
+.slide-body{display:grid;grid-template-columns:320px 1fr;}
+.pyramid-col{background:var(--t1);padding:24px 24px 32px;display:flex;flex-direction:column;align-items:center;}
 .pyramid-attribution{font-size:9px;font-weight:600;color:rgba(255,255,255,0.25);text-align:center;letter-spacing:1px;text-transform:uppercase;margin-top:10px;}
 .tiers-col{display:flex;flex-direction:column;}
 .tier-row{display:flex;align-items:stretch;border-bottom:1px solid var(--border);transition:background 0.15s;}
@@ -121,29 +121,33 @@ body{background:var(--bg);color:var(--text1);font-family:'DM Sans',sans-serif;fo
     <div class="slide-body">
 
       <div class="pyramid-col">
-        <svg viewBox="0 0 220 410" xmlns="http://www.w3.org/2000/svg" style="width:100%;">
-          <!-- T1: GOALS — sharp tip -->
-          <polygon points="110,4 125,74 95,74" fill="#1e2a4a"/>
-          <text x="110" y="44" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" letter-spacing="2" fill="rgba(255,255,255,0.85)">GOALS</text>
+        <svg viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;">
+          <!-- T1: GOALS — razor tip -->
+          <polygon points="150,4 162,74 138,74" fill="#1e2a4a"/>
+          <text x="150" y="44" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" letter-spacing="2" fill="rgba(255,255,255,0.85)">GOALS</text>
           <!-- T2: STRATEGIES -->
-          <polygon points="95,78 125,78 155,144 65,144" fill="#2d4070"/>
-          <text x="110" y="116" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" letter-spacing="2" fill="rgba(255,255,255,0.85)">STRATEGIES</text>
+          <polygon points="138,77 162,77 204,144 96,144" fill="#2d4070"/>
+          <text x="150" y="116" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" letter-spacing="2" fill="rgba(255,255,255,0.85)">STRATEGIES</text>
           <!-- T3: INITIATIVES -->
-          <polygon points="65,148 155,148 185,214 35,214" fill="#3b5690"/>
-          <text x="110" y="186" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" letter-spacing="2" fill="rgba(255,255,255,0.85)">INITIATIVES</text>
+          <polygon points="96,147 204,147 246,214 54,214" fill="#3b5690"/>
+          <text x="150" y="186" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" letter-spacing="2" fill="rgba(255,255,255,0.85)">INITIATIVES</text>
           <!-- T4: OBSTACLES -->
-          <polygon points="35,218 185,218 210,284 10,284" fill="#7c5a1e"/>
-          <text x="110" y="256" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" letter-spacing="2" fill="rgba(255,255,255,0.85)">OBSTACLES</text>
+          <polygon points="54,217 246,217 278,284 22,284" fill="#7c5a1e"/>
+          <text x="150" y="256" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" letter-spacing="2" fill="rgba(255,255,255,0.85)">OBSTACLES</text>
           <!-- T5: NEEDS — full base -->
-          <polygon points="10,288 210,288 220,354 0,354" fill="#a86c0a"/>
-          <text x="110" y="326" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" letter-spacing="2" fill="rgba(255,255,255,0.85)">NEEDS</text>
-          <!-- Dividers -->
-          <line x1="95" y1="74" x2="125" y2="74" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-          <line x1="65" y1="144" x2="155" y2="144" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-          <line x1="35" y1="214" x2="185" y2="214" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-          <line x1="10" y1="284" x2="210" y2="284" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-          <text x="110" y="378" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="rgba(255,255,255,0.25)" letter-spacing="1">ALIGNED TO SAVIYNT</text>
-        </svg>        <div class="pyramid-attribution">Adapted from MEDDICC.COM</div>
+          <polygon points="22,287 278,287 300,354 0,354" fill="#a86c0a"/>
+          <text x="150" y="326" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" letter-spacing="2" fill="rgba(255,255,255,0.85)">NEEDS</text>
+          <!-- Outer triangle border — clean white outline over entire shape -->
+          <polygon points="150,4 300,354 0,354" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linejoin="round"/>
+          <!-- Inner divider lines -->
+          <line x1="138" y1="74" x2="162" y2="74" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+          <line x1="96" y1="144" x2="204" y2="144" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+          <line x1="54" y1="214" x2="246" y2="214" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+          <line x1="22" y1="284" x2="278" y2="284" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+          <!-- Attribution -->
+          <text x="150" y="385" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="rgba(255,255,255,0.25)" letter-spacing="1">ALIGNED TO SAVIYNT</text>
+        </svg>
+        <div class="pyramid-attribution">Adapted from MEDDICC.COM</div>
       </div>
 
       <div class="tiers-col" id="tiers-content">
