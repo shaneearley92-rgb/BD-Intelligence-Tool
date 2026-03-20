@@ -347,15 +347,19 @@ async function searchProspects(companyName, companyDomain, options = {}) {
     // REVEAL CONTACTS (get emails + LinkedIn)
     // ============================================
  
-    const missingData = allContacts.some(c => !c.email || !c.linkedinUrl);
+    const missingData = allContacts.some(c => !c.email || !c.linkedinUrl || !c.lastName);
     if (missingData) {
-        console.log('\n--- Revealing Contacts (email/LinkedIn) ---');
+        console.log('\n--- Revealing Contacts (email/LinkedIn/full name) ---');
         const revealed = await apollo.revealContacts(allContacts, companyName);
         // Merge revealed data back
         for (let i = 0; i < allContacts.length; i++) {
             const rev = revealed.find(r => r.id === allContacts[i].id);
             if (rev) {
                 allContacts[i] = { ...allContacts[i], ...rev };
+                // Update name if reveal returned a more complete name
+                if (rev.firstName && rev.lastName) {
+                    allContacts[i].name = `${rev.firstName} ${rev.lastName}`.trim();
+                }
             }
         }
     }
@@ -387,14 +391,18 @@ async function searchProspects(companyName, companyDomain, options = {}) {
             department: c.departments?.[0] || null,
             enrichment_source: 'apollo',
             enrichment_data: {
-                firstName: c.firstName,
-                lastName: c.lastName,
-                headline: c.headline,
-                departments: c.departments,
-                city: c.city,
-                state: c.state,
+                firstName: c.firstName || '',
+                lastName: c.lastName || '',
+                headline: c.headline || '',
+                departments: c.departments || [],
+                city: c.city || '',
+                state: c.state || '',
+                country: c.country || '',
+                company: c.company || '',
+                companyDomain: c.companyDomain || '',
                 tier: c._tier,
                 role: c._role,
+                score: c._score || null,
                 source: 'apollo_search',
                 enrichedAt: new Date().toISOString(),
             },

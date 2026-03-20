@@ -377,16 +377,34 @@
                     document.getElementById('contacts-list').innerHTML = '<div class="loading">No contacts yet. Add one above.</div>';
                     return;
                 }
-                document.getElementById('contacts-list').innerHTML = contacts.map(c => `
+                document.getElementById('contacts-list').innerHTML = contacts.map(c => {
+                    const ed = c.enrichment_data || {};
+                    const tierBadge = ed.tier === 'tier1'
+                        ? `<span class="status-badge status-completed">${ed.role || 'C-Suite'}</span>`
+                        : ed.tier === 'tier2'
+                        ? `<span class="status-badge status-draft">${ed.role || 'Supporting'}</span>`
+                        : '';
+                    const location = [ed.city, ed.state].filter(Boolean).join(', ');
+                    const deptList = (ed.departments || []).join(', ');
+
+                    return `
                     <div class="contact-card">
-                        <div class="contact-name">${c.name}</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <div class="contact-name">${c.name}</div>
+                            ${tierBadge}
+                        </div>
                         <div class="contact-title">${c.title || 'No title'} ${c.seniority ? `| ${c.seniority}` : ''}</div>
+                        ${ed.headline ? `<div style="font-size:0.8rem;color:#94a3b8;margin-top:0.25rem;font-style:italic">${escapeHtml(ed.headline)}</div>` : ''}
                         <div class="contact-meta">
                             ${c.email ? `<div><strong>Email:</strong> <a href="mailto:${c.email}">${c.email}</a></div>` : '<div><em>Email not available</em></div>'}
-                            ${c.linkedin_url ? `<div><strong>LinkedIn:</strong> <a href="${c.linkedin_url}" target="_blank" rel="noopener">${c.linkedin_url}</a></div>` : '<div><em>LinkedIn not available</em></div>'}
+                            ${c.linkedin_url ? `<div><strong>LinkedIn:</strong> <a href="${c.linkedin_url}" target="_blank" rel="noopener">Profile</a></div>` : '<div><em>LinkedIn not available</em></div>'}
+                            ${c.phone ? `<div><strong>Phone:</strong> ${c.phone}</div>` : ''}
+                            ${deptList ? `<div><strong>Dept:</strong> ${deptList}</div>` : ''}
+                            ${location ? `<div><strong>Location:</strong> ${location}</div>` : ''}
                             <div>Source: ${c.enrichment_source || 'manual'}</div>
                         </div>
-                    </div>`).join('');
+                    </div>`;
+                }).join('');
             } catch (e) {
                 console.error('Failed to load contacts:', e);
             }

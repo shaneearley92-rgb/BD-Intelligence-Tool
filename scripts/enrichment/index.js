@@ -329,13 +329,24 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
                 const data = await res.json();
                 const person = data.person;
                 if (person) {
+                    const revealedFirstName = (person.first_name || '').trim() || c.firstName;
+                    const revealedLastName = (person.last_name || '').trim() || c.lastName;
+                    const revealedFullName = [revealedFirstName, revealedLastName].filter(Boolean).join(' ') || c.name;
                     revealed.push({
                         ...c,
+                        firstName: revealedFirstName,
+                        lastName: revealedLastName,
+                        name: revealedFullName,
                         email: person.email || c.email,
                         linkedinUrl: person.linkedin_url || c.linkedinUrl,
                         phone: person.phone_numbers?.[0]?.sanitized_number || c.phone,
+                        title: person.title || c.title,
+                        headline: person.headline || c.headline,
+                        departments: person.departments || c.departments,
+                        city: person.city || c.city,
+                        state: person.state || c.state,
                     });
-                    console.log(`  Revealed ${c.name}: email=${person.email || 'none'} linkedin=${person.linkedin_url || 'none'}`);
+                    console.log(`  Revealed ${revealedFullName}: email=${person.email || 'none'} linkedin=${person.linkedin_url || 'none'}`);
                 } else {
                     revealed.push(c);
                 }
