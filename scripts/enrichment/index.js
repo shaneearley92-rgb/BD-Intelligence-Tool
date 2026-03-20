@@ -341,7 +341,9 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
                 });
 
                 if (!res.ok) {
-                    console.warn(`  Reveal failed for ${c.name}: ${res.status}`);
+                    const errBody = await res.text().catch(() => '');
+                    console.warn(`  Reveal failed for ${c.name}: ${res.status} — ${errBody.substring(0, 200)}`);
+                    console.warn(`    Match body sent: ${JSON.stringify({ id: matchBody.id, first_name: matchBody.first_name, last_name: matchBody.last_name })}`);
                     revealed.push(c);
                     continue;
                 }
