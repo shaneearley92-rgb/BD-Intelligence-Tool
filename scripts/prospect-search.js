@@ -197,7 +197,7 @@ async function searchProspects(companyName, companyDomain, options = {}) {
             .insert({
                 name: companyName,
                 domain: companyDomain || null,
-                research_status: 'active',
+                research_status: 'pending',
             })
             .select()
             .single();
