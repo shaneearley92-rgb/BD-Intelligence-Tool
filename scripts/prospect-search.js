@@ -295,6 +295,10 @@ async function searchProspects(companyName, companyDomain, options = {}) {
  
         const candidates = result.people || [];
         console.log(`  Found ${candidates.length} VP/Director/Manager candidates`);
+        // Log first 5 candidate titles for debugging
+        candidates.slice(0, 5).forEach((c, i) => {
+            console.log(`    [${i + 1}] ${c.name} — "${c.title}" (seniority: ${c.seniority || 'N/A'})`);
+        });
  
         // Score each candidate against Tier 2 title and keyword lists
         const titlePatterns = TIER2_TITLES.map(t => t.toLowerCase());
@@ -314,9 +318,11 @@ async function searchProspects(companyName, companyDomain, options = {}) {
                 for (const kw of keywordPatterns) {
                     if (titleLower.includes(kw) || headlineLower.includes(kw)) { score += 5; break; }
                 }
-                if (c.seniority === 'vp') score += 3;
-                else if (c.seniority === 'director') score += 2;
-                else if (c.seniority === 'manager') score += 1;
+                // Apollo /api_search may not return seniority field — infer from title
+                const seniority = c.seniority || '';
+                if (seniority === 'vp' || titleLower.includes('vp ') || titleLower.includes('vice president')) score += 3;
+                else if (seniority === 'director' || titleLower.includes('director')) score += 2;
+                else if (seniority === 'manager' || titleLower.includes('manager')) score += 1;
  
                 return { ...c, _score: score, _tier: 'tier2', _role: 'Supporting' };
             })
@@ -347,19 +353,18 @@ async function searchProspects(companyName, companyDomain, options = {}) {
     // REVEAL CONTACTS (get emails + LinkedIn)
     // ============================================
  
-    const missingData = allContacts.some(c => !c.email || !c.linkedinUrl || !c.lastName);
-    if (missingData) {
-        console.log('\n--- Revealing Contacts (email/LinkedIn/full name) ---');
-        const revealed = await apollo.revealContacts(allContacts, companyName);
-        // Merge revealed data back
-        for (let i = 0; i < allContacts.length; i++) {
-            const rev = revealed.find(r => r.id === allContacts[i].id);
-            if (rev) {
-                allContacts[i] = { ...allContacts[i], ...rev };
-                // Update name if reveal returned a more complete name
-                if (rev.firstName && rev.lastName) {
-                    allContacts[i].name = `${rev.firstName} ${rev.lastName}`.trim();
-                }
+    // Apollo /api_search does not return email, LinkedIn, or full last names.
+    // Always reveal contacts to get complete data.
+    console.log('\n--- Revealing Contacts (email/LinkedIn/full name) ---');
+    const revealed = await apollo.revealContacts(allContacts, companyName);
+    // Merge revealed data back
+    for (let i = 0; i < allContacts.length; i++) {
+        const rev = revealed.find(r => r.id === allContacts[i].id);
+        if (rev) {
+            allContacts[i] = { ...allContacts[i], ...rev };
+            // Update name if reveal returned a more complete name
+            if (rev.firstName && rev.lastName) {
+                allContacts[i].name = `${rev.firstName} ${rev.lastName}`.trim();
             }
         }
     }

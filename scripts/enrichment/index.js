@@ -262,10 +262,14 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
 
         return {
             people: rawPeople.map(p => {
+                // Apollo /api_search returns last_name_obfuscated instead of last_name,
+                // and omits email, linkedin_url, phone, city, state etc.
+                // These must be retrieved via the /people/match (reveal) endpoint.
                 const firstName = (p.first_name || '').trim();
-                const lastName = (p.last_name || '').trim();
+                const lastName = (p.last_name || p.last_name_obfuscated || '').trim();
                 const fullName = [firstName, lastName].filter(Boolean).join(' ') || p.name || 'Unknown';
                 return {
+                    id: p.id || '',
                     firstName,
                     lastName,
                     name: fullName,
@@ -281,6 +285,11 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
                     city: p.city || '',
                     state: p.state || '',
                     country: p.country || '',
+                    // Flags from /api_search indicating data is available via reveal
+                    hasEmail: p.has_email || false,
+                    hasPhone: p.has_direct_phone || false,
+                    hasCity: p.has_city || false,
+                    hasState: p.has_state || false,
                     source: 'apollo'
                 };
             }),
