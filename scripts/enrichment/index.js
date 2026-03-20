@@ -300,18 +300,36 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
     }
 
     /**
-     * Enrich/reveal a list of contacts to get email + LinkedIn.
-     * Uses Apollo's /people/bulk_match endpoint.
-     * Call this after searchContacts if email/linkedin are missing.
+     * Enrich/reveal a list of contacts to get email, LinkedIn, full name, etc.
+     * Uses Apollo's /people/match endpoint with the Apollo person ID when available,
+     * falling back to name + org matching.
      */
     async revealContacts(contacts, companyName) {
         const revealed = [];
         for (const c of contacts) {
-            if (c.email && c.linkedinUrl) {
+            if (c.email && c.linkedinUrl && c.lastName && !c.lastName.includes('*')) {
                 revealed.push(c);
                 continue;
             }
             try {
+                // Prefer Apollo ID for matching (always works).
+                // Fall back to name + org if no ID available.
+                const matchBody = c.id
+                    ? {
+                        api_key: this.apiKey,
+                        id: c.id,
+                        reveal_personal_emails: true,
+                        reveal_phone_number: true,
+                    }
+                    : {
+                        api_key: this.apiKey,
+                        first_name: c.firstName,
+                        last_name: c.lastName,
+                        organization_name: companyName,
+                        reveal_personal_emails: true,
+                        reveal_phone_number: true,
+                    };
+
                 const res = await fetch(`${this.baseUrl}/people/match`, {
                     method: 'POST',
                     headers: {
@@ -319,14 +337,7 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
                         'Cache-Control': 'no-cache',
                         'X-Api-Key': this.apiKey
                     },
-                    body: JSON.stringify({
-                        api_key: this.apiKey,
-                        first_name: c.firstName,
-                        last_name: c.lastName,
-                        organization_name: companyName,
-                        reveal_personal_emails: true,
-                        reveal_phone_number: false,
-                    })
+                    body: JSON.stringify(matchBody)
                 });
 
                 if (!res.ok) {
