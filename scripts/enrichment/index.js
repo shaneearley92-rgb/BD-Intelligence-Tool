@@ -319,7 +319,7 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
                         api_key: this.apiKey,
                         id: c.id,
                         reveal_personal_emails: true,
-                        reveal_phone_number: true,
+                        reveal_phone_number: false,
                     }
                     : {
                         api_key: this.apiKey,
@@ -327,7 +327,7 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
                         last_name: c.lastName,
                         organization_name: companyName,
                         reveal_personal_emails: true,
-                        reveal_phone_number: true,
+                        reveal_phone_number: false,
                     };
 
                 const res = await fetch(`${this.baseUrl}/people/match`, {
