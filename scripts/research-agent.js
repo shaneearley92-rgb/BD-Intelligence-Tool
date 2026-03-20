@@ -248,9 +248,10 @@ Respond in this exact JSON format:
     let parsed;
     try {
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error('No JSON object found in response');
         parsed = JSON.parse(jsonMatch[0]);
-    } catch {
-        console.error('[Synthesis] Failed to parse Claude response as JSON');
+    } catch (parseErr) {
+        console.error('[Synthesis] Failed to parse Claude response as JSON:', parseErr.message);
         parsed = {
             companySummary: responseText,
             keySignals: [],
@@ -345,9 +346,10 @@ Respond in this exact JSON format:
         let parsed;
         try {
             const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) throw new Error('No JSON object found in response');
             parsed = JSON.parse(jsonMatch[0]);
-        } catch {
-            console.error('[Outreach] Failed to parse Claude response as JSON');
+        } catch (parseErr) {
+            console.error('[Outreach] Failed to parse Claude response as JSON:', parseErr.message);
             parsed = {
                 pitch_angle: 'Generation failed - see raw response',
                 email_subject: `Outreach for ${contactName}`,

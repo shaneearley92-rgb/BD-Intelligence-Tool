@@ -69,7 +69,16 @@ Return ONLY valid JSON, no markdown, no preamble:
 
   const raw = response.content[0].text;
   const clean = raw.replace(/```json|```/g, '').trim();
-  const parsed = JSON.parse(clean);
+  let parsed;
+  try {
+    const jsonMatch = clean.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON object found in response');
+    parsed = JSON.parse(jsonMatch[0]);
+  } catch (parseErr) {
+    console.error('Failed to parse pyramid JSON:', parseErr.message);
+    console.error('Raw response:', clean.substring(0, 500));
+    throw parseErr;
+  }
 
   await supabase.from('research_snapshots').insert({
     company_id: companyId,

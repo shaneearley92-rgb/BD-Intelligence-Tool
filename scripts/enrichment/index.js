@@ -343,7 +343,18 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
                 if (!res.ok) {
                     const errBody = await res.text().catch(() => '');
                     console.warn(`  Reveal failed for ${c.name}: ${res.status} — ${errBody.substring(0, 200)}`);
-                    console.warn(`    Match body sent: ${JSON.stringify({ id: matchBody.id, first_name: matchBody.first_name, last_name: matchBody.last_name })}`);
+
+                    // Stop revealing if we've run out of credits (422)
+                    if (res.status === 422 && errBody.includes('insufficient credits')) {
+                        console.warn('  ⚠ Apollo credits exhausted — skipping remaining reveals');
+                        revealed.push(c);
+                        // Push remaining contacts as-is
+                        for (let j = contacts.indexOf(c) + 1; j < contacts.length; j++) {
+                            revealed.push(contacts[j]);
+                        }
+                        return revealed;
+                    }
+
                     revealed.push(c);
                     continue;
                 }
@@ -385,9 +396,10 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
 
     async getCompanyTechStack(companyDomain) {
         try {
-            const res = await fetch(`${this.baseUrl}/organizations/enrich?domain=${encodeURIComponent(companyDomain)}&api_key=${encodeURIComponent(this.apiKey)}`, {
+            const res = await fetch(`${this.baseUrl}/organizations/enrich?domain=${encodeURIComponent(companyDomain)}`, {
                 method: 'GET',
                 headers: {
+                    'Content-Type': 'application/json',
                     'Cache-Control': 'no-cache',
                     'X-Api-Key': this.apiKey
                 },
