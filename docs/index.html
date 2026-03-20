@@ -477,7 +477,15 @@ async function addCompany(){
   if(error){console.error('Insert error:',JSON.stringify(error));showToast('Error: '+error.message,'error');return;}
   showToast('Company added!','success');closeModal('add-modal');loadData();
 }
+function ensurePAT(){
+  if(CONFIG.GITHUB_PAT)return true;
+  const pat=prompt('Enter your GitHub Personal Access Token (Fine-grained, with Actions:write permission).\n\nThis will be saved in your browser localStorage.');
+  if(pat){localStorage.setItem('bd_github_pat',pat);CONFIG.GITHUB_PAT=pat;return true;}
+  showToast('GitHub PAT is required to trigger workflows','error');
+  return false;
+}
 async function triggerResearch(id,name){
+  if(!ensurePAT())return;
   showToast('Triggering research for '+name+'...','');
   try{
     const res=await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/research.yml/dispatches`,{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{company_id:id}})});
@@ -486,6 +494,7 @@ async function triggerResearch(id,name){
   }catch(e){showToast('Network error: '+e.message,'error');}
 }
 async function runBatch(){
+  if(!ensurePAT())return;
   try{
     const statusMap={prospect:'all_pending',active:'all_active'};
     const companyIds=statusMap[document.getElementById('batch-target').value]||'all_pending';
@@ -495,6 +504,7 @@ async function runBatch(){
   }catch(e){showToast('Network error: '+e.message,'error');}
 }
 async function searchProspects(){
+  if(!ensurePAT())return;
   const company=document.getElementById('ps-company').value.trim();
   if(!company){showToast('Company name required','error');return;}
   try{
