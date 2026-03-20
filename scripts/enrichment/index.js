@@ -223,8 +223,8 @@ class ApolloEnrichmentProvider extends BaseEnrichmentProvider {
 
         console.log(`  Apollo search request: org="${companyName}" domain="${criteria.domain || 'none'}" seniorities=${JSON.stringify(seniorities)} page=${page}`);
 
-        // Use /mixed_people/search (not api_search)
-        const res = await fetch(`${this.baseUrl}/mixed_people/search`, {
+        // Use /mixed_people/api_search (Apollo deprecated /mixed_people/search)
+        const res = await fetch(`${this.baseUrl}/mixed_people/api_search`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
