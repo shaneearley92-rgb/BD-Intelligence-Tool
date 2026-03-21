@@ -1,74 +1,170 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Company Detail — BD Intelligence Tool</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --bg:#f6f4ef; --bg2:#ffffff; --bg3:#f0ede6;
+  --bg:#f6f4ef; --bg2:#ffffff; --bg3:#f0ede6; --bg4:#e8e4da;
   --border:#e0dcd2; --border2:#c8c4b8;
   --gold:#a86c0a; --gold-lt:#e8a800; --gold-bg:#fdf6e3; --gold-brd:#f0cc70;
   --purple:#6b3fd4; --purple-lt:#8b5cf6; --purple-bg:#f2eeff; --purple-brd:#c4aff0;
-  --green:#166534; --green-bg:#dcfce7; --green-brd:#86efac;
+  --green:#166534; --green-bg:#f0fdf4; --green-brd:#86efac;
+  --teal:#0e7490; --teal-bg:#f0fdff; --teal-brd:#67e8f9;
   --red:#dc2626; --red-bg:#fee2e2; --red-brd:#fca5a5;
   --blue:#1d4ed8; --blue-bg:#dbeafe; --blue-brd:#93c5fd;
+  --amber:#92400e; --amber-bg:#fffbeb; --amber-brd:#fcd34d;
+  --pink:#be185d; --pink-bg:#fdf2f8; --pink-brd:#f9a8d4;
   --text1:#1a1714; --text2:#4a4640; --text3:#8c887a;
+  --navy:#1e2a4a; --navy2:#2d4070; --navy3:#3b5690;
   --shadow-sm:0 1px 3px rgba(0,0,0,0.07);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.09);
   --shadow-lg:0 10px 32px rgba(0,0,0,0.11);
-  --t1:#1e2a4a; --t2:#2d4070; --t3:#3b5690; --t4:#7c5a1e; --t5:#a86c0a;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text1);font-family:'DM Sans',sans-serif;font-size:13px;min-height:100vh;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
 
 /* Controls bar */
-#controls{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm);}
-.back-link{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:var(--purple);text-decoration:none;}
-.back-link:hover{opacity:0.7;}
-#ctrl-name{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--text1);}
+#controls{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm);}
+.back-link{font-size:12px;font-weight:700;color:var(--purple);text-decoration:none;}
+.back-link:hover{opacity:.7;}
 
 /* Buttons */
-.btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:none;padding:7px 16px;border-radius:8px;transition:all 0.15s;white-space:nowrap;}
+.btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:none;padding:7px 16px;border-radius:8px;transition:all .15s;white-space:nowrap;box-shadow:var(--shadow-sm);}
 .btn-ghost{background:var(--bg2);color:var(--text2);border:1px solid var(--border2);}
 .btn-ghost:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-bg);}
-.btn-navy{background:var(--t1);color:#fff;}
-.btn-navy:hover{background:var(--t2);transform:translateY(-1px);}
+.btn-navy{background:var(--navy);color:#fff;}
+.btn-navy:hover{background:var(--navy2);transform:translateY(-1px);}
 .btn-gold{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-brd);}
-.btn-gold:hover{background:var(--gold-lt);color:#fff;border-color:var(--gold-lt);}
+.btn-gold:hover{background:var(--gold-lt);color:#fff;}
+.btn-purple{background:var(--purple);color:#fff;}
+.btn-purple:hover{background:var(--purple-lt);}
+.btn-sm{font-size:11px;padding:5px 12px;}
 
-/* Main container */
-.container{max-width:1140px;margin:0 auto;padding:32px;}
+/* Container */
+.container{max-width:1160px;margin:0 auto;padding:28px;}
 
-/* Slide card */
-.slide{background:#fff;border-radius:16px;box-shadow:var(--shadow-lg);overflow:hidden;margin-bottom:24px;}
-.slide-header{background:var(--t1);padding:28px 40px;display:flex;align-items:center;justify-content:space-between;}
-.slide-eyebrow{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:6px;}
-.slide-company{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;color:#fff;line-height:1;margin-bottom:6px;}
-.slide-meta{font-size:12px;font-weight:500;color:rgba(255,255,255,0.55);}
-#logo-area{width:120px;height:56px;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);overflow:hidden;}
+/* Company header card */
+.co-header{background:var(--navy);border-radius:16px;overflow:hidden;margin-bottom:20px;box-shadow:var(--shadow-lg);}
+.co-header-body{padding:28px 36px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;}
+.co-eyebrow{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:6px;}
+.co-name{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:2px;color:#fff;line-height:1;margin-bottom:6px;}
+.co-meta{font-size:12px;color:rgba(255,255,255,.5);font-weight:500;}
+#logo-area{width:110px;height:52px;background:rgba(255,255,255,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(255,255,255,.4);overflow:hidden;flex-shrink:0;}
 #logo-area img{width:100%;height:100%;object-fit:contain;padding:8px;background:#fff;border-radius:8px;}
 
-/* Tabs */
-.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 40px;}
-.tab{padding:14px 20px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;color:var(--text3);transition:all 0.15s;letter-spacing:0.5px;text-transform:uppercase;}
-.tab:hover{color:var(--text1);}
-.tab.active{color:var(--purple);border-bottom-color:var(--purple);}
+/* Stats strip */
+.co-stats{display:flex;border-top:1px solid rgba(255,255,255,.1);}
+.co-stat{flex:1;padding:14px 24px;border-right:1px solid rgba(255,255,255,.1);}
+.co-stat:last-child{border-right:none;}
+.co-stat-n{font-family:'Bebas Neue',sans-serif;font-size:28px;color:#fff;line-height:1;}
+.co-stat-l{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:2px;}
 
-.tab-content{display:none;padding:24px 40px 32px;}
-.tab-content.active{display:block;}
-
-/* Company info grid */
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:0;}
-.info-panel{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:20px;}
-.info-panel h3{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:var(--t1);margin-bottom:12px;}
-.info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
+/* Info strip */
+.info-strip{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.info-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 22px;}
+.info-card h4{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:12px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;}
 .info-row:last-child{border-bottom:none;}
-.info-label{font-weight:600;color:var(--text3);}
-.info-value{font-weight:500;color:var(--text1);}
+.info-lbl{font-weight:600;color:var(--text3);}
+.info-val{font-weight:600;color:var(--text1);}
 
-/* Status badges */
-.badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
+/* Tabs */
+.tabs-wrap{background:var(--bg2);border-radius:12px 12px 0 0;border:1px solid var(--border);border-bottom:none;overflow:hidden;}
+.tabs-inner{display:flex;}
+.tab{padding:13px 20px;font-size:11px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s;letter-spacing:.5px;text-transform:uppercase;background:transparent;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.tab:hover{color:var(--text1);}
+.tab.active{color:var(--purple);border-bottom-color:var(--purple);background:var(--purple-bg);}
+
+.tab-panel{display:none;background:var(--bg2);border-radius:0 0 12px 12px;border:1px solid var(--border);border-top:none;}
+.tab-panel.active{display:block;}
+
+/* ── Challenge Cards ── */
+.challenge-grid{padding:24px;display:flex;flex-direction:column;gap:20px;}
+.challenge-card{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg2);box-shadow:var(--shadow-sm);transition:box-shadow .2s,border-color .2s;animation:fadeUp .3s ease-out both;}
+.challenge-card:hover{box-shadow:var(--shadow-md);border-color:var(--border2);}
+.cc-accent{height:4px;width:100%;}
+.cc-header{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px;}
+.cc-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.cc-title-block{flex:1;}
+.cc-challenge-label{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
+.cc-challenge-text{font-size:15px;font-weight:700;color:var(--text1);line-height:1.35;}
+.cc-evidence{font-size:11px;font-style:italic;color:var(--text3);margin-top:4px;line-height:1.5;}
+.cc-strength{padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;flex-shrink:0;margin-top:2px;}
+.cc-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;}
+.cc-col{padding:16px 22px;}
+.cc-col:not(:last-child){border-right:1px solid var(--border);}
+.cc-col-label{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.cc-col-label span{flex:1;height:1px;background:var(--border);display:block;}
+
+/* Solution pills */
+.solution-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);margin-bottom:7px;transition:border-color .15s;}
+.solution-item:hover{border-color:var(--purple-brd);}
+.solution-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.solution-name{font-size:12px;font-weight:700;color:var(--text1);}
+.solution-desc{font-size:11px;color:var(--text3);margin-top:1px;line-height:1.4;}
+
+/* Contact mini-cards */
+.contact-mini{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);margin-bottom:7px;transition:border-color .15s,box-shadow .15s;cursor:pointer;}
+.contact-mini:hover{border-color:var(--purple-brd);box-shadow:var(--shadow-sm);}
+.contact-avatar{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.contact-mini-name{font-size:12px;font-weight:700;color:var(--text1);}
+.contact-mini-title{font-size:10px;color:var(--text3);margin-top:1px;}
+.contact-mini-badge{margin-left:auto;flex-shrink:0;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;font-family:'DM Mono',monospace;}
+
+/* Outreach actions */
+.outreach-action{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:1px solid var(--border);margin-bottom:7px;cursor:pointer;transition:all .15s;}
+.outreach-action:hover{border-color:var(--purple-brd);background:var(--purple-bg);}
+.oa-icon{font-size:16px;width:28px;text-align:center;flex-shrink:0;}
+.oa-label{font-size:12px;font-weight:700;color:var(--text1);}
+.oa-desc{font-size:10px;color:var(--text3);margin-top:1px;}
+.oa-arrow{margin-left:auto;color:var(--text3);font-size:12px;}
+
+/* Card footer */
+.cc-footer{padding:11px 22px;background:var(--bg3);border-top:1px solid var(--border);font-size:11px;color:var(--text2);font-style:italic;line-height:1.5;display:flex;align-items:flex-start;gap:8px;}
+.cc-footer-icon{font-size:12px;flex-shrink:0;margin-top:1px;}
+
+/* Contacts tab */
+.contact-row{display:flex;align-items:stretch;border-bottom:1px solid var(--border);transition:background .15s;}
+.contact-row:last-child{border-bottom:none;}
+.contact-row:hover{background:var(--bg3);}
+.contact-accent{width:4px;flex-shrink:0;border-radius:4px 0 0 4px;}
+.contact-body{padding:16px 22px;flex:1;}
+.contact-name{font-size:14px;font-weight:700;color:var(--text1);}
+.contact-title-line{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:2px;}
+.contact-headline{font-size:11px;font-style:italic;color:var(--text3);margin-bottom:6px;}
+.contact-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+.contact-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid currentColor;}
+.contact-meta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:11px;font-weight:500;color:var(--text3);}
+.contact-meta-row a{color:var(--purple);text-decoration:none;font-weight:600;}
+.contact-meta-row a:hover{opacity:.7;}
+
+/* Intelligence + outreach sections */
+.section-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px;}
+.section-header{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:var(--navy);}
+.signal-row{display:flex;align-items:stretch;border-bottom:1px solid var(--border);transition:background .15s;}
+.signal-row:last-child{border-bottom:none;}
+.signal-row:hover{background:var(--bg3);}
+.signal-accent{width:4px;flex-shrink:0;}
+.signal-body{padding:12px 22px;flex:1;}
+.signal-text{font-size:12px;font-weight:500;color:var(--text1);line-height:1.6;}
+.signal-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-top:4px;}
+.content-block{padding:16px 22px;border-bottom:1px solid var(--border);}
+.content-block:last-child{border-bottom:none;}
+.content-block pre{white-space:pre-wrap;font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);line-height:1.7;max-height:300px;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;}
+
+/* History rows */
+.history-row{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-bottom:1px solid var(--border);transition:background .15s;}
+.history-row:last-child{border-bottom:none;}
+.history-row:hover{background:var(--bg3);}
+
+/* Badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;}
 .badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-brd);}
 .badge-gold{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-brd);}
 .badge-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-brd);}
@@ -76,51 +172,9 @@ body{background:var(--bg);color:var(--text1);font-family:'DM Sans',sans-serif;fo
 .badge-purple{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-brd);}
 .badge-muted{background:var(--bg3);color:var(--text3);border:1px solid var(--border);}
 
-/* Contact cards — tier row style */
-.contact-row{display:flex;align-items:stretch;border-bottom:1px solid var(--border);transition:background 0.15s;}
-.contact-row:last-child{border-bottom:none;}
-.contact-row:hover{background:var(--bg3);}
-.contact-accent{width:4px;flex-shrink:0;border-radius:4px 0 0 4px;}
-.contact-body{padding:16px 22px;flex:1;}
-.contact-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
-.contact-name{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:var(--text1);}
-.contact-title{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:2px;}
-.contact-headline{font-size:11px;font-style:italic;color:var(--text3);margin-bottom:6px;}
-.contact-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
-.contact-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid currentColor;}
-.contact-meta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:11px;font-weight:500;color:var(--text3);}
-.contact-meta-row a{color:var(--purple);text-decoration:none;font-weight:600;}
-.contact-meta-row a:hover{opacity:0.7;}
-
-/* Signal cards */
-.signal-row{display:flex;align-items:stretch;border-bottom:1px solid var(--border);transition:background 0.15s;}
-.signal-row:last-child{border-bottom:none;}
-.signal-row:hover{background:var(--bg3);}
-.signal-accent{width:4px;flex-shrink:0;}
-.signal-body{padding:12px 22px;flex:1;}
-.signal-text{font-size:12px;font-weight:500;color:var(--text1);line-height:1.6;}
-.signal-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-top:4px;}
-
-/* Section headers inside tabs */
-.section-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px;}
-.section-header{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
-.section-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:var(--t1);}
-
-/* Content cards (outreach) */
-.content-block{padding:16px 22px;border-bottom:1px solid var(--border);}
-.content-block:last-child{border-bottom:none;}
-.content-block h4{font-size:12px;font-weight:700;color:var(--text1);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
-.content-block pre{white-space:pre-wrap;font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);line-height:1.7;max-height:300px;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;}
-
-/* History rows */
-.history-row{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-bottom:1px solid var(--border);transition:background 0.15s;}
-.history-row:last-child{border-bottom:none;}
-.history-row:hover{background:var(--bg3);}
-
-/* Loading & empty states */
+/* States */
 .loading-state{text-align:center;padding:48px 20px;}
-.loading-state .spinner{width:36px;height:36px;border:3px solid var(--purple-bg);border-top-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;}
-@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:34px;height:34px;border:3px solid var(--purple-bg);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
 .loading-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--purple);margin-bottom:4px;}
 .loading-sub{font-size:11px;color:var(--text3);font-weight:500;}
 .empty-state{text-align:center;padding:48px 20px;color:var(--text3);font-size:12px;font-weight:500;}
@@ -131,35 +185,21 @@ body{background:var(--bg);color:var(--text1);font-family:'DM Sans',sans-serif;fo
 .toast.active{display:block;}
 
 /* Modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,23,20,0.5);z-index:100;justify-content:center;align-items:center;backdrop-filter:blur(4px);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,23,20,.5);z-index:100;justify-content:center;align-items:center;backdrop-filter:blur(4px);}
 .modal-overlay.active{display:flex;}
 .modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:480px;box-shadow:var(--shadow-lg);}
-.modal h3{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--t1);margin-bottom:20px;}
+.modal h3{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--navy);margin-bottom:20px;}
 .form-group{margin-bottom:14px;}
-.form-group label{display:block;font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;letter-spacing:0.5px;text-transform:uppercase;}
-.form-group input,.form-group select{width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text1);font-family:'DM Sans',sans-serif;font-size:13px;transition:border-color 0.15s;}
-.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px var(--purple-bg);}
+.form-group label{display:block;font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase;}
+.form-group input,.form-group select{width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text1);font-family:'DM Sans',sans-serif;font-size:13px;transition:border-color .15s;outline:none;}
+.form-group input:focus,.form-group select:focus{border-color:var(--purple);box-shadow:0 0 0 3px var(--purple-bg);}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
 
-/* Slide footer */
-.slide-footer{background:var(--bg3);border-top:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between;}
-.footer-brand-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:var(--purple);}
-.footer-brand-sub{font-size:10px;font-weight:500;color:var(--text3);}
-.footer-right{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
-@media (max-width: 768px) {
-  .info-grid{grid-template-columns:1fr;}
-  .container{padding:16px;}
-  .slide-header{padding:20px 24px;}
-  .tab-content{padding:16px 24px 24px;}
-  .tabs{padding:0 24px;}
-}
-@media print{
-  body{background:#fff;}
-  #controls{display:none!important;}
-  .container{padding:0!important;}
-  .slide{box-shadow:none!important;border-radius:0!important;}
-}
+@media(max-width:768px){.cc-body{grid-template-columns:1fr;}.info-strip{grid-template-columns:1fr;}.container{padding:16px;}.co-header-body{flex-direction:column;}.co-stats{flex-wrap:wrap;}}
+@media print{body{background:#fff;}#controls{display:none!important;}.container{padding:0!important;}}
 </style>
 </head>
 <body>
@@ -167,124 +207,122 @@ body{background:var(--bg);color:var(--text1);font-family:'DM Sans',sans-serif;fo
 <!-- Controls Bar -->
 <div id="controls">
   <div style="display:flex;align-items:center;gap:14px;">
-    <a href="index.html" class="back-link">&larr; Dashboard</a>
+    <a href="index.html" class="back-link">← Dashboard</a>
     <span style="color:var(--border2);font-size:16px;">|</span>
-    <span id="ctrl-name">Loading...</span>
+    <span id="ctrl-name" style="font-size:13px;font-weight:700;color:var(--text1);">Loading...</span>
   </div>
   <div style="display:flex;gap:8px;">
     <button class="btn btn-ghost" onclick="openAddContact()">+ Add Contact</button>
-    <button class="btn btn-navy" onclick="runResearch()">Run Research</button>
+    <button class="btn btn-navy" onclick="runResearch()">▶ Run Research</button>
   </div>
 </div>
 
-<!-- Main Content -->
 <div class="container">
-  <div class="slide" id="main-slide">
 
-    <!-- Header -->
-    <div class="slide-header">
-      <div>
-        <div class="slide-eyebrow">Company Intelligence · BD Tool</div>
-        <div class="slide-company" id="page-title">Loading...</div>
-        <div class="slide-meta" id="company-meta"></div>
+  <!-- Company header -->
+  <div class="co-header">
+    <div class="co-header-body">
+      <div style="flex:1;">
+        <div class="co-eyebrow">Company Intelligence · BD Intelligence Tool</div>
+        <div class="co-name" id="page-title">Loading...</div>
+        <div class="co-meta" id="company-meta"></div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;" id="header-badges"></div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
-        <div id="logo-area">Logo</div>
-      </div>
+      <div id="logo-area">Logo</div>
     </div>
-
-    <!-- Company Info -->
-    <div style="padding:24px 40px;">
-      <div class="info-grid" id="company-info">
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <div class="loading-title">Loading</div>
-          <div class="loading-sub">Fetching company data...</div>
-        </div>
-      </div>
+    <div class="co-stats">
+      <div class="co-stat"><div class="co-stat-n" id="hstat-contacts">—</div><div class="co-stat-l">Contacts</div></div>
+      <div class="co-stat"><div class="co-stat-n" id="hstat-challenges">—</div><div class="co-stat-l">Challenges</div></div>
+      <div class="co-stat"><div class="co-stat-n" id="hstat-outreach">—</div><div class="co-stat-l">Outreach Pieces</div></div>
+      <div class="co-stat"><div class="co-stat-n" id="hstat-runs">—</div><div class="co-stat-l">Research Runs</div></div>
     </div>
-
-    <!-- Tabs -->
-    <div class="tabs" id="tabs">
-      <div class="tab active" data-tab="contacts" onclick="switchTab('contacts')">Contacts</div>
-      <div class="tab" data-tab="intelligence" onclick="switchTab('intelligence')">Intelligence</div>
-      <div class="tab" data-tab="content" onclick="switchTab('content')">Outreach Content</div>
-      <div class="tab" data-tab="history" onclick="switchTab('history')">Research History</div>
-      <div class="tab" data-tab="deck" onclick="switchTab('deck')">Sales Deck</div>
-    </div>
-
-    <!-- Contacts Tab -->
-    <div class="tab-content active" id="tab-contacts">
-      <div id="contacts-list">
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <div class="loading-title">Loading Contacts</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Intelligence Tab -->
-    <div class="tab-content" id="tab-intelligence">
-      <div id="intelligence-content"><div class="empty-state">Run research to generate intelligence.</div></div>
-    </div>
-
-    <!-- Outreach Content Tab -->
-    <div class="tab-content" id="tab-content">
-      <div id="outreach-content"><div class="empty-state">Run research to generate outreach content.</div></div>
-    </div>
-
-    <!-- Research History Tab -->
-    <div class="tab-content" id="tab-history">
-      <div id="research-history"><div class="empty-state">No research runs yet.</div></div>
-    </div>
-
-    <!-- Sales Deck Tab -->
-    <div class="tab-content" id="tab-deck">
-      <div id="deck-content"><div class="empty-state">No sales deck generated yet. Run research to generate one.</div></div>
-    </div>
-
-    <!-- Footer -->
-    <div class="slide-footer">
-      <div>
-        <div class="footer-brand-name">BD Intelligence</div>
-        <div class="footer-brand-sub">AI-Powered Sales Research</div>
-      </div>
-      <div class="footer-right" id="footer-date"></div>
-    </div>
-
   </div>
+
+  <!-- Info strip -->
+  <div class="info-strip" id="company-info">
+    <div class="loading-state" style="grid-column:1/-1;"><div class="spinner"></div><div class="loading-title">Loading</div><div class="loading-sub">Fetching company data...</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-wrap">
+    <div class="tabs-inner">
+      <button class="tab active" data-tab="challenges" onclick="switchTab('challenges')">🎯 Challenge Cards</button>
+      <button class="tab" data-tab="contacts" onclick="switchTab('contacts')">👥 Contacts</button>
+      <button class="tab" data-tab="intelligence" onclick="switchTab('intelligence')">🔍 Intelligence</button>
+      <button class="tab" data-tab="content" onclick="switchTab('content')">✉ Outreach Content</button>
+      <button class="tab" data-tab="history" onclick="switchTab('history')">📋 History</button>
+      <button class="tab" data-tab="deck" onclick="switchTab('deck')">📊 Sales Deck</button>
+    </div>
+  </div>
+
+  <!-- Challenge Cards tab (default) -->
+  <div class="tab-panel active" id="tab-challenges">
+    <div id="challenges-container">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-title">Building Intelligence</div>
+        <div class="loading-sub">Correlating challenges, solutions &amp; contacts…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contacts tab -->
+  <div class="tab-panel" id="tab-contacts">
+    <div id="contacts-list">
+      <div class="loading-state"><div class="spinner"></div><div class="loading-title">Loading Contacts</div></div>
+    </div>
+  </div>
+
+  <!-- Intelligence tab -->
+  <div class="tab-panel" id="tab-intelligence">
+    <div style="padding:20px;" id="intelligence-content">
+      <div class="empty-state">Run research to generate intelligence.</div>
+    </div>
+  </div>
+
+  <!-- Outreach Content tab -->
+  <div class="tab-panel" id="tab-content">
+    <div style="padding:20px;" id="outreach-content">
+      <div class="empty-state">Run research to generate outreach content.</div>
+    </div>
+  </div>
+
+  <!-- Research History tab -->
+  <div class="tab-panel" id="tab-history">
+    <div id="research-history">
+      <div class="empty-state">No research runs yet.</div>
+    </div>
+  </div>
+
+  <!-- Sales Deck tab — Shane's feature -->
+  <div class="tab-panel" id="tab-deck">
+    <div id="deck-content">
+      <div class="empty-state">No sales deck generated yet. Run research to generate one.</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="margin-top:20px;padding:14px 0;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);">
+    <div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:var(--purple);">BD Intelligence</div>
+      <div style="font-size:10px;color:var(--text3);">AI-Powered Sales Research</div>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);" id="footer-date"></div>
+  </div>
+
 </div>
 
 <!-- Add Contact Modal -->
 <div class="modal-overlay" id="modal-add-contact">
   <div class="modal">
     <h3>Add Contact</h3>
-    <div class="form-group">
-      <label>Full Name *</label>
-      <input type="text" id="contact-name" placeholder="e.g. Jane Smith">
+    <div class="form-group"><label>Full Name *</label><input type="text" id="contact-name" placeholder="e.g. Jane Smith"></div>
+    <div class="form-group"><label>Title</label><input type="text" id="contact-title" placeholder="e.g. CISO"></div>
+    <div class="form-group"><label>Seniority</label>
+      <select id="contact-seniority"><option value="">Select...</option><option value="C-Suite">C-Suite</option><option value="VP">VP</option><option value="Director">Director</option><option value="Manager">Manager</option></select>
     </div>
-    <div class="form-group">
-      <label>Title</label>
-      <input type="text" id="contact-title" placeholder="e.g. CISO">
-    </div>
-    <div class="form-group">
-      <label>Seniority</label>
-      <select id="contact-seniority">
-        <option value="">Select...</option>
-        <option value="C-Suite">C-Suite</option>
-        <option value="VP">VP</option>
-        <option value="Director">Director</option>
-        <option value="Manager">Manager</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" id="contact-email">
-    </div>
-    <div class="form-group">
-      <label>LinkedIn URL</label>
-      <input type="url" id="contact-linkedin" placeholder="https://linkedin.com/in/...">
-    </div>
+    <div class="form-group"><label>Email</label><input type="email" id="contact-email"></div>
+    <div class="form-group"><label>LinkedIn URL</label><input type="url" id="contact-linkedin" placeholder="https://linkedin.com/in/..."></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modal-add-contact')">Cancel</button>
       <button class="btn btn-navy" onclick="addContact()">Add Contact</button>
@@ -309,54 +347,34 @@ const CONFIG = {
 function getGitHubPAT() {
     if (CONFIG.GITHUB_PAT) return CONFIG.GITHUB_PAT;
     const pat = prompt('Enter your GitHub Personal Access Token (Fine-grained, with Actions:write permission).\n\nThis will be saved in your browser localStorage.');
-    if (pat) {
-        localStorage.setItem('bd_github_pat', pat);
-        CONFIG.GITHUB_PAT = pat;
-        return pat;
-    }
+    if (pat) { localStorage.setItem('bd_github_pat', pat); CONFIG.GITHUB_PAT = pat; return pat; }
     return null;
 }
 
 const COMPANY_ID = new URLSearchParams(window.location.search).get('id');
-
-// Set footer date
 document.getElementById('footer-date').textContent = new Date().toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
 
 // ===========================================
-// SUPABASE CLIENT
+// SUPABASE
 // ===========================================
 async function supabaseQuery(table, options = {}) {
     let url = `${CONFIG.SUPABASE_URL}/rest/v1/${table}`;
     const params = new URLSearchParams();
     if (options.select) params.set('select', options.select);
-    if (options.filter) {
-        for (const [key, val] of Object.entries(options.filter)) params.set(key, val);
-    }
+    if (options.filter) for (const [k, v] of Object.entries(options.filter)) params.set(k, v);
     if (options.order) params.set('order', options.order);
     if (options.limit) params.set('limit', String(options.limit));
-    const queryStr = params.toString();
-    if (queryStr) url += `?${queryStr}`;
-    const resp = await fetch(url, {
-        method: options.method || 'GET',
-        headers: {
-            'apikey': CONFIG.SUPABASE_ANON_KEY,
-            'Content-Type': 'application/json',
-        },
-        body: options.body ? JSON.stringify(options.body) : undefined,
-    });
+    const qs = params.toString();
+    if (qs) url += `?${qs}`;
+    const resp = await fetch(url, { headers: { 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' } });
     if (!resp.ok) throw new Error(`Supabase error ${resp.status}`);
     return resp.json();
 }
 
 async function supabaseInsert(table, record) {
-    const url = `${CONFIG.SUPABASE_URL}/rest/v1/${table}`;
-    const resp = await fetch(url, {
+    const resp = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${table}`, {
         method: 'POST',
-        headers: {
-            'apikey': CONFIG.SUPABASE_ANON_KEY,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation',
-        },
+        headers: { 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
         body: JSON.stringify(record),
     });
     if (!resp.ok) throw new Error(`Insert error ${resp.status}`);
@@ -364,45 +382,96 @@ async function supabaseInsert(table, record) {
 }
 
 async function triggerWorkflow(workflowFile, inputs = {}) {
-    const url = `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/${workflowFile}/dispatches`;
-    const resp = await fetch(url, {
+    const resp = await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/${workflowFile}/dispatches`, {
         method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${CONFIG.GITHUB_PAT}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Authorization': `Bearer ${CONFIG.GITHUB_PAT}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
         body: JSON.stringify({ ref: 'main', inputs }),
     });
     if (!resp.ok) throw new Error(`GitHub API error ${resp.status}`);
 }
 
 // ===========================================
-// TIER COLORS
+// TIER COLORS (preserved from original)
 // ===========================================
 const tierColors = {
-    tier1: { accent: 'var(--t1)', bg: 'rgba(30,42,74,0.1)', color: 'var(--t1)' },
-    tier2: { accent: 'var(--t3)', bg: 'rgba(59,86,144,0.1)', color: 'var(--t3)' },
+    tier1: { accent: 'var(--navy)', bg: 'rgba(30,42,74,0.1)', color: 'var(--navy)' },
+    tier2: { accent: 'var(--navy3)', bg: 'rgba(59,86,144,0.1)', color: 'var(--navy3)' },
     default: { accent: 'var(--border2)', bg: 'var(--bg3)', color: 'var(--text3)' }
 };
+function getTierStyle(tier) { return tierColors[tier] || tierColors.default; }
 
-function getTierStyle(tier) {
-    return tierColors[tier] || tierColors.default;
+// ===========================================
+// HELPERS
+// ===========================================
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast active${isError ? ' error' : ''}`;
+    setTimeout(() => t.classList.remove('active'), 4000);
+}
+function openAddContact() { document.getElementById('modal-add-contact').classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('active'); });
+});
+
+// Avatar helpers
+const avatarColors = ['#6b3fd4','#0e7490','#a86c0a','#166534','#be185d','#1d4ed8','#92400e'];
+function avatarColor(name) { let h=0; for (let i=0;i<(name||'').length;i++) h=(h*31+name.charCodeAt(i))&0xff; return avatarColors[h%avatarColors.length]; }
+function initials(name) { const p=(name||'').split(' '); return ((p[0]?p[0][0]:'')+(p[1]?p[1][0]:'')).toUpperCase(); }
+
+// ===========================================
+// SAVIYNT SOLUTION MAPPING
+// ===========================================
+const SOLUTIONS = [
+    {id:'iga', name:'IGA', label:'Identity Governance & Administration', color:'var(--purple)', bg:'var(--purple-bg)', keywords:['identity','iga','governance','access certifi','role','provisioning','joiner','mover','leaver','lifecycle','access request']},
+    {id:'pam', name:'PAM', label:'Privileged Access Management', color:'var(--navy)', bg:'var(--blue-bg)', keywords:['privileged','pam','admin','root','service account','credential','vault','just-in-time','standing access']},
+    {id:'nhi', name:'NHI', label:'Non-Human Identity Security', color:'var(--teal)', bg:'var(--teal-bg)', keywords:['non-human','machine','bot','api key','service account','workload','secret','nhi','token']},
+    {id:'external', name:'External Identity', label:'External & Partner Access', color:'var(--gold)', bg:'var(--gold-bg)', keywords:['third.party','vendor','partner','supplier','contractor','external','b2b','customer identity','third party']},
+    {id:'ai-agent', name:'AI Agent Security', label:'AI Agent & Agentic Access', color:'var(--pink)', bg:'var(--pink-bg)', keywords:['ai agent','genai','llm','copilot','agentic','ai access','autonomous','artificial intelligence']},
+    {id:'cloud', name:'Cloud IGA', label:'Cloud & SaaS Access Governance', color:'var(--green)', bg:'var(--green-bg)', keywords:['cloud','saas','aws','azure','gcp','multicloud','entitlement','cloud access']},
+];
+
+function matchSolutions(text) {
+    const t = (text||'').toLowerCase();
+    return SOLUTIONS.filter(s => s.keywords.some(kw => t.includes(kw)));
+}
+
+// Contact–challenge role matching
+const ROLE_MAP = {
+    'ciso': ['security','compliance','risk','breach','cyber','ransomware','vulnerability','access control','identity'],
+    'cio':  ['digital transformation','cloud','modernization','it strategy','technology','system','integration','infrastructure'],
+    'cdo':  ['data','analytics','ai','digital','governance','platform'],
+    'cao':  ['audit','compliance','regulatory','sox','risk','control'],
+    'cto':  ['architecture','infrastructure','cloud','modernization','api','platform','engineering'],
+    'vp':   ['operations','governance','risk','access','identity'],
+};
+function contactMatchesChallenge(contact, challengeText) {
+    const title = (contact.title||'').toLowerCase();
+    const cl = (challengeText||'').toLowerCase();
+    for (const role in ROLE_MAP) {
+        if (title.includes(role) && ROLE_MAP[role].some(kw => cl.includes(kw))) return true;
+    }
+    const sen = (contact.seniority||'').toLowerCase();
+    return sen.includes('c-suite') || sen.includes('vp');
 }
 
 // ===========================================
-// PAGE LOGIC
+// STATE
 // ===========================================
+let companyData = null, allContacts = [], latestSnap = null, allOutreach = [];
 
-let companyData = null;
-
+// ===========================================
+// LOAD COMPANY
+// ===========================================
 async function loadCompany() {
     if (!COMPANY_ID) { document.getElementById('page-title').textContent = 'No company ID'; return; }
     try {
-        const data = await supabaseQuery('companies', {
-            select: '*',
-            filter: { id: `eq.${COMPANY_ID}` },
-        });
+        const data = await supabaseQuery('companies', { select: '*', filter: { id: `eq.${COMPANY_ID}` } });
         companyData = data[0];
         if (!companyData) { document.getElementById('page-title').textContent = 'Company not found'; return; }
 
@@ -410,260 +479,303 @@ async function loadCompany() {
         document.getElementById('ctrl-name').textContent = companyData.name + ' — Company Detail';
         document.title = `${companyData.name} — BD Intelligence Tool`;
 
-        // Meta line
         const metaParts = [companyData.industry, companyData.employee_count ? Number(companyData.employee_count).toLocaleString() + ' employees' : null, companyData.ticker].filter(Boolean);
         document.getElementById('company-meta').textContent = metaParts.join(' · ');
 
-        // Logo via Clearbit
         if (companyData.domain) {
             const domain = companyData.domain.replace(/https?:\/\//, '').split('/')[0];
             const img = new Image();
-            img.onload = function() { document.getElementById('logo-area').innerHTML = '<img src="https://logo.clearbit.com/' + domain + '" alt="' + escapeHtml(companyData.name) + '"/>'; };
-            img.onerror = function() { document.getElementById('logo-area').textContent = companyData.name; };
-            img.src = 'https://logo.clearbit.com/' + domain;
-        } else {
-            document.getElementById('logo-area').textContent = companyData.name;
+            img.onload = () => { document.getElementById('logo-area').innerHTML = `<img src="https://logo.clearbit.com/${domain}" alt="${escapeHtml(companyData.name)}"/>`; };
+            img.onerror = () => { document.getElementById('logo-area').textContent = companyData.name.substring(0,2).toUpperCase(); };
+            img.src = `https://logo.clearbit.com/${domain}`;
         }
 
-        // Status badge
-        const statusMap = {
-            completed: 'badge-green', researched: 'badge-green',
-            running: 'badge-gold', pending: 'badge-gold',
-            failed: 'badge-red',
-            draft: 'badge-blue',
-        };
+        const statusMap = { completed:'badge-green', researched:'badge-green', running:'badge-gold', pending:'badge-gold', failed:'badge-red', draft:'badge-blue' };
         const statusClass = statusMap[companyData.research_status] || 'badge-muted';
 
-        document.getElementById('company-info').innerHTML = `
-            <div class="info-panel">
-                <h3>Company Details</h3>
-                <div class="info-row"><span class="info-label">Domain</span><span class="info-value">${companyData.domain || 'N/A'}</span></div>
-                <div class="info-row"><span class="info-label">Industry</span><span class="info-value">${companyData.industry || 'N/A'}</span></div>
-                <div class="info-row"><span class="info-label">Employees</span><span class="info-value">${companyData.employee_count ? Number(companyData.employee_count).toLocaleString() : 'N/A'}</span></div>
-                <div class="info-row"><span class="info-label">Ticker</span><span class="info-value">${companyData.ticker || 'N/A'}</span></div>
+        document.getElementById('header-badges').innerHTML =
+            `<span class="badge ${statusClass}">${escapeHtml(companyData.research_status||'pending')}</span>` +
+            (companyData.is_public ? '<span class="badge badge-blue">Public</span>' : '') +
+            (companyData.ticker ? `<span class="badge badge-muted" style="font-family:'DM Mono',monospace;">${escapeHtml(companyData.ticker)}</span>` : '');
+
+        document.getElementById('company-info').innerHTML =
+            `<div class="info-card"><h4>Company Details</h4>
+                <div class="info-row"><span class="info-lbl">Domain</span><span class="info-val">${companyData.domain||'N/A'}</span></div>
+                <div class="info-row"><span class="info-lbl">Industry</span><span class="info-val">${companyData.industry||'N/A'}</span></div>
+                <div class="info-row"><span class="info-lbl">Employees</span><span class="info-val">${companyData.employee_count?Number(companyData.employee_count).toLocaleString():'N/A'}</span></div>
+                <div class="info-row"><span class="info-lbl">Ticker</span><span class="info-val">${companyData.ticker||'N/A'}</span></div>
             </div>
-            <div class="info-panel">
-                <h3>Research Status</h3>
-                <div class="info-row"><span class="info-label">Status</span><span class="badge ${statusClass}">${companyData.research_status || 'N/A'}</span></div>
-                <div class="info-row"><span class="info-label">Public</span><span class="info-value">${companyData.is_public ? 'Yes' : 'No'}</span></div>
-                <div class="info-row"><span class="info-label">Last Researched</span><span class="info-value">${companyData.last_researched_at ? new Date(companyData.last_researched_at).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : 'Never'}</span></div>
+            <div class="info-card"><h4>Research Status</h4>
+                <div class="info-row"><span class="info-lbl">Status</span><span class="badge ${statusClass}">${companyData.research_status||'N/A'}</span></div>
+                <div class="info-row"><span class="info-lbl">Public</span><span class="info-val">${companyData.is_public?'Yes':'No'}</span></div>
+                <div class="info-row"><span class="info-lbl">Last Researched</span><span class="info-val">${companyData.last_researched_at?new Date(companyData.last_researched_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Never'}</span></div>
             </div>`;
-    } catch (e) {
-        console.error('Failed to load company:', e);
-    }
+    } catch(e) { console.error('loadCompany:', e); }
 }
 
+// ===========================================
+// LOAD CONTACTS
+// ===========================================
 async function loadContacts() {
     try {
-        const contacts = await supabaseQuery('contacts', {
-            select: '*',
-            filter: { company_id: `eq.${COMPANY_ID}` },
-            order: 'created_at.asc',
-        });
-        if (!contacts.length) {
-            document.getElementById('contacts-list').innerHTML = '<div class="empty-state">No contacts yet. Click "+ Add Contact" above to get started.</div>';
-            return;
-        }
-        document.getElementById('contacts-list').innerHTML = contacts.map(c => {
-            const ed = c.enrichment_data || {};
-            const tier = ed.tier || 'default';
-            const ts = getTierStyle(tier);
-            const tierLabel = tier === 'tier1' ? (ed.role || 'C-Suite') : tier === 'tier2' ? (ed.role || 'Supporting') : '';
-            const location = [ed.city, ed.state, ed.country].filter(Boolean).join(', ');
-            const deptList = (ed.departments || []);
-
-            // Build tags
-            let tags = '';
-            if (tierLabel) {
-                tags += `<span class="contact-tag" style="background:${ts.bg};color:${ts.color};">${escapeHtml(tierLabel)}</span>`;
-            }
-            if (c.seniority) {
-                tags += `<span class="contact-tag" style="background:var(--purple-bg);color:var(--purple);">${escapeHtml(c.seniority)}</span>`;
-            }
-            for (const dept of deptList) {
-                tags += `<span class="contact-tag" style="background:var(--gold-bg);color:var(--gold);">${escapeHtml(dept)}</span>`;
-            }
-            if (c.enrichment_source && c.enrichment_source !== 'manual') {
-                tags += `<span class="contact-tag" style="background:var(--bg3);color:var(--text3);">via ${escapeHtml(c.enrichment_source)}</span>`;
-            }
-
-            return `
-            <div class="contact-row">
-                <div class="contact-accent" style="background:${ts.accent};"></div>
-                <div class="contact-body">
-                    <div class="contact-header">
-                        <div class="contact-name">${escapeHtml(c.name)}</div>
-                    </div>
-                    <div class="contact-title">${escapeHtml(c.title || 'No title')}</div>
-                    ${ed.headline ? `<div class="contact-headline">${escapeHtml(ed.headline)}</div>` : ''}
-                    <div class="contact-meta-row">
-                        ${c.email ? `<span>&#9993; <a href="mailto:${escapeHtml(c.email)}">${escapeHtml(c.email)}</a></span>` : '<span style="color:var(--text3);">No email</span>'}
-                        ${c.linkedin_url ? `<span><a href="${escapeHtml(c.linkedin_url)}" target="_blank" rel="noopener">LinkedIn &#8599;</a></span>` : ''}
-                        ${c.phone ? `<span>&#9742; ${escapeHtml(c.phone)}</span>` : ''}
-                        ${location ? `<span>&#9679; ${escapeHtml(location)}</span>` : ''}
-                    </div>
-                    ${tags ? `<div class="contact-tags">${tags}</div>` : ''}
-                </div>
-            </div>`;
-        }).join('');
-    } catch (e) {
-        console.error('Failed to load contacts:', e);
-    }
+        allContacts = await supabaseQuery('contacts', { select:'*', filter:{ company_id:`eq.${COMPANY_ID}` }, order:'created_at.asc' });
+        document.getElementById('hstat-contacts').textContent = allContacts.length;
+        renderContactsTab();
+    } catch(e) { console.error('loadContacts:', e); }
 }
 
+function renderContactsTab() {
+    if (!allContacts.length) {
+        document.getElementById('contacts-list').innerHTML = '<div class="empty-state">No contacts yet. Click "+ Add Contact" above to get started.</div>';
+        return;
+    }
+    document.getElementById('contacts-list').innerHTML = allContacts.map(c => {
+        const ed = c.enrichment_data || {};
+        const tier = ed.tier || 'default';
+        const ts = getTierStyle(tier);
+        const tierLabel = tier==='tier1'?(ed.role||'C-Suite'):tier==='tier2'?(ed.role||'Supporting'):'';
+        const location = [ed.city,ed.state,ed.country].filter(Boolean).join(', ');
+        const deptList = ed.departments || [];
+        let tags = '';
+        if (tierLabel) tags += `<span class="contact-tag" style="background:${ts.bg};color:${ts.color};">${escapeHtml(tierLabel)}</span>`;
+        if (c.seniority) tags += `<span class="contact-tag" style="background:var(--purple-bg);color:var(--purple);">${escapeHtml(c.seniority)}</span>`;
+        for (const dept of deptList) tags += `<span class="contact-tag" style="background:var(--gold-bg);color:var(--gold);">${escapeHtml(dept)}</span>`;
+        if (c.enrichment_source && c.enrichment_source!=='manual') tags += `<span class="contact-tag" style="background:var(--bg3);color:var(--text3);">via ${escapeHtml(c.enrichment_source)}</span>`;
+        return `<div class="contact-row">
+            <div class="contact-accent" style="background:${ts.accent};"></div>
+            <div class="contact-body">
+                <div class="contact-name">${escapeHtml(c.name)}</div>
+                <div class="contact-title-line">${escapeHtml(c.title||'No title')}</div>
+                ${ed.headline?`<div class="contact-headline">${escapeHtml(ed.headline)}</div>`:''}
+                <div class="contact-meta-row">
+                    ${c.email?`<span>✉ <a href="mailto:${escapeHtml(c.email)}">${escapeHtml(c.email)}</a></span>`:'<span>No email</span>'}
+                    ${c.linkedin_url?`<span><a href="${escapeHtml(c.linkedin_url)}" target="_blank" rel="noopener">LinkedIn ↗</a></span>`:''}
+                    ${c.phone?`<span>☎ ${escapeHtml(c.phone)}</span>`:''}
+                    ${location?`<span>📍 ${escapeHtml(location)}</span>`:''}
+                </div>
+                ${tags?`<div class="contact-tags">${tags}</div>`:''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ===========================================
+// LOAD INTELLIGENCE + BUILD CHALLENGE CARDS
+// ===========================================
 async function loadIntelligence() {
     try {
-        const snapshots = await supabaseQuery('research_snapshots', {
+        const snaps = await supabaseQuery('research_snapshots', {
             select: 'summary,signals,source,created_at',
-            filter: { company_id: `eq.${COMPANY_ID}`, source: 'eq.synthesis' },
-            order: 'created_at.desc',
-            limit: 1,
+            filter: { company_id:`eq.${COMPANY_ID}`, source:'eq.synthesis' },
+            order: 'created_at.desc', limit: 1,
         });
-        if (!snapshots.length) {
-            document.getElementById('intelligence-content').innerHTML = '<div class="empty-state">No intelligence yet. Run research first.</div>';
-            return;
-        }
-        const snap = snapshots[0];
-        const signals = snap.signals || {};
-        let html = '';
-
-        if (snap.summary) {
-            html += `<div class="section-card">
-                <div class="section-header"><span class="section-title">Company Intelligence Brief</span></div>
-                <div style="padding:16px 22px;font-size:12px;line-height:1.7;color:var(--text2);">${escapeHtml(snap.summary)}</div>
-            </div>`;
-        }
-
-        if (signals.keySignals && signals.keySignals.length) {
-            html += `<div class="section-card">
-                <div class="section-header"><span class="section-title">Key Buying Signals</span><span class="badge badge-green">${signals.keySignals.length} signals</span></div>`;
-            for (const s of signals.keySignals) {
-                const strengthColors = { high: 'var(--green)', medium: 'var(--gold)', low: 'var(--text3)' };
-                const accentColor = strengthColors[s.strength] || 'var(--blue)';
-                html += `<div class="signal-row">
-                    <div class="signal-accent" style="background:${accentColor};"></div>
-                    <div class="signal-body">
-                        <div class="signal-text">${escapeHtml(s.signal)}</div>
-                        <div class="signal-meta">Source: ${escapeHtml(s.source || 'N/A')} · Angle: ${escapeHtml(s.salesAngle || s.sales_angle || 'N/A')}</div>
-                    </div>
-                </div>`;
-            }
-            html += '</div>';
-        }
-
-        if (signals.painPoints && signals.painPoints.length) {
-            html += `<div class="section-card">
-                <div class="section-header"><span class="section-title">Pain Points</span><span class="badge badge-gold">${signals.painPoints.length} identified</span></div>`;
-            for (const p of signals.painPoints) {
-                html += `<div class="signal-row">
-                    <div class="signal-accent" style="background:var(--gold);"></div>
-                    <div class="signal-body">
-                        <div class="signal-text">${escapeHtml(p.painPoint || p.pain_point)}</div>
-                        <div class="signal-meta">Evidence: ${escapeHtml(p.evidence || 'N/A')}</div>
-                    </div>
-                </div>`;
-            }
-            html += '</div>';
-        }
-
-        if (signals.competitiveLandscape && signals.competitiveLandscape.summary) {
-            html += `<div class="section-card">
-                <div class="section-header"><span class="section-title">Competitive Landscape</span></div>
-                <div style="padding:16px 22px;">
-                    <div style="font-size:12px;line-height:1.7;color:var(--text2);margin-bottom:10px;">${escapeHtml(signals.competitiveLandscape.summary)}</div>
-                    ${signals.competitiveLandscape.knownVendors?.length ? `<div class="contact-tags">${signals.competitiveLandscape.knownVendors.map(v => `<span class="contact-tag" style="background:var(--red-bg);color:var(--red);">${escapeHtml(v)}</span>`).join('')}</div>` : ''}
-                </div>
-            </div>`;
-        }
-
-        document.getElementById('intelligence-content').innerHTML = html || '<div class="empty-state">No intelligence data available.</div>';
-    } catch (e) {
-        console.error('Failed to load intelligence:', e);
-    }
+        latestSnap = snaps[0] || null;
+        buildChallengeCards();
+        renderIntelligenceTab();
+    } catch(e) { console.error('loadIntelligence:', e); buildChallengeCards(); }
 }
 
+// ===========================================
+// CHALLENGE CARDS — THE MAIN VIEW
+// ===========================================
+function buildChallengeCards() {
+    const container = document.getElementById('challenges-container');
+    if (!latestSnap || !latestSnap.signals) { container.innerHTML = renderNoResearchState(); document.getElementById('hstat-challenges').textContent = '0'; return; }
+
+    const signals = latestSnap.signals || {};
+    const painPoints = signals.painPoints || [];
+    const keySignals = signals.keySignals || [];
+
+    if (!painPoints.length && !keySignals.length) { container.innerHTML = renderNoResearchState(); document.getElementById('hstat-challenges').textContent = '0'; return; }
+
+    // Merge pain points + key signals into unified challenge list
+    const challenges = [];
+    painPoints.forEach(p => challenges.push({ text: p.painPoint||p.pain_point||'Unspecified pain point', evidence: p.evidence||'', salesAngle: p.salesAngle||p.sales_angle||'', strength: 'high', source: 'pain_point' }));
+    keySignals.forEach(s => { if (!challenges.find(c => c.text===s.signal)) challenges.push({ text: s.signal||'Signal', evidence: s.source||'', salesAngle: s.salesAngle||s.sales_angle||'', strength: s.strength||'medium', source: 'signal' }); });
+
+    const strengthOrder = { high:0, medium:1, low:2 };
+    challenges.sort((a,b) => (strengthOrder[a.strength]||1) - (strengthOrder[b.strength]||1));
+    document.getElementById('hstat-challenges').textContent = challenges.length;
+
+    const icons = ['🔐','🏗️','⚡','🛡️','📊','🔍','⚙️','🌐','🔒','📡'];
+    const accentColors = ['#6b3fd4','#0e7490','#a86c0a','#166534','#be185d','#1d4ed8','#92400e','#1e2a4a'];
+    const strengthStyles = {
+        high:   'background:var(--green-bg);color:var(--green);border:1px solid var(--green-brd);',
+        medium: 'background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-brd);',
+        low:    'background:var(--bg3);color:var(--text3);border:1px solid var(--border);',
+    };
+
+    let html = '<div class="challenge-grid">';
+
+    challenges.forEach((ch, idx) => {
+        let solutions = matchSolutions(ch.text + ' ' + ch.salesAngle);
+        if (!solutions.length) solutions = [SOLUTIONS[idx % SOLUTIONS.length]];
+
+        // Match contacts to this challenge
+        let matched = allContacts.filter(c => contactMatchesChallenge(c, ch.text));
+        if (!matched.length) matched = allContacts.filter(c => ['c-suite','vp'].some(s => (c.seniority||'').toLowerCase().includes(s))).slice(0,3);
+        matched = matched.slice(0,4);
+
+        const accent = accentColors[idx % accentColors.length];
+        const icon = icons[idx % icons.length];
+        const strengthStyle = strengthStyles[ch.strength] || strengthStyles.medium;
+        const delay = Math.min(idx * 0.08, 0.6) + 's';
+
+        html += `<div class="challenge-card" style="animation-delay:${delay};">
+            <div class="cc-accent" style="background:${accent};"></div>
+            <div class="cc-header">
+                <div class="cc-icon" style="background:${accent}20;">${icon}</div>
+                <div class="cc-title-block">
+                    <div class="cc-challenge-label">Business Challenge</div>
+                    <div class="cc-challenge-text">${escapeHtml(ch.text)}</div>
+                    ${ch.evidence ? `<div class="cc-evidence">Evidence: ${escapeHtml(ch.evidence)}</div>` : ''}
+                </div>
+                <span class="cc-strength" style="${strengthStyle}">${ch.strength.toUpperCase()}</span>
+            </div>
+            <div class="cc-body">
+                <div class="cc-col">
+                    <div class="cc-col-label" style="color:${accent};">Our Solutions <span></span></div>
+                    ${solutions.map(s => `<div class="solution-item">
+                        <div class="solution-dot" style="background:${s.color};"></div>
+                        <div><div class="solution-name">${escapeHtml(s.name)}</div><div class="solution-desc">${escapeHtml(s.label)}</div></div>
+                    </div>`).join('')}
+                </div>
+                <div class="cc-col">
+                    <div class="cc-col-label" style="color:${accent};">Who To Call <span></span></div>
+                    ${matched.length ? matched.map(c => {
+                        const col = avatarColor(c.name);
+                        const senStyle = (c.seniority||'').includes('C-Suite') ? 'background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-brd);' : 'background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-brd);';
+                        return `<div class="contact-mini" onclick="switchTab('contacts')">
+                            <div class="contact-avatar" style="background:${col};">${initials(c.name)}</div>
+                            <div style="flex:1;min-width:0;">
+                                <div class="contact-mini-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(c.name)}</div>
+                                <div class="contact-mini-title">${escapeHtml(c.title||'No title')}</div>
+                            </div>
+                            ${c.seniority ? `<span class="contact-mini-badge" style="${senStyle}">${escapeHtml(c.seniority)}</span>` : ''}
+                        </div>`;
+                    }).join('') : '<div style="padding:12px;background:var(--bg3);border-radius:8px;border:1px dashed var(--border);text-align:center;font-size:11px;color:var(--text3);">No contacts yet<br/><span style="font-size:10px;">Run Prospect Search</span></div>'}
+                </div>
+                <div class="cc-col">
+                    <div class="cc-col-label" style="color:${accent};">Outreach Actions <span></span></div>
+                    <div class="outreach-action" onclick="switchTab('content')">
+                        <div class="oa-icon">✉</div>
+                        <div><div class="oa-label">Email Draft</div><div class="oa-desc">Personalized cold email</div></div>
+                        <div class="oa-arrow">→</div>
+                    </div>
+                    <div class="outreach-action" onclick="switchTab('content')">
+                        <div class="oa-icon">💼</div>
+                        <div><div class="oa-label">LinkedIn Sequence</div><div class="oa-desc">Connection + follow-up</div></div>
+                        <div class="oa-arrow">→</div>
+                    </div>
+                    <div class="outreach-action" onclick="switchTab('content')">
+                        <div class="oa-icon">📞</div>
+                        <div><div class="oa-label">Call Talk Track</div><div class="oa-desc">Opener + discovery Qs</div></div>
+                        <div class="oa-arrow">→</div>
+                    </div>
+                    <div class="outreach-action" onclick="switchTab('deck')">
+                        <div class="oa-icon">📊</div>
+                        <div><div class="oa-label">Sales Deck</div><div class="oa-desc">Download PPTX</div></div>
+                        <div class="oa-arrow">→</div>
+                    </div>
+                </div>
+            </div>
+            ${ch.salesAngle ? `<div class="cc-footer"><span class="cc-footer-icon">💡</span><span><strong>Sales angle:</strong> ${escapeHtml(ch.salesAngle)}</span></div>` : ''}
+        </div>`;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function renderNoResearchState() {
+    return `<div style="padding:48px 32px;text-align:center;">
+        <div style="font-size:52px;margin-bottom:16px;">🔮</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--purple);margin-bottom:8px;">No Intelligence Yet</div>
+        <div style="font-size:13px;color:var(--text3);max-width:400px;margin:0 auto 24px;line-height:1.7;">Run research to generate correlated challenge cards — business pain points, Saviynt solutions, and the right contacts to call, all in one view.</div>
+        <button class="btn btn-navy" style="font-size:14px;padding:10px 28px;" onclick="runResearch()">▶ Run Research Now</button>
+    </div>`;
+}
+
+// ===========================================
+// INTELLIGENCE TAB
+// ===========================================
+function renderIntelligenceTab() {
+    const snap = latestSnap;
+    if (!snap) { document.getElementById('intelligence-content').innerHTML = '<div class="empty-state">No intelligence yet. Run research first.</div>'; return; }
+    const signals = snap.signals || {};
+    let html = '';
+
+    if (snap.summary) html += `<div class="section-card"><div class="section-header"><span class="section-title">Company Intelligence Brief</span></div><div style="padding:16px 22px;font-size:12px;line-height:1.7;color:var(--text2);">${escapeHtml(snap.summary)}</div></div>`;
+
+    if (signals.keySignals?.length) {
+        html += `<div class="section-card"><div class="section-header"><span class="section-title">Key Buying Signals</span><span class="badge badge-green">${signals.keySignals.length} signals</span></div>`;
+        const sc = { high:'var(--green)', medium:'var(--gold)', low:'var(--text3)' };
+        for (const s of signals.keySignals) html += `<div class="signal-row"><div class="signal-accent" style="background:${sc[s.strength]||'var(--blue)'};"></div><div class="signal-body"><div class="signal-text">${escapeHtml(s.signal)}</div><div class="signal-meta">Source: ${escapeHtml(s.source||'N/A')} · Angle: ${escapeHtml(s.salesAngle||s.sales_angle||'N/A')}</div></div></div>`;
+        html += '</div>';
+    }
+
+    if (signals.painPoints?.length) {
+        html += `<div class="section-card"><div class="section-header"><span class="section-title">Pain Points</span><span class="badge badge-gold">${signals.painPoints.length} identified</span></div>`;
+        for (const p of signals.painPoints) html += `<div class="signal-row"><div class="signal-accent" style="background:var(--gold);"></div><div class="signal-body"><div class="signal-text">${escapeHtml(p.painPoint||p.pain_point)}</div><div class="signal-meta">Evidence: ${escapeHtml(p.evidence||'N/A')}</div></div></div>`;
+        html += '</div>';
+    }
+
+    if (signals.competitiveLandscape?.summary) {
+        html += `<div class="section-card"><div class="section-header"><span class="section-title">Competitive Landscape</span></div><div style="padding:16px 22px;"><div style="font-size:12px;line-height:1.7;color:var(--text2);margin-bottom:10px;">${escapeHtml(signals.competitiveLandscape.summary)}</div>${signals.competitiveLandscape.knownVendors?.length ? `<div class="contact-tags">${signals.competitiveLandscape.knownVendors.map(v=>`<span class="contact-tag" style="background:var(--red-bg);color:var(--red);">${escapeHtml(v)}</span>`).join('')}</div>` : ''}</div></div>`;
+    }
+
+    document.getElementById('intelligence-content').innerHTML = html || '<div class="empty-state">No intelligence data available.</div>';
+}
+
+// ===========================================
+// OUTREACH CONTENT TAB
+// ===========================================
 async function loadOutreachContent() {
     try {
-        const content = await supabaseQuery('outreach_content', {
-            select: '*',
-            filter: { company_id: `eq.${COMPANY_ID}` },
-            order: 'created_at.desc',
-        });
-        if (!content.length) {
-            document.getElementById('outreach-content').innerHTML = '<div class="empty-state">No outreach content yet. Run research first.</div>';
-            return;
-        }
-
-        document.getElementById('outreach-content').innerHTML = content.map(c => {
+        allOutreach = await supabaseQuery('outreach_content', { select:'*', filter:{ company_id:`eq.${COMPANY_ID}` }, order:'created_at.desc' });
+        document.getElementById('hstat-outreach').textContent = allOutreach.length;
+        if (!allOutreach.length) { document.getElementById('outreach-content').innerHTML = '<div class="empty-state">No outreach content yet. Run research first.</div>'; return; }
+        document.getElementById('outreach-content').innerHTML = allOutreach.map(c => {
             let blocks = '';
-            if (c.pitch_angle) {
-                blocks += `<div class="section-card"><div class="section-header"><span class="section-title">Pitch Angle</span><span class="badge badge-purple">Strategy</span></div>
-                    <div class="content-block"><pre>${escapeHtml(c.pitch_angle)}</pre></div></div>`;
-            }
-            if (c.email_draft) {
-                blocks += `<div class="section-card"><div class="section-header"><span class="section-title">Email Draft</span>${c.email_subject ? `<span class="badge badge-blue">${escapeHtml(c.email_subject)}</span>` : ''}</div>
-                    <div class="content-block"><pre>${escapeHtml(c.email_draft)}</pre></div></div>`;
-            }
-            if (c.linkedin_sequence) {
-                const seq = typeof c.linkedin_sequence === 'string' ? JSON.parse(c.linkedin_sequence) : c.linkedin_sequence;
-                blocks += `<div class="section-card"><div class="section-header"><span class="section-title">LinkedIn Sequence</span><span class="badge badge-blue">Social</span></div>
-                    <div class="content-block"><pre><strong>Connection Request:</strong>\n${escapeHtml(seq.connectionRequest || '')}\n\n<strong>Follow-up:</strong>\n${escapeHtml(seq.followUp || '')}</pre></div></div>`;
-            }
-            if (c.call_talk_track) {
-                blocks += `<div class="section-card"><div class="section-header"><span class="section-title">Call Talk Track</span><span class="badge badge-gold">Phone</span></div>
-                    <div class="content-block"><pre>${escapeHtml(c.call_talk_track)}</pre></div></div>`;
-            }
-            if (c.discovery_questions && c.discovery_questions.length) {
-                blocks += `<div class="section-card"><div class="section-header"><span class="section-title">Discovery Questions</span><span class="badge badge-green">${c.discovery_questions.length} questions</span></div>
-                    <div class="content-block"><pre>${c.discovery_questions.map((q, i) => `${i + 1}. ${escapeHtml(q)}`).join('\n')}</pre></div></div>`;
-            }
-            if (c.exec_briefing) {
-                blocks += `<div class="section-card"><div class="section-header"><span class="section-title">Executive Briefing</span><span class="badge badge-purple">Exec</span></div>
-                    <div class="content-block"><pre>${escapeHtml(c.exec_briefing)}</pre></div></div>`;
-            }
+            if (c.pitch_angle) blocks += `<div class="section-card"><div class="section-header"><span class="section-title">Pitch Angle</span><span class="badge badge-purple">Strategy</span></div><div class="content-block"><pre>${escapeHtml(c.pitch_angle)}</pre></div></div>`;
+            if (c.email_draft) blocks += `<div class="section-card"><div class="section-header"><span class="section-title">Email Draft</span>${c.email_subject?`<span class="badge badge-blue">${escapeHtml(c.email_subject)}</span>`:''}</div><div class="content-block"><pre>${escapeHtml(c.email_draft)}</pre></div></div>`;
+            if (c.linkedin_sequence) { const seq = typeof c.linkedin_sequence==='string'?JSON.parse(c.linkedin_sequence):c.linkedin_sequence; blocks += `<div class="section-card"><div class="section-header"><span class="section-title">LinkedIn Sequence</span><span class="badge badge-blue">Social</span></div><div class="content-block"><pre><strong>Connection Request:</strong>\n${escapeHtml(seq.connectionRequest||'')}\n\n<strong>Follow-up:</strong>\n${escapeHtml(seq.followUp||'')}</pre></div></div>`; }
+            if (c.call_talk_track) blocks += `<div class="section-card"><div class="section-header"><span class="section-title">Call Talk Track</span><span class="badge badge-gold">Phone</span></div><div class="content-block"><pre>${escapeHtml(c.call_talk_track)}</pre></div></div>`;
+            if (c.discovery_questions?.length) blocks += `<div class="section-card"><div class="section-header"><span class="section-title">Discovery Questions</span><span class="badge badge-green">${c.discovery_questions.length} questions</span></div><div class="content-block"><pre>${c.discovery_questions.map((q,i)=>`${i+1}. ${escapeHtml(q)}`).join('\n')}</pre></div></div>`;
+            if (c.exec_briefing) blocks += `<div class="section-card"><div class="section-header"><span class="section-title">Executive Briefing</span><span class="badge badge-purple">Exec</span></div><div class="content-block"><pre>${escapeHtml(c.exec_briefing)}</pre></div></div>`;
             return blocks;
         }).join('');
-    } catch (e) {
-        console.error('Failed to load outreach content:', e);
-    }
+    } catch(e) { console.error('loadOutreachContent:', e); }
 }
 
+// ===========================================
+// HISTORY TAB
+// ===========================================
 async function loadHistory() {
     try {
-        const runs = await supabaseQuery('research_runs', {
-            select: 'id,status,triggered_by,actual_tokens,started_at,completed_at,error_message',
-            filter: { company_id: `eq.${COMPANY_ID}` },
-            order: 'started_at.desc',
-            limit: 20,
-        });
-        if (!runs.length) {
-            document.getElementById('research-history').innerHTML = '<div class="empty-state">No research runs yet.</div>';
-            return;
-        }
-
-        const statusBadgeMap = {
-            completed: 'badge-green', running: 'badge-gold', failed: 'badge-red', pending: 'badge-muted'
-        };
-
+        const runs = await supabaseQuery('research_runs', { select:'id,status,triggered_by,actual_tokens,started_at,completed_at,error_message', filter:{ company_id:`eq.${COMPANY_ID}` }, order:'started_at.desc', limit:20 });
+        document.getElementById('hstat-runs').textContent = runs.length;
+        if (!runs.length) { document.getElementById('research-history').innerHTML = '<div class="empty-state">No research runs yet.</div>'; return; }
+        const sBadge = { completed:'badge-green', running:'badge-gold', failed:'badge-red', pending:'badge-muted' };
         let html = '<div class="section-card"><div class="section-header"><span class="section-title">Research Runs</span></div>';
-        html += runs.map(r => `
-            <div class="history-row">
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <span class="badge ${statusBadgeMap[r.status] || 'badge-muted'}">${r.status}</span>
-                    <span style="font-size:11px;color:var(--text2);font-weight:500;">Triggered: ${r.triggered_by || 'manual'}${r.actual_tokens ? ` · ${r.actual_tokens.toLocaleString()} tokens` : ''}</span>
-                </div>
-                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
-                    <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);">${r.started_at ? new Date(r.started_at).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : 'N/A'}</span>
-                    ${r.error_message ? `<span style="font-size:10px;color:var(--red);font-weight:500;">${escapeHtml(r.error_message).substring(0, 80)}</span>` : ''}
-                </div>
-            </div>`).join('');
+        html += runs.map(r => `<div class="history-row">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <span class="badge ${sBadge[r.status]||'badge-muted'}">${r.status}</span>
+                <span style="font-size:11px;color:var(--text2);font-weight:500;">Triggered: ${r.triggered_by||'manual'}${r.actual_tokens?` · ${r.actual_tokens.toLocaleString()} tokens`:''}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+                <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);">${r.started_at?new Date(r.started_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'N/A'}</span>
+                ${r.error_message?`<span style="font-size:10px;color:var(--red);font-weight:500;">${escapeHtml(r.error_message).substring(0,80)}</span>`:''}
+            </div>
+        </div>`).join('');
         html += '</div>';
         document.getElementById('research-history').innerHTML = html;
-    } catch (e) {
-        console.error('Failed to load history:', e);
-    }
+    } catch(e) { console.error('loadHistory:', e); }
 }
 
+// ===========================================
+// SALES DECK TAB — Shane's feature (preserved exactly)
+// ===========================================
 async function loadDeck() {
     try {
         const snapshots = await supabaseQuery('research_snapshots', {
@@ -682,32 +794,29 @@ async function loadDeck() {
             const signals = snap.signals || {};
             const url = signals.url || '';
             const seller = signals.sellerCompany || 'Unknown';
-            html += `
-            <div class="history-row">
+            html += `<div class="history-row">
                 <div style="flex:1;">
-                    <div style="font-size:13px;font-weight:600;color:var(--text1);">${escapeHtml(snap.summary || 'Sales Deck')}</div>
+                    <div style="font-size:13px;font-weight:600;color:var(--text1);">${escapeHtml(snap.summary||'Sales Deck')}</div>
                     <div style="display:flex;gap:12px;margin-top:4px;">
                         <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);">${date}</span>
                         <span class="badge badge-muted">${escapeHtml(seller)}</span>
                         ${signals.slidesGenerated ? `<span class="badge badge-blue">${signals.slidesGenerated} slides</span>` : ''}
                     </div>
                 </div>
-                ${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:7px 16px;border-radius:8px;border:none;color:#fff;background:var(--t1);cursor:pointer;">Download PPTX</a>` : '<span class="badge badge-muted">No file</span>'}
+                ${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;">Download PPTX</a>` : '<span class="badge badge-muted">No file</span>'}
             </div>`;
         }
         html += '</div>';
         document.getElementById('deck-content').innerHTML = html;
-    } catch (e) {
-        console.error('Failed to load deck:', e);
-    }
+    } catch(e) { console.error('loadDeck:', e); }
 }
 
 // ===========================================
 // ACTIONS
 // ===========================================
-
 async function runResearch() {
     if (!getGitHubPAT()) { showToast('GitHub PAT is required to trigger research.', true); return; }
+    // Shane's seller context — preserved exactly
     const sellerCompany = localStorage.getItem('bd_seller_company') || 'Saviynt';
     const sellerUrl = localStorage.getItem('bd_seller_url') || 'https://saviynt.com';
     const domain = companyData?.domain || '';
@@ -719,17 +828,7 @@ async function runResearch() {
             seller_url: sellerUrl,
         });
         showToast('Research started — includes prospect discovery + deck generation.');
-    } catch (e) {
-        showToast(`Failed: ${e.message}`, true);
-    }
-}
-
-function openAddContact() {
-    document.getElementById('modal-add-contact').classList.add('active');
-}
-
-function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
+    } catch(e) { showToast(`Failed: ${e.message}`, true); }
 }
 
 async function addContact() {
@@ -747,55 +846,38 @@ async function addContact() {
         });
         closeModal('modal-add-contact');
         showToast(`Added ${name}`);
-        loadContacts();
-    } catch (e) {
-        showToast(`Failed: ${e.message}`, true);
-    }
+        allContacts = [];
+        await loadContacts();
+        buildChallengeCards();
+    } catch(e) { showToast(`Failed: ${e.message}`, true); }
 }
 
 // ===========================================
-// UI HELPERS
+// TAB SWITCHING
 // ===========================================
+const tabsLoaded = { challenges:false, contacts:false, intelligence:false, content:false, history:false, deck:false };
 
-function switchTab(tabName) {
+function switchTab(name) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    document.getElementById(`tab-${tabName}`).classList.add('active');
-
-    if (tabName === 'intelligence') loadIntelligence();
-    if (tabName === 'content') loadOutreachContent();
-    if (tabName === 'history') loadHistory();
-    if (tabName === 'deck') loadDeck();
+    document.querySelectorAll('.tab-panel').forEach(t => t.classList.remove('active'));
+    document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+    document.getElementById(`tab-${name}`).classList.add('active');
+    if (name==='intelligence' && !tabsLoaded.intelligence) { loadIntelligence(); tabsLoaded.intelligence=true; }
+    if (name==='content' && !tabsLoaded.content) { loadOutreachContent(); tabsLoaded.content=true; }
+    if (name==='history' && !tabsLoaded.history) { loadHistory(); tabsLoaded.history=true; }
+    if (name==='deck' && !tabsLoaded.deck) { loadDeck(); tabsLoaded.deck=true; }
 }
-
-function showToast(msg, isError = false) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = `toast active${isError ? ' error' : ''}`;
-    setTimeout(() => t.classList.remove('active'), 4000);
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-document.querySelectorAll('.modal-overlay').forEach(o => {
-    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('active'); });
-});
 
 // ===========================================
 // INIT
 // ===========================================
 if (CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY && COMPANY_ID) {
-    loadCompany();
-    loadContacts();
+    Promise.all([loadCompany(), loadContacts()]).then(() => loadIntelligence());
 } else if (!COMPANY_ID) {
     document.getElementById('page-title').textContent = 'No company selected';
-    document.getElementById('company-info').innerHTML = '<div class="empty-state">Go back to the dashboard and click a company.</div>';
+    document.getElementById('company-info').innerHTML = '<div class="empty-state" style="grid-column:1/-1;">Go back to the dashboard and click a company.</div>';
 } else {
-    document.getElementById('company-info').innerHTML = '<div class="empty-state">Configure SUPABASE_URL and SUPABASE_ANON_KEY in CONFIG.</div>';
+    document.getElementById('company-info').innerHTML = '<div class="empty-state" style="grid-column:1/-1;">Configure SUPABASE_URL and SUPABASE_ANON_KEY in CONFIG.</div>';
 }
 </script>
 </body>
