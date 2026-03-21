@@ -207,4 +207,207 @@ input::placeholder{color:var(--text3);font-weight:400;}
   <div style="background:var(--bg2);display:flex;flex-direction:column;height:calc(100vh - 280px);position:sticky;top:280px;">
     <div style="padding:16px 18px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--gold-bg) 0%,var(--bg2) 100%);flex-shrink:0;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-        <div style="width:36px;height:44px;border-radius:8px;overflow:hidden;border:2px solid var(--gold-br
+        <div style="width:36px;height:44px;border-radius:8px;overflow:hidden;border:2px solid var(--gold-brd);box-shadow:0 2px 10px rgba(168,108,10,0.2);flex-shrink:0;">
+          <img src="genie.png" style="width:100%;height:100%;object-fit:cover;object-position:top center;" alt="Genie"/>
+        </div>
+        <div style="flex:1;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:var(--text1);line-height:1;">PG <span style="color:var(--gold);">Genie</span></div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);">Mission Log</div>
+        </div>
+        <button onclick="loadData()" style="font-size:10px;font-weight:700;color:var(--purple);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;" title="Refresh">↺</button>
+      </div>
+      <div style="font-size:11px;font-style:italic;color:var(--text2);line-height:1.5;padding:8px 10px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);" id="genie-status-line">Awaiting orders…</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:12px 14px;" id="genie-log">
+      <div style="text-align:center;padding:28px 0;color:var(--text3);font-size:12px;font-weight:600;border:1px dashed var(--border);border-radius:8px;">No missions logged yet</div>
+    </div>
+    <div style="padding:12px 14px;border-top:1px solid var(--border);background:var(--bg3);flex-shrink:0;">
+      <div class="label" style="margin-bottom:8px;">Quick Actions</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <button class="btn btn-primary btn-sm" style="width:100%;text-align:left;" onclick="openModal('add-modal')">+ Add Target Company</button>
+        <button class="btn btn-gold btn-sm" style="width:100%;text-align:left;" onclick="openModal('batch-modal')">⚡ Run Batch Research</button>
+        <button class="btn btn-teal btn-sm" style="width:100%;text-align:left;" onclick="openModal('prospect-modal')">🔍 Prospect Search</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<div class="modal-overlay" id="pat-modal">
+  <div class="modal">
+    <div class="modal-title">GitHub PAT Settings</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">Enter your GitHub Personal Access Token (needs <code style="background:var(--bg3);padding:1px 5px;border-radius:4px;">repo</code> and <code style="background:var(--bg3);padding:1px 5px;border-radius:4px;">actions</code> scopes). Stored in your browser only.</p>
+    <div class="form-row"><label class="form-label">GitHub PAT</label><input type="password" id="pat-input" placeholder="ghp_..."/></div>
+    <div class="modal-btns"><button class="btn btn-danger" onclick="closeModal('pat-modal')">Cancel</button><button class="btn btn-primary" onclick="savePat()">Save</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">Add Target Company</div>
+    <div class="form-row"><label class="form-label">Company Name <span>*</span></label><input type="text" id="add-name" placeholder="e.g. Traveler's Insurance"/></div>
+    <div class="form-2col">
+      <div class="form-row"><label class="form-label">Domain</label><input type="text" id="add-domain" placeholder="travelers.com"/></div>
+      <div class="form-row"><label class="form-label">Industry</label><input type="text" id="add-industry" placeholder="Insurance"/></div>
+      <div class="form-row"><label class="form-label">Ticker (SEC)</label><input type="text" id="add-ticker" placeholder="TRV"/></div>
+      <div class="form-row"><label class="form-label">Employees</label><input type="number" id="add-employees" placeholder="30000"/></div>
+    </div>
+    <div class="form-row"><label class="form-label">Status</label><select id="add-status"><option value="pending">Pending</option><option value="complete">Complete</option></select></div>
+    <div class="modal-btns"><button class="btn btn-danger" onclick="closeModal('add-modal')">Cancel</button><button class="btn btn-primary" onclick="addCompany()">Add Company</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="batch-modal">
+  <div class="modal">
+    <div class="modal-title">Run Batch Research</div>
+    <div class="form-row"><label class="form-label">Target</label><select id="batch-target"><option value="prospect">All Prospect Companies</option><option value="active">All Active Companies</option></select></div>
+    <div class="form-2col">
+      <div class="form-row"><label class="form-label">Max Companies</label><input type="number" id="batch-max" value="5" min="1" max="50"/></div>
+      <div class="form-row"><label class="form-label">Delay (seconds)</label><input type="number" id="batch-delay" value="30" min="10" max="300"/></div>
+    </div>
+    <div class="modal-btns"><button class="btn btn-danger" onclick="closeModal('batch-modal')">Cancel</button><button class="btn btn-gold" onclick="runBatch()">Start Batch</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="prospect-modal">
+  <div class="modal">
+    <div class="modal-title">Prospect Search</div>
+    <p style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:16px;line-height:1.6;">Search Apollo for CIO, CISO, and key C-suite leaders at a target company.</p>
+    <div class="form-row"><label class="form-label">Company Name <span>*</span></label><input type="text" id="ps-company" placeholder="e.g. Traveler's Insurance"/></div>
+    <div class="form-2col">
+      <div class="form-row"><label class="form-label">Company Domain</label><input type="text" id="ps-domain" placeholder="travelers.com"/></div>
+      <div class="form-row"><label class="form-label">Max Contacts</label><input type="number" id="ps-max" value="15" min="1" max="50"/></div>
+    </div>
+    <div class="form-row"><label class="form-label">Custom Keywords</label><input type="text" id="ps-keywords" placeholder="leave empty for defaults (CIO, CISO, CDO...)"/></div>
+    <div class="modal-btns"><button class="btn btn-danger" onclick="closeModal('prospect-modal')">Cancel</button><button class="btn btn-teal" onclick="searchProspects()">Search Prospects</button></div>
+  </div>
+</div>
+<script>
+var toastTimer;
+function openModal(id){if(id==='pat-modal'){var el=document.getElementById('pat-input');if(el)el.value=localStorage.getItem('bd_github_pat')||'';}var m=document.getElementById(id);if(m)m.classList.add('open');}
+function closeModal(id){var m=document.getElementById(id);if(m)m.classList.remove('open');}
+function showToast(msg,type){var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.className='show '+(type||'');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.className='';},3500);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function viewCompany(id){window.location.href='company.html?id='+id;}
+function genPyramid(id,name,domain){window.open('pyramid.html?company_id='+encodeURIComponent(id)+'&company_name='+encodeURIComponent(name)+'&company_domain='+encodeURIComponent(domain),'_blank');}
+function savePat(){var val=document.getElementById('pat-input').value.trim();if(val){localStorage.setItem('bd_github_pat',val);if(typeof CONFIG!=='undefined')CONFIG.GITHUB_PAT=val;showToast('GitHub PAT saved!','success');}else{localStorage.removeItem('bd_github_pat');if(typeof CONFIG!=='undefined')CONFIG.GITHUB_PAT='';showToast('GitHub PAT cleared','');}closeModal('pat-modal');}
+document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
+function tick(){var e=document.getElementById('clock');if(e)e.textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}tick();setInterval(tick,1000);
+document.getElementById('my-company').addEventListener('input',function(){var val=this.value.trim(),pill=document.getElementById('context-pill');if(!val){pill.style.display='none';return;}pill.style.display='';document.getElementById('pill-title').textContent=val;});
+function alignScore(name,status){var h=0;for(var i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))&0xffff;return status==='complete'?65+(h%30):30+(h%36);}
+function alignColor(s){return s>=80?'var(--green)':s>=55?'var(--gold-lt)':'var(--text3)';}
+function alignLabel(s){return s>=80?'HIGH':s>=55?'MED':'LOW';}
+function getWildcard(industry){var i=(industry||'').toLowerCase();if(i.includes('health')||i.includes('pharma'))return'CDO';if(i.includes('finance')||i.includes('insurance')||i.includes('bank'))return'CAO';if(i.includes('tech')||i.includes('software'))return'CTO';return'CDO';}
+function playGenieChime(){try{var ctx=new(window.AudioContext||window.webkitAudioContext)();[{freq:523.25,start:.00,dur:.35,gain:.28},{freq:659.25,start:.10,dur:.35,gain:.26},{freq:783.99,start:.20,dur:.40,gain:.24},{freq:987.77,start:.32,dur:.50,gain:.22},{freq:1318.5,start:.46,dur:.70,gain:.18},{freq:1567.9,start:.54,dur:.60,gain:.12}].forEach(function(n){var osc=ctx.createOscillator(),g=ctx.createGain();osc.type='sine';osc.frequency.setValueAtTime(n.freq,ctx.currentTime+n.start);g.gain.setValueAtTime(0,ctx.currentTime+n.start);g.gain.linearRampToValueAtTime(n.gain,ctx.currentTime+n.start+.02);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+n.start+n.dur);osc.connect(g);g.connect(ctx.destination);osc.start(ctx.currentTime+n.start);osc.stop(ctx.currentTime+n.start+n.dur+.1);});setTimeout(function(){ctx.close();},2000);}catch(e){}}
+function launchSparkles(btn){var rect=btn.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;['✨','⭐','💫','🌟','✦'].forEach(function(em){for(var j=0;j<2;j++){var el=document.createElement('div');el.className='sparkle';el.textContent=em;el.style.left=(cx+(Math.random()-.5)*140)+'px';el.style.top=(cy+(Math.random()-.5)*70)+'px';el.style.animationDelay=(Math.random()*.3)+'s';el.style.fontSize=(14+Math.random()*12)+'px';document.body.appendChild(el);setTimeout(function(){el.remove();},1500);}});}
+function grantWishChime(btn){playGenieChime();launchSparkles(btn);btn.classList.remove('chimed');void btn.offsetWidth;btn.classList.add('chimed');setTimeout(function(){btn.classList.remove('chimed');},600);grantWish();}
+</script>
+<script>
+const CONFIG={SUPABASE_URL:'https://axoociwagtamyepfvyeq.supabase.co',SUPABASE_ANON_KEY:'sb_publishable_cqrID5e3KxU2YONXLzTlCA_QK__Lim3',GITHUB_OWNER:'shaneearley92-rgb',GITHUB_REPO:'BD-Intelligence-Tool',GITHUB_PAT:localStorage.getItem('bd_github_pat')||''};
+const isConfigured=true;
+if(!isConfigured)document.getElementById('config-warning').style.display='block';
+try{if(isConfigured&&window.supabase)supabase=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);}catch(e){console.error(e);}
+let companies=[],currentFilter='all';
+function grantWish(){var tgt=document.getElementById('target-company').value.trim();if(!tgt){document.getElementById('target-company').style.borderColor='var(--pink)';document.getElementById('target-company').focus();return;}document.getElementById('target-company').style.borderColor='';var match=companies.find(function(c){return c.name.toLowerCase().includes(tgt.toLowerCase());});if(match)triggerResearch(match.id,match.name);else{document.getElementById('add-name').value=tgt;showToast('Target not in list — add it first','error');openModal('add-modal');}}
+async function loadData(){
+  try{
+    var[{data:cos},{data:runs},{data:contacts},{data:content}]=await Promise.all([
+      supabase.from('companies').select('*').order('created_at',{ascending:false}),
+      supabase.from('research_runs').select('id,status,company_id,created_at,actual_tokens,triggered_by,error_message').order('created_at',{ascending:false}).limit(40),
+      supabase.from('contacts').select('id,company_id'),
+      supabase.from('outreach_content').select('id'),
+    ]);
+    companies=cos||[];
+    var completedRuns=(runs||[]).filter(function(r){return r.status==='completed';}).length;
+    document.getElementById('stat-companies').textContent=companies.length||'0';
+    document.getElementById('stat-runs').textContent=completedRuns;
+    document.getElementById('stat-contacts').textContent=(contacts||[]).length;
+    document.getElementById('stat-content').textContent=(content||[]).length;
+    var nComplete=companies.filter(function(c){return c.research_status==='complete';}).length;
+    document.getElementById('stat-companies-sub').textContent=nComplete+' complete · '+(companies.length-nComplete)+' pending';
+    var failed=(runs||[]).filter(function(r){return r.status==='failed';}).length;
+    document.getElementById('stat-runs-sub').textContent='completed'+(failed?' · '+failed+' failed':'');
+    renderCompanies(companies);
+    renderGenieLog(runs||[],companies);
+  }catch(e){console.error(e);showToast('Failed to load data','error');}
+}
+function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.ftab').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');renderCompanies(companies);}
+function renderCompanies(list){
+  var filtered=currentFilter==='all'?list:list.filter(function(c){return c.research_status===currentFilter;});
+  var badge=document.getElementById('count-badge');
+  if(badge)badge.textContent=filtered.length+(currentFilter!=='all'?' / '+list.length:'');
+  var tbody=document.getElementById('companies-tbody');
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="6" style="padding:36px 0;text-align:center;color:var(--text3);font-weight:600;font-size:13px;">No companies found — add your first target above.</td></tr>';return;}
+  tbody.innerHTML=filtered.map(function(c,idx){
+    var tagMap={complete:'tag-complete',pending:'tag-pending',running:'tag-running',error:'tag-error',stale:'tag-stale'};
+    var tagCls=tagMap[c.research_status||'pending']||'tag-pending';
+    var tagLabel=(c.research_status||'pending').charAt(0).toUpperCase()+(c.research_status||'pending').slice(1);
+    var score=alignScore(c.name,c.research_status);
+    var aColor=alignColor(score);
+    var wild=getWildcard(c.industry);
+    var delay=Math.min(idx*0.04,0.3)+'s';
+    return'<tr class="tbl-row" style="animation:fadeUp .22s ease-out '+delay+' both;" onclick="viewCompany(\''+c.id+'\')">'+
+      '<td><div style="font-weight:700;color:var(--text1);">'+esc(c.name)+'</div><div style="font-size:10px;color:var(--text3);font-family:\'DM Mono\',monospace;margin-top:1px;">'+(c.ticker?c.ticker+' · ':'')+(c.employee_count?Number(c.employee_count).toLocaleString()+' emp':(c.domain||'—'))+'</div></td>'+
+      '<td>'+(c.industry?'<span style="display:inline-block;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600;background:var(--bg3);color:var(--text2);border:1px solid var(--border);">'+esc(c.industry)+'</span>':'<span style="color:var(--text3);font-size:11px;">—</span>')+'</td>'+
+      '<td><span class="tag '+tagCls+'">'+tagLabel+'</span></td>'+
+      '<td><div class="abar-wrap"><div class="abar-track"><div class="abar-fill" style="width:'+score+'%;background:'+aColor+';"></div></div><span class="abar-label" style="color:'+aColor+';">'+alignLabel(score)+'</span></div></td>'+
+      '<td><div style="display:flex;gap:3px;"><span class="cs cs-cio">CIO</span><span class="cs cs-ciso">CISO</span><span class="cs cs-wild">'+wild+'</span></div></td>'+
+      '<td><div class="row-actions">'+
+        '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();triggerResearch(\''+c.id+'\',\''+esc(c.name)+'\')">Research</button>'+
+        '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();viewCompany(\''+c.id+'\')">View →</button>'+
+        '<button class="btn btn-gold btn-sm" onclick="event.stopPropagation();genPyramid(\''+c.id+'\',\''+esc(c.name)+'\',\''+esc(c.domain||'')+'\')" title="Pyramid">▲</button>'+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+}
+function renderGenieLog(runs,cos){
+  var logEl=document.getElementById('genie-log');
+  var statusLine=document.getElementById('genie-status-line');
+  if(!runs.length){logEl.innerHTML='<div style="text-align:center;padding:28px 0;color:var(--text3);font-size:12px;font-weight:600;border:1px dashed var(--border);border-radius:8px;">No missions logged yet</div>';statusLine.textContent='Awaiting orders…';return;}
+  var last=runs[0];
+  var lastCo=cos.find(function(c){return c.id===last.company_id;});
+  var phrases={completed:'Last mission complete —',running:'Currently researching —',failed:'Last run failed on —',pending:'Queued up —'};
+  statusLine.textContent=(phrases[last.status]||'Last seen on —')+' '+(lastCo?lastCo.name:'unknown target');
+  var dotC={completed:'var(--green)',running:'var(--pink)',failed:'var(--red)',pending:'var(--gold-lt)'};
+  var bgC={completed:'var(--green-bg)',running:'var(--pink-bg)',failed:'var(--red-bg)',pending:'var(--gold-bg)'};
+  var bdC={completed:'var(--green-brd)',running:'var(--pink-brd)',failed:'var(--red-bg)',pending:'var(--gold-brd)'};
+  var txC={completed:'var(--green)',running:'var(--pink)',failed:'var(--red)',pending:'var(--gold)'};
+  logEl.innerHTML=runs.slice(0,25).map(function(r,idx){
+    var co=cos.find(function(c){return c.id===r.company_id;});
+    var dt=new Date(r.created_at);
+    var isToday=dt.toDateString()===new Date().toDateString();
+    var timeStr=dt.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit'});
+    var dateStr=dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    var timeLabel=isToday?timeStr:dateStr+' '+timeStr;
+    var detail='';
+    if(r.status==='completed'){detail='Research complete'+(r.actual_tokens?' · '+Number(r.actual_tokens).toLocaleString()+' tokens':'');}
+    else if(r.status==='running'){detail='In progress…';}
+    else if(r.status==='failed'){detail=r.error_message?(r.error_message.substring(0,55)+'…'):'Run failed';}
+    else{detail='Queued, waiting to start';}
+    var trigger=r.triggered_by&&r.triggered_by!=='manual'?r.triggered_by:'manual';
+    var dot=dotC[r.status]||'var(--text3)';
+    var bg=bgC[r.status]||'var(--bg3)';
+    var bd=bdC[r.status]||'var(--border)';
+    var tx=txC[r.status]||'var(--text3)';
+    var delay=Math.min(idx*0.04,0.4)+'s';
+    return'<div class="glog-item" style="animation-delay:'+delay+';">'+
+      '<div class="glog-top">'+
+        '<div class="glog-dot" style="background:'+dot+';'+(r.status==='running'?'animation:pulse 1.5s infinite;':'')+'"></div>'+
+        '<span class="glog-type">'+esc(r.status)+'</span>'+
+        '<span class="glog-time">'+timeLabel+'</span>'+
+      '</div>'+
+      '<div class="glog-company">'+(co?esc(co.name):'<span style="color:var(--text3);font-weight:400;">Unknown target</span>')+'</div>'+
+      '<div class="glog-detail">'+esc(detail)+'</div>'+
+      '<div class="glog-badges">'+
+        '<span class="glog-badge" style="background:'+bg+';color:'+tx+';border:1px solid '+bd+';">'+esc(r.status)+'</span>'+
+        '<span class="glog-badge" style="background:var(--bg3);color:var(--text3);border:1px solid var(--border);">'+esc(trigger)+'</span>'+
+        (co?'<span class="glog-badge" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-brd);cursor:pointer;" onclick="viewCompany(\''+co.id+'\')">view →</span>':'')+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+async function addCompany(){var name=document.getElementById('add-name').value.trim();if(!name){showToast('Company name required','error');return;}var{error}=await supabase.from('companies').insert({name,domain:document.getElementById('add-domain').value.trim()||null,industry:document.getElementById('add-industry').value.trim()||null,ticker:document.getElementById('add-ticker').value.trim()||null,employee_count:document.getElementById('add-employees').value||null,research_status:document.getElementById('add-status').value});if(error){showToast('Error: '+error.message,'error');return;}showToast('Company added!','success');closeModal('add-modal');loadData();}
+function ensurePAT(){if(CONFIG.GITHUB_PAT)return true;var pat=prompt('Enter your GitHub Personal Access Token (Fine-grained, Actions:write permission).\nWill be saved in localStorage.');if(pat){localStorage.setItem('bd_github_pat',pat);CONFIG.GITHUB_PAT=pat;return true;}showToast('GitHub PAT required','error');return false;}
+async function triggerResearch(id,name){if(!ensurePAT())return;showToast('Triggering research for '+name+'…','');try{var res=await fetch('https://api.github.com/repos/'+CONFIG.GITHUB_OWNER+'/'+CONFIG.GITHUB_REPO+'/actions/workflows/research.yml/dispatches',{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{company_id:id}})});if(res.status===204){showToast('Wish granted — research running for '+name+'!','success');setTimeout(loadData,2000);}else showToast('GitHub error: '+res.status,'error');}catch(e){showToast('Network error: '+e.message,'error');}}
+async function runBatch(){if(!ensurePAT())return;try{var res=await fetch('https://api.github.com/repos/'+CONFIG.GITHUB_OWNER+'/'+CONFIG.GITHUB_REPO+'/actions/workflows/batch.yml/dispatches',{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{company_ids:({prospect:'all_pending',active:'all_active'})[document.getElementById('batch-target').value]||'all_pending',max_companies:document.getElementById('batch-max').value,delay_seconds:document.getElementById('batch-delay').value}})});if(res.status===204){showToast('Batch run started!','success');closeModal('batch-modal');}else showToast('GitHub error: '+res.status,'error');}catch(e){showToast('Network error: '+e.message,'error');}}
+async function searchProspects(){if(!ensurePAT())return;var company=document.getElementById('ps-company').value.trim();if(!company){showToast('Company name required','error');return;}try{var res=await fetch('https://api.github.com/repos/'+CONFIG.GITHUB_OWNER+'/'+CONFIG.GITHUB_REPO+'/actions/workflows/prospect-search.yml/dispatches',{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{company_name:company,company_domain:document.getElementById('ps-domain').value.trim(),max_contacts:document.getElementById('ps-max').value,search_keywords:document.getElementById('ps-keywords').value.trim()}})});if(res.status===204){showToast('Prospect search started for '+company+'!','success');closeModal('prospect-modal');}else showToast('GitHub error: '+res.status,'error');}catch(e){showToast('Network error: '+e.message,'error');}}
+loadData();
+</script>
+</body>
+</html>
