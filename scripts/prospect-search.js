@@ -632,6 +632,9 @@ async function main() {
     }
 }
  
-main();
- 
+// Only run main() when executed directly (not when imported)
+if (require.main === module) {
+    main();
+}
+
 module.exports = { searchProspects };
