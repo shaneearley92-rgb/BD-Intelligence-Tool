@@ -9,6 +9,21 @@ on:
         description: 'Supabase company UUID to research'
         required: true
         type: string
+      company_domain:
+        description: 'Company domain (for prospect discovery)'
+        required: false
+        type: string
+        default: ''
+      seller_company:
+        description: 'Seller company name (for deck branding)'
+        required: false
+        type: string
+        default: 'Saviynt'
+      seller_url:
+        description: 'Seller company URL (for deck branding)'
+        required: false
+        type: string
+        default: 'https://saviynt.com'
 
   # API trigger (from dashboard or external tools)
   repository_dispatch:
@@ -35,6 +50,9 @@ jobs:
       - name: Run research agent
         env:
           COMPANY_ID: ${{ github.event.inputs.company_id || github.event.client_payload.company_id }}
+          COMPANY_DOMAIN: ${{ github.event.inputs.company_domain || github.event.client_payload.company_domain || '' }}
+          SELLER_COMPANY: ${{ github.event.inputs.seller_company || github.event.client_payload.seller_company || 'Saviynt' }}
+          SELLER_URL: ${{ github.event.inputs.seller_url || github.event.client_payload.seller_url || 'https://saviynt.com' }}
           TRIGGER_SOURCE: ${{ github.event_name == 'workflow_dispatch' && 'manual' || 'api' }}
           GITHUB_RUN_ID: ${{ github.run_id }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}

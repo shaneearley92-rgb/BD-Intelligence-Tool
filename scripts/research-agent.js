@@ -16,6 +16,8 @@ const edgar = require('./fetchers/edgar');
 const exa = require('./fetchers/exa');
 const youtube = require('./fetchers/youtube');
 const { enrichContacts } = require('./enrichment');
+const { searchProspects } = require('./prospect-search');
+const { generateSalesDeck } = require('./generate-deck');
 
 // ============================================
 // INITIALIZATION
@@ -34,7 +36,7 @@ const anthropic = new Anthropic({
 // MAIN PIPELINE
 // ============================================
 
-async function runResearch(companyId) {
+async function runResearch(companyId, options = {}) {
     console.log(`\n${'='.repeat(60)}`);
     console.log(`Starting research for company: ${companyId}`);
     console.log(`${'='.repeat(60)}\n`);
@@ -58,6 +60,29 @@ async function runResearch(companyId) {
     console.log(`Company: ${company.name}`);
     console.log(`Contacts: ${(contacts || []).length}`);
 
+    // 1.5: Prospect discovery — if fewer than 3 contacts, find more via Apollo
+    let activeContacts = contacts || [];
+    if (activeContacts.length < 3 && process.env.APOLLO_API_KEY) {
+        console.log('\n--- Prospect Discovery (contacts < 3) ---');
+        try {
+            const domain = options.companyDomain || company.domain || '';
+            await searchProspects(company.name, domain, {
+                maxSupportingContacts: 15,
+                myCompanyName: options.sellerCompany || 'Saviynt',
+            });
+            // Re-fetch contacts from Supabase since searchProspects stored them
+            const { data: refreshedContacts } = await supabase
+                .from('contacts')
+                .select('*')
+                .eq('company_id', companyId);
+            activeContacts = refreshedContacts || activeContacts;
+            console.log(`Contacts after discovery: ${activeContacts.length}`);
+        } catch (err) {
+            console.error('[Pipeline] Prospect discovery failed:', err.message);
+            // Non-fatal — continue with existing contacts
+        }
+    }
+
     // 2. Create research run record
     const { data: run, error: runErr } = await supabase
         .from('research_runs')
@@ -77,7 +102,7 @@ async function runResearch(companyId) {
     try {
         // 3. Enrich contacts (Apollo-ready, currently uses Exa fallback)
         console.log('\n--- Contact Enrichment ---');
-        const enrichedContacts = await enrichContacts(contacts || [], company.name);
+        const enrichedContacts = await enrichContacts(activeContacts, company.name);
 
         // Update contacts with enrichment data
         for (const contact of enrichedContacts) {
@@ -100,11 +125,11 @@ async function runResearch(companyId) {
                 console.error('[Pipeline] EDGAR failed:', err.message);
                 return { source: 'edgar', found: false, error: err.message };
             }),
-            exa.researchCompany(company.name, contacts || []).catch(err => {
+            exa.researchCompany(company.name, activeContacts).catch(err => {
                 console.error('[Pipeline] Exa failed:', err.message);
                 return { source: 'exa', companyNews: [], cyberNews: [], executiveContent: [] };
             }),
-            youtube.researchCompany(company.name, contacts || []).catch(err => {
+            youtube.researchCompany(company.name, activeContacts).catch(err => {
                 console.error('[Pipeline] YouTube failed:', err.message);
                 return { source: 'youtube', earningsCalls: [], executiveContent: [], industryAnalysis: [] };
             })
@@ -132,7 +157,7 @@ async function runResearch(companyId) {
 
         // 6. Synthesize with Claude
         console.log('\n--- AI Synthesis ---');
-        const synthesis = await synthesizeResearch(company, contacts || [], edgarData, exaData, youtubeData);
+        const synthesis = await synthesizeResearch(company, activeContacts, edgarData, exaData, youtubeData);
 
         // 7. Store synthesis as a research snapshot and update run tokens
         await supabase.from('research_snapshots').insert({
@@ -153,7 +178,7 @@ async function runResearch(companyId) {
 
         // 8. Generate outreach content for each contact
         console.log('\n--- Content Generation ---');
-        for (const contact of (contacts || [])) {
+        for (const contact of activeContacts) {
             await generateOutreachContent(
                 contact, company, synthesis, run.id,
                 exaData.contactContent?.[contact.name] || [],
@@ -161,7 +186,23 @@ async function runResearch(companyId) {
             );
         }
 
-        // 9. Mark research run as completed
+        // 9. Generate sales deck
+        console.log('\n--- Sales Deck Generation ---');
+        try {
+            const sellerInfo = {
+                name: options.sellerCompany || process.env.SELLER_COMPANY || 'Saviynt',
+                url: options.sellerUrl || process.env.SELLER_URL || 'https://saviynt.com',
+            };
+            const deckResult = await generateSalesDeck(
+                company, synthesis, activeContacts, sellerInfo, supabase, run.id
+            );
+            console.log(`Sales deck generated: ${deckResult.url}`);
+        } catch (err) {
+            console.error('[Pipeline] Sales deck generation failed:', err.message);
+            // Non-fatal — research still completes
+        }
+
+        // 10. Mark research run as completed
         await supabase
             .from('research_runs')
             .update({
@@ -491,7 +532,11 @@ async function main() {
     }
 
     try {
-        const result = await runResearch(companyId);
+        const result = await runResearch(companyId, {
+            companyDomain: process.env.COMPANY_DOMAIN || '',
+            sellerCompany: process.env.SELLER_COMPANY || 'Saviynt',
+            sellerUrl: process.env.SELLER_URL || 'https://saviynt.com',
+        });
         console.log(`Research run completed: ${result.runId}`);
     } catch (err) {
         console.error(`Research failed: ${err.message}`);

@@ -210,6 +210,7 @@ body{background:var(--bg);color:var(--text1);font-family:'DM Sans',sans-serif;fo
       <div class="tab" data-tab="intelligence" onclick="switchTab('intelligence')">Intelligence</div>
       <div class="tab" data-tab="content" onclick="switchTab('content')">Outreach Content</div>
       <div class="tab" data-tab="history" onclick="switchTab('history')">Research History</div>
+      <div class="tab" data-tab="deck" onclick="switchTab('deck')">Sales Deck</div>
     </div>
 
     <!-- Contacts Tab -->
@@ -235,6 +236,11 @@ body{background:var(--bg);color:var(--text1);font-family:'DM Sans',sans-serif;fo
     <!-- Research History Tab -->
     <div class="tab-content" id="tab-history">
       <div id="research-history"><div class="empty-state">No research runs yet.</div></div>
+    </div>
+
+    <!-- Sales Deck Tab -->
+    <div class="tab-content" id="tab-deck">
+      <div id="deck-content"><div class="empty-state">No sales deck generated yet. Run research to generate one.</div></div>
     </div>
 
     <!-- Footer -->
@@ -658,15 +664,61 @@ async function loadHistory() {
     }
 }
 
+async function loadDeck() {
+    try {
+        const snapshots = await supabaseQuery('research_snapshots', {
+            select: 'signals,summary,created_at',
+            filter: { company_id: `eq.${COMPANY_ID}`, source: 'eq.sales_deck' },
+            order: 'created_at.desc',
+            limit: 5,
+        });
+        if (!snapshots.length) {
+            document.getElementById('deck-content').innerHTML = '<div class="empty-state">No sales deck yet. Run research to generate one.</div>';
+            return;
+        }
+        let html = '<div class="section-card"><div class="section-header"><span class="section-title">Generated Sales Decks</span><span class="badge badge-purple">' + snapshots.length + ' deck' + (snapshots.length > 1 ? 's' : '') + '</span></div>';
+        for (const snap of snapshots) {
+            const date = new Date(snap.created_at).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
+            const signals = snap.signals || {};
+            const url = signals.url || '';
+            const seller = signals.sellerCompany || 'Unknown';
+            html += `
+            <div class="history-row">
+                <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:600;color:var(--text1);">${escapeHtml(snap.summary || 'Sales Deck')}</div>
+                    <div style="display:flex;gap:12px;margin-top:4px;">
+                        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);">${date}</span>
+                        <span class="badge badge-muted">${escapeHtml(seller)}</span>
+                        ${signals.slidesGenerated ? `<span class="badge badge-blue">${signals.slidesGenerated} slides</span>` : ''}
+                    </div>
+                </div>
+                ${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:7px 16px;border-radius:8px;border:none;color:#fff;background:var(--t1);cursor:pointer;">Download PPTX</a>` : '<span class="badge badge-muted">No file</span>'}
+            </div>`;
+        }
+        html += '</div>';
+        document.getElementById('deck-content').innerHTML = html;
+    } catch (e) {
+        console.error('Failed to load deck:', e);
+    }
+}
+
 // ===========================================
 // ACTIONS
 // ===========================================
 
 async function runResearch() {
     if (!getGitHubPAT()) { showToast('GitHub PAT is required to trigger research.', true); return; }
+    const sellerCompany = localStorage.getItem('bd_seller_company') || 'Saviynt';
+    const sellerUrl = localStorage.getItem('bd_seller_url') || 'https://saviynt.com';
+    const domain = companyData?.domain || '';
     try {
-        await triggerWorkflow('research.yml', { company_id: COMPANY_ID });
-        showToast('Research started. Check GitHub Actions for progress.');
+        await triggerWorkflow('research.yml', {
+            company_id: COMPANY_ID,
+            company_domain: domain,
+            seller_company: sellerCompany,
+            seller_url: sellerUrl,
+        });
+        showToast('Research started — includes prospect discovery + deck generation.');
     } catch (e) {
         showToast(`Failed: ${e.message}`, true);
     }
@@ -714,6 +766,7 @@ function switchTab(tabName) {
     if (tabName === 'intelligence') loadIntelligence();
     if (tabName === 'content') loadOutreachContent();
     if (tabName === 'history') loadHistory();
+    if (tabName === 'deck') loadDeck();
 }
 
 function showToast(msg, isError = false) {

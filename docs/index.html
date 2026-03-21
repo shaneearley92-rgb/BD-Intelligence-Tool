@@ -369,8 +369,16 @@ try{
 let companies=[],currentFilter='all';
 function tick(){const e=document.getElementById('clock');if(e)e.textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}
 tick();setInterval(tick,1000);
+// Restore seller company from localStorage
+(function(){
+  const savedName=localStorage.getItem('bd_seller_company');
+  const savedUrl=localStorage.getItem('bd_seller_url');
+  if(savedName)document.getElementById('my-company').value=savedName;
+  if(savedUrl)document.getElementById('my-company-url').value=savedUrl;
+})();
 document.getElementById('my-company').addEventListener('input',function(){
   const val=this.value.trim();
+  localStorage.setItem('bd_seller_company',val);
   const pill=document.getElementById('context-pill');
   if(!val){pill.style.display='none';return;}
   pill.style.display='flex';
@@ -378,6 +386,9 @@ document.getElementById('my-company').addEventListener('input',function(){
   document.getElementById('pill-body').innerHTML=val.toLowerCase().includes('saviynt')
     ?'AI-based identity security · IGA · PAM · NHI · External Identity · AI Agent Security'
     :'Enter URL above to auto-load company profile and pain point alignment context.';
+});
+document.getElementById('my-company-url').addEventListener('input',function(){
+  localStorage.setItem('bd_seller_url',this.value.trim());
 });
 function grantWish(){
   const tgt=document.getElementById('target-company').value.trim();
@@ -487,8 +498,12 @@ function ensurePAT(){
 async function triggerResearch(id,name){
   if(!ensurePAT())return;
   showToast('Triggering research for '+name+'...','');
+  const company=companies.find(c=>c.id===id);
+  const sellerCompany=document.getElementById('my-company').value.trim()||'Saviynt';
+  const sellerUrl=document.getElementById('my-company-url').value.trim()||'https://saviynt.com';
+  const companyDomain=company?.domain||'';
   try{
-    const res=await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/research.yml/dispatches`,{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{company_id:id}})});
+    const res=await fetch(`https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/actions/workflows/research.yml/dispatches`,{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{company_id:id,company_domain:companyDomain,seller_company:sellerCompany,seller_url:sellerUrl}})});
     if(res.status===204){showToast('Wish granted — research running for '+name+'!','success');loadData();}
     else showToast('GitHub error: '+res.status,'error');
   }catch(e){showToast('Network error: '+e.message,'error');}
