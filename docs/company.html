@@ -75,7 +75,7 @@ body{background:var(--bg);color:var(--text1);font-family:'DM Sans',sans-serif;fo
 
 /* Tabs */
 .tabs-wrap{background:var(--bg2);border-radius:12px 12px 0 0;border:1px solid var(--border);border-bottom:none;overflow:hidden;}
-.tabs-inner{display:flex;}
+.tabs-inner{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .tab{padding:13px 20px;font-size:11px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s;letter-spacing:.5px;text-transform:uppercase;background:transparent;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;white-space:nowrap;}
 .tab:hover{color:var(--text1);}
 .tab.active{color:var(--purple);border-bottom-color:var(--purple);background:var(--purple-bg);}
