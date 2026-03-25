@@ -1,413 +1,916 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>PG Genie — Sales Intelligence Platform</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.99.1"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Clair — Your Personal Beauty Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://js.stripe.com/v3/"></script>
+<script defer src="/_vercel/insights/script.js"></script>
 <style>
-:root {
-  --bg:#f6f4ef; --bg2:#ffffff; --bg3:#f0ede6; --bg4:#e8e4da;
-  --border:#e0dcd2; --border2:#c8c4b8;
-  --gold:#a86c0a; --gold-lt:#e8a800; --gold-bg:#fdf6e3; --gold-brd:#f0cc70;
-  --purple:#6b3fd4; --purple-lt:#8b5cf6; --purple-bg:#f2eeff; --purple-brd:#c4aff0;
-  --green:#166534; --green-bg:#f0fdf4; --green-brd:#86efac;
-  --teal:#0e7490; --teal-bg:#f0fdff; --teal-brd:#67e8f9;
-  --amber:#92400e; --amber-bg:#fffbeb; --amber-brd:#fcd34d;
-  --pink:#be185d; --pink-bg:#fdf2f8; --pink-brd:#f9a8d4;
-  --red:#dc2626; --red-bg:#fee2e2;
-  --text1:#1a1714; --text2:#4a4640; --text3:#8c887a;
-  --shadow-sm:0 1px 3px rgba(0,0,0,0.07);
-  --shadow-md:0 4px 16px rgba(0,0,0,0.09);
-  --shadow-lg:0 10px 32px rgba(0,0,0,0.11);
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text1);font-family:'DM Sans',sans-serif;font-size:13px;min-height:100vh;}
-::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
-input,select,textarea{background:var(--bg3);border:1px solid var(--border);color:var(--text1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:9px 14px;width:100%;outline:none;border-radius:8px;transition:border-color .15s,box-shadow .15s;appearance:none;}
-input:focus,select:focus{border-color:var(--purple-lt);background:var(--bg2);box-shadow:0 0 0 3px rgba(107,63,212,.1);}
-input::placeholder{color:var(--text3);font-weight:400;}
-.btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:none;padding:8px 18px;border-radius:8px;transition:all .15s;white-space:nowrap;display:inline-block;box-shadow:var(--shadow-sm);}
-.btn-primary{background:var(--purple);color:#fff;box-shadow:0 3px 12px rgba(107,63,212,.28);}
-.btn-primary:hover{background:var(--purple-lt);transform:translateY(-1px);}
-.btn-ghost{background:var(--bg2);color:var(--text2);border:1px solid var(--border2);}
-.btn-ghost:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-bg);}
-.btn-gold{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-brd);}
-.btn-gold:hover{background:var(--gold-lt);color:#fff;border-color:var(--gold-lt);}
-.btn-teal{background:var(--teal-bg);color:var(--teal);border:1px solid var(--teal-brd);}
-.btn-teal:hover{background:var(--teal);color:#fff;}
-.btn-danger{background:var(--bg2);color:var(--red);border:1px solid var(--red-bg);}
-.btn-danger:hover{background:var(--red-bg);}
-.btn-sm{font-size:11px;padding:6px 13px;}
-.tag{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;}
-.tag-complete{background:var(--green-bg);color:var(--green);border:1px solid var(--green-brd);}
-.tag-pending{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-brd);}
-.tag-running{background:var(--pink-bg);color:var(--pink);border:1px solid var(--pink-brd);}
-.tag-error,.tag-stale{background:var(--bg3);color:var(--text3);border:1px solid var(--border);}
-.label{font-size:9px;font-weight:700;letter-spacing:3px;color:var(--text3);text-transform:uppercase;}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,23,20,.55);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
-.modal-overlay.open{display:flex;}
-.modal{background:var(--bg2);border-radius:16px;padding:28px;width:460px;max-width:95vw;box-shadow:var(--shadow-lg);border:1px solid var(--border);}
-.modal-title{font-size:16px;font-weight:700;color:var(--purple);margin-bottom:18px;}
-.form-row{margin-bottom:13px;}
-.form-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:5px;display:block;text-transform:uppercase;}
-.form-label span{color:var(--red);}
-.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
-.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}
-#toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border-radius:10px;font-size:13px;font-weight:600;color:var(--text1);padding:11px 18px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:var(--shadow-lg);border:1px solid var(--border);}
-#toast.show{opacity:1;}#toast.success{color:var(--green);border-color:var(--green-brd);}#toast.error{color:var(--red);}
-#config-warning{background:var(--amber-bg);border-bottom:2px solid var(--amber-brd);padding:10px 24px;font-size:12px;font-weight:600;color:var(--amber);display:none;}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.75);}}
-@keyframes wishPop{0%{transform:scale(1);}30%{transform:scale(1.07);}60%{transform:scale(.98);}100%{transform:scale(1);}}
-@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1);}100%{opacity:0;transform:translateY(-90px) scale(.4);}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-@keyframes genieBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
-@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
-.sparkle{position:fixed;pointer-events:none;z-index:9999;animation:floatUp 1.2s ease-out forwards;}
-.btn-wish{padding:10px 22px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--purple-lt));border:none;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;box-shadow:0 4px 14px rgba(107,63,212,.3);white-space:nowrap;}
-.btn-wish:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(107,63,212,.42);}
-.btn-wish.chimed{animation:wishPop .5s ease-out;}
-.cs{padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700;font-family:'DM Mono',monospace;}
-.cs-cio{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-brd);}
-.cs-ciso{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-brd);}
-.cs-wild{background:var(--teal-bg);color:var(--teal);border:1px solid var(--teal-brd);}
-.tbl{width:100%;border-collapse:collapse;}
-.tbl th{text-align:left;padding:8px 12px 10px;font-size:9px;letter-spacing:2px;color:var(--text3);font-weight:700;border-bottom:2px solid var(--border);}
-.tbl th:first-child{padding-left:0;}
-.tbl th:last-child{text-align:right;padding-right:0;}
-.tbl-row{border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
-.tbl-row:hover{background:var(--bg3);}
-.tbl-row:hover .row-actions{opacity:1;}
-.tbl-row td{padding:13px 12px;vertical-align:middle;}
-.tbl-row td:first-child{padding-left:0;}
-.tbl-row td:last-child{padding-right:0;text-align:right;}
-.row-actions{opacity:0;transition:opacity .15s;display:flex;gap:5px;justify-content:flex-end;}
-.abar-wrap{display:flex;align-items:center;gap:8px;}
-.abar-track{width:52px;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;}
-.abar-fill{height:100%;border-radius:2px;}
-.abar-label{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;min-width:28px;}
-.ftab{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:5px 13px;border-radius:6px;border:1px solid var(--border);color:var(--text3);background:transparent;cursor:pointer;transition:all .15s;}
-.ftab.on{border-color:var(--purple-brd);color:var(--purple);background:var(--purple-bg);}
-.ftab:not(.on):hover{border-color:var(--border2);color:var(--text2);}
-.skel{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:400% 100%;animation:shimmer 1.4s ease infinite;border-radius:5px;}
-.glog-item{padding:12px 14px;border-radius:10px;background:var(--bg);border:1px solid var(--border);margin-bottom:8px;animation:fadeUp .3s ease-out both;transition:border-color .15s,box-shadow .15s;}
-.glog-item:hover{border-color:var(--border2);box-shadow:var(--shadow-sm);}
-.glog-top{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
-.glog-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-.glog-type{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);}
-.glog-time{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);margin-left:auto;}
-.glog-company{font-size:12px;font-weight:700;color:var(--text1);margin-bottom:2px;}
-.glog-detail{font-size:11px;color:var(--text3);font-weight:500;line-height:1.4;}
-.glog-badges{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;}
-.glog-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:'DM Mono',monospace;}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --cream: #FAF7F2;
+    --warm-white: #FDF9F4;
+    --gold: #C9A96E;
+    --gold-light: #E8D5B0;
+    --deep: #1A1410;
+    --charcoal: #2D2520;
+    --muted: #8A7E74;
+    --blush: #E8D5C4;
+    --border: rgba(201,169,110,0.2);
+  }
+  html, body { height: 100%; height: -webkit-fill-available; background: var(--deep); font-family: 'Jost', sans-serif; color: var(--cream); overflow: hidden; }
+  .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease, transform 0.8s ease; padding: 20px; }
+  .screen.hidden { opacity: 0; pointer-events: none; transform: translateY(16px); }
+
+  /* WELCOME */
+  #welcome { background: var(--deep); text-align: center; overflow-y: auto; justify-content: flex-start; padding-top: 48px; padding-bottom: 48px; }
+  .welcome-glow { position: fixed; inset: 0; background: radial-gradient(ellipse at 50% 30%, rgba(201,169,110,0.07) 0%, transparent 70%); pointer-events: none; }
+  .logo { font-family: 'Cormorant Garamond', serif; font-size: clamp(52px, 14vw, 80px); font-weight: 300; letter-spacing: 0.18em; color: var(--gold); animation: fadeUp 1.2s ease forwards; opacity: 0; position: relative; }
+  .logo-tag { font-size: clamp(11px, 3vw, 13px); letter-spacing: 0.45em; color: var(--muted); text-transform: uppercase; margin-top: 6px; animation: fadeUp 1.2s 0.3s ease forwards; opacity: 0; position: relative; }
+  .divider { width: 1px; height: 40px; background: linear-gradient(to bottom, transparent, var(--gold), transparent); margin: 28px auto; animation: fadeUp 1.2s 0.6s ease forwards; opacity: 0; position: relative; }
+  .welcome-headline { font-family: 'Cormorant Garamond', serif; font-size: clamp(22px, 6vw, 36px); font-weight: 300; font-style: italic; color: var(--cream); max-width: 500px; line-height: 1.55; animation: fadeUp 1.2s 0.9s ease forwards; opacity: 0; position: relative; padding: 0 16px; }
+  .welcome-explainer { font-size: clamp(14px, 3.5vw, 15px); color: var(--muted); margin-top: 16px; max-width: 440px; line-height: 1.8; animation: fadeUp 1.2s 1.0s ease forwards; opacity: 0; position: relative; padding: 0 16px; }
+
+  /* DIFFERENTIATORS */
+  .welcome-differentiators { display: flex; flex-direction: column; gap: 14px; margin-top: 28px; max-width: 420px; width: 100%; animation: fadeUp 1.2s 1.1s ease forwards; opacity: 0; position: relative; padding: 0 8px; }
+  .diff-item { display: flex; align-items: flex-start; gap: 14px; text-align: left; padding: 14px 16px; border: 1px solid var(--border); background: rgba(201,169,110,0.03); }
+  .diff-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; margin-top: 8px; }
+  .diff-text { font-size: clamp(13px, 3.5vw, 14px); color: var(--muted); line-height: 1.7; }
+  .diff-text strong { color: var(--cream); font-weight: 400; display: block; margin-bottom: 2px; font-size: clamp(14px, 3.8vw, 15px); }
+
+  /* FLOW STEPS */
+  .welcome-flow { display: flex; align-items: center; gap: 12px; margin-top: 28px; animation: fadeUp 1.2s 1.2s ease forwards; opacity: 0; position: relative; flex-wrap: wrap; justify-content: center; }
+  .flow-step { text-align: center; padding: 12px 16px; border: 1px solid var(--border); min-width: 90px; }
+  .flow-step-num { font-size: clamp(10px, 2.5vw, 11px); letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+  .flow-step-label { font-size: clamp(13px, 3.5vw, 14px); color: var(--cream); letter-spacing: 0.05em; font-weight: 400; }
+  .flow-step-sub { font-size: clamp(11px, 2.8vw, 12px); color: var(--muted); margin-top: 4px; }
+  .flow-arrow { color: var(--gold); opacity: 0.4; font-size: 18px; }
+
+  .welcome-btns { display: flex; gap: 12px; margin-top: 28px; animation: fadeUp 1.2s 1.4s ease forwards; opacity: 0; position: relative; flex-wrap: wrap; justify-content: center; }
+  .begin-btn { padding: 16px 48px; background: transparent; border: 1px solid var(--gold); color: var(--gold); font-family: 'Jost', sans-serif; font-size: clamp(11px, 3vw, 12px); letter-spacing: 0.35em; text-transform: uppercase; cursor: pointer; transition: all 0.4s ease; }
+  .begin-btn:hover, .begin-btn:active { background: var(--gold); color: var(--deep); }
+  .signin-btn { padding: 16px 32px; background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'Jost', sans-serif; font-size: clamp(11px, 3vw, 12px); letter-spacing: 0.35em; text-transform: uppercase; cursor: pointer; transition: all 0.4s ease; }
+  .signin-btn:hover, .signin-btn:active { border-color: var(--gold); color: var(--gold); }
+  .disclaimer { font-size: clamp(11px, 2.8vw, 12px); color: var(--muted); opacity: 0.6; max-width: 90vw; text-align: center; line-height: 1.7; animation: fadeUp 1.2s 1.6s ease forwards; opacity: 0; width: 100%; padding: 0 20px; margin-top: 24px; position: relative; }
+
+  /* CHAT */
+  #chat { background: var(--warm-white); flex-direction: column; padding: 0; overflow: hidden; }
+  .chat-header { width: 100%; padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; background: rgba(253,249,244,0.97); backdrop-filter: blur(10px); flex-shrink: 0; }
+  .chat-logo { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; color: var(--charcoal); letter-spacing: 0.12em; }
+  .chat-logo span { color: var(--gold); font-style: italic; }
+  .chat-badge { margin-left: 10px; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); padding: 3px 7px; display: none; }
+  @media (min-width: 480px) { .chat-badge { display: block; } }
+  .chat-progress { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+  .progress-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); transition: background 0.4s; }
+  .progress-dot.done { background: var(--gold); }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; color: var(--charcoal); -webkit-overflow-scrolling: touch; }
+  .chat-messages::-webkit-scrollbar { width: 3px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--gold-light); }
+  .msg { display: flex; gap: 10px; animation: fadeUp 0.5s ease forwards; opacity: 0; max-width: 100%; }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', serif; font-size: 15px; }
+  .ai-avatar { background: var(--deep); color: var(--gold); font-style: italic; }
+  .user-avatar { background: var(--blush); color: var(--charcoal); font-size: 11px; font-family: 'Jost', sans-serif; }
+  .msg-bubble { padding: 13px 16px; font-size: clamp(15px, 4vw, 16px); line-height: 1.75; max-width: calc(100vw - 90px); }
+  .ai .msg-bubble { background: white; color: var(--charcoal); border: 1px solid rgba(0,0,0,0.06); border-radius: 0 12px 12px 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+  .user .msg-bubble { background: var(--charcoal); color: var(--cream); border-radius: 12px 0 12px 12px; }
+  .typing-wrap { display: flex; gap: 10px; animation: fadeUp 0.4s ease forwards; opacity: 0; }
+  .typing { display: flex; gap: 5px; align-items: center; padding: 13px 16px; background: white; border: 1px solid rgba(0,0,0,0.06); border-radius: 0 12px 12px 12px; }
+  .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: bounce 1.2s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  .action-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; padding-left: 42px; animation: fadeUp 0.5s ease forwards; opacity: 0; }
+  .action-btn { padding: 12px 18px; border: 1px solid var(--gold); background: transparent; color: var(--charcoal); font-family: 'Jost', sans-serif; font-size: clamp(11px, 3vw, 12px); letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; border-radius: 2px; }
+  .action-btn:hover, .action-btn:active { background: var(--gold); color: var(--deep); }
+  .action-btn.primary { background: var(--deep); color: var(--gold); border-color: var(--deep); }
+  .action-btn.primary:hover, .action-btn.primary:active { background: var(--gold); color: var(--deep); }
+  .chat-input-area { padding: 12px 16px; border-top: 1px solid var(--border); background: rgba(253,249,244,0.97); flex-shrink: 0; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  .chat-input-wrap { display: flex; gap: 8px; align-items: flex-end; max-width: 700px; margin: 0 auto; }
+  .chat-input { flex: 1; padding: 12px 14px; border: 1px solid var(--border); background: white; color: var(--charcoal); font-family: 'Jost', sans-serif; font-size: 16px; outline: none; resize: none; min-height: 46px; max-height: 100px; border-radius: 4px; transition: border 0.3s; -webkit-appearance: none; }
+  .chat-input:focus { border-color: var(--gold); }
+  .chat-input::placeholder { color: var(--muted); }
+  .send-btn { padding: 12px 18px; background: var(--deep); color: var(--gold); border: none; font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; border-radius: 4px; flex-shrink: 0; height: 46px; -webkit-appearance: none; }
+  .send-btn:hover, .send-btn:active { background: var(--gold); color: var(--deep); }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* GENERATING */
+  #generating { background: var(--deep); text-align: center; }
+  .gen-glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(201,169,110,0.06) 0%, transparent 70%); pointer-events: none; }
+  .gen-logo { font-family: 'Cormorant Garamond', serif; font-size: clamp(36px, 9vw, 52px); font-weight: 300; letter-spacing: 0.2em; color: var(--gold); margin-bottom: 6px; animation: pulse 3s ease-in-out infinite; position: relative; }
+  .gen-logo-tag { font-size: 10px; letter-spacing: 0.45em; color: var(--muted); text-transform: uppercase; margin-bottom: 48px; position: relative; }
+  .gen-orbs { display: flex; gap: 10px; justify-content: center; margin-bottom: 40px; position: relative; }
+  .gen-orb { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); opacity: 0.3; animation: orbPulse 1.8s ease-in-out infinite; }
+  .gen-orb:nth-child(2) { animation-delay: 0.3s; } .gen-orb:nth-child(3) { animation-delay: 0.6s; } .gen-orb:nth-child(4) { animation-delay: 0.9s; } .gen-orb:nth-child(5) { animation-delay: 1.2s; }
+  .gen-bar-wrap { width: 200px; height: 1px; background: rgba(201,169,110,0.15); margin: 0 auto 28px; overflow: hidden; position: relative; }
+  .gen-bar { height: 100%; background: linear-gradient(to right, transparent, var(--gold), transparent); animation: shimmer 2s ease-in-out infinite; width: 60%; }
+  .gen-status { font-size: clamp(14px, 3.5vw, 16px); color: var(--muted); font-style: italic; font-family: 'Cormorant Garamond', serif; min-height: 28px; transition: opacity 0.6s ease; position: relative; }
+  .gen-status.fade { opacity: 0; }
+  .gen-steps { display: flex; flex-direction: column; gap: 10px; margin-top: 32px; position: relative; }
+  .gen-step { font-size: clamp(10px, 2.5vw, 11px); letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); opacity: 0; transition: opacity 0.8s ease; display: flex; align-items: center; gap: 8px; justify-content: center; }
+  .gen-step.visible { opacity: 0.5; } .gen-step.done { opacity: 1; color: var(--gold); }
+  .gen-step-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  /* PAYWALL */
+  #paywall { background: var(--deep); text-align: center; }
+  .paywall-glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(201,169,110,0.08) 0%, transparent 70%); pointer-events: none; }
+  .paywall-box { background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 48px 36px; max-width: 480px; width: 100%; position: relative; }
+  .paywall-eyebrow { font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+  .paywall-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(26px, 6vw, 36px); font-weight: 300; color: var(--cream); margin-bottom: 12px; line-height: 1.2; }
+  .paywall-sub { font-size: clamp(13px, 3.5vw, 14px); color: var(--muted); line-height: 1.7; margin-bottom: 28px; }
+  .paywall-features { list-style: none; margin-bottom: 32px; display: flex; flex-direction: column; gap: 12px; text-align: left; }
+  .paywall-feature { display: flex; align-items: flex-start; gap: 12px; font-size: clamp(13px, 3.5vw, 14px); color: var(--cream); }
+  .paywall-feature-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); flex-shrink: 0; margin-top: 7px; }
+  .paywall-price { font-family: 'Cormorant Garamond', serif; font-size: clamp(32px, 8vw, 48px); font-weight: 300; color: var(--gold); margin-bottom: 4px; }
+  .paywall-price-sub { font-size: 12px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+  .paywall-btn { width: 100%; padding: 16px; background: var(--gold); color: var(--deep); border: none; font-family: 'Jost', sans-serif; font-size: clamp(11px, 3vw, 12px); letter-spacing: 0.3em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; -webkit-appearance: none; border-radius: 0; }
+  .paywall-btn:hover, .paywall-btn:active { background: var(--gold-light); } .paywall-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .paywall-skip { font-size: clamp(11px, 3vw, 12px); color: var(--muted); margin-top: 14px; cursor: pointer; letter-spacing: 0.1em; text-decoration: underline; display: block; }
+  .paywall-skip:hover { color: var(--gold); }
+  .paywall-error { font-size: 13px; color: #e07070; margin-top: 10px; min-height: 18px; }
+
+  /* SIGNUP / SIGNIN */
+  #signup { background: var(--deep); text-align: center; }
+  #signin { background: var(--deep); text-align: center; }
+  .signup-glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 55%, rgba(201,169,110,0.07) 0%, transparent 70%); pointer-events: none; }
+  .signup-box, .signin-box { background: rgba(255,255,255,0.04); border: 1px solid var(--border); padding: 40px 28px; max-width: 420px; width: 100%; position: relative; }
+  .signup-title, .signin-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(24px, 6vw, 30px); font-weight: 300; color: var(--gold); margin-bottom: 10px; }
+  .signup-sub, .signin-sub { font-size: clamp(13px, 3.5vw, 14px); color: var(--muted); letter-spacing: 0.05em; margin-bottom: 24px; line-height: 1.65; }
+  .signup-input, .signin-input { width: 100%; padding: 14px; background: transparent; border: 1px solid var(--border); color: var(--cream); font-family: 'Jost', sans-serif; font-size: 16px; outline: none; margin-bottom: 10px; transition: border 0.3s; -webkit-appearance: none; border-radius: 0; }
+  .signup-input:focus, .signin-input:focus { border-color: var(--gold); }
+  .signup-input::placeholder, .signin-input::placeholder { color: var(--muted); }
+  .signup-btn, .signin-submit-btn { width: 100%; padding: 16px; background: var(--gold); color: var(--deep); border: none; font-family: 'Jost', sans-serif; font-size: clamp(11px, 3vw, 12px); letter-spacing: 0.3em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; margin-top: 8px; -webkit-appearance: none; border-radius: 0; }
+  .signup-btn:active, .signin-submit-btn:active { background: var(--gold-light); }
+  .signup-skip, .signin-back { font-size: clamp(11px, 3vw, 12px); color: var(--muted); margin-top: 16px; cursor: pointer; letter-spacing: 0.1em; text-decoration: underline; display: block; }
+  .signup-error, .signin-error { font-size: 13px; color: #e07070; margin-top: 8px; min-height: 18px; }
+
+  /* EMAIL CAPTURE — standalone fallback */
+  #email-capture { background: var(--deep); text-align: center; }
+  .email-box { background: rgba(255,255,255,0.04); border: 1px solid var(--border); padding: 40px 28px; max-width: 440px; width: 100%; position: relative; }
+  .email-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(26px, 7vw, 32px); font-weight: 300; color: var(--gold); margin-bottom: 10px; }
+  .email-sub { font-size: clamp(13px, 3.5vw, 15px); color: var(--muted); letter-spacing: 0.03em; margin-bottom: 8px; line-height: 1.7; }
+  .email-ready-badge { font-size: clamp(10px, 2.5vw, 11px); letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 24px; display: block; }
+  .email-input { width: 100%; padding: 14px; background: transparent; border: 1px solid var(--border); color: var(--cream); font-family: 'Jost', sans-serif; font-size: 16px; outline: none; margin-bottom: 10px; transition: border 0.3s; -webkit-appearance: none; border-radius: 0; }
+  .email-input:focus { border-color: var(--gold); }
+  .email-input::placeholder { color: var(--muted); }
+  .email-send-btn { width: 100%; padding: 16px; background: var(--gold); color: var(--deep); border: none; font-family: 'Jost', sans-serif; font-size: clamp(11px, 3vw, 12px); letter-spacing: 0.3em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; margin-top: 8px; -webkit-appearance: none; border-radius: 0; }
+  .email-send-btn:active { background: var(--gold-light); } .email-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .email-spam-note { font-size: clamp(11px, 2.8vw, 12px); color: var(--muted); margin-top: 12px; line-height: 1.6; opacity: 0.8; }
+  .email-spam-note strong { color: var(--gold-light); font-weight: 400; }
+  .email-skip { font-size: clamp(11px, 3vw, 12px); color: var(--muted); margin-top: 16px; cursor: pointer; letter-spacing: 0.1em; text-decoration: underline; display: block; }
+  .email-error { font-size: 13px; color: #e07070; margin-top: 8px; min-height: 18px; }
+  .email-success { font-size: clamp(13px, 3.5vw, 14px); color: #7CB987; margin-top: 12px; min-height: 18px; line-height: 1.6; }
+
+  /* REPORT — blurred preview */
+  #report { background: var(--cream); flex-direction: column; overflow: hidden; padding: 0; }
+  .report-header { width: 100%; padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; background: white; flex-shrink: 0; }
+  .report-logo { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--charcoal); letter-spacing: 0.12em; }
+  .report-logo span { color: var(--gold); font-style: italic; }
+  .report-meta { margin-left: auto; text-align: right; }
+  .report-meta-label { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
+  .report-meta-name { font-family: 'Cormorant Garamond', serif; font-size: 15px; color: var(--charcoal); }
+
+  .report-blur-wrap { position: relative; flex: 1; overflow: hidden; }
+  .report-body { height: 100%; overflow-y: auto; padding: 24px 20px; color: var(--charcoal); -webkit-overflow-scrolling: touch; transition: filter 0.6s ease; }
+  .report-body.blurred { filter: blur(7px); pointer-events: none; user-select: none; }
+  .report-body::-webkit-scrollbar { width: 3px; }
+  .report-body::-webkit-scrollbar-thumb { background: var(--gold-light); }
+
+  /* UNLOCK OVERLAY */
+  .report-unlock-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 10; background: rgba(26,20,16,0.55); backdrop-filter: blur(2px); }
+  .report-unlock-box { background: var(--deep); border: 1px solid var(--border); padding: 36px 28px; max-width: 400px; width: 100%; text-align: center; }
+  .report-unlock-eyebrow { font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+  .report-unlock-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(22px, 6vw, 28px); font-weight: 300; color: var(--cream); margin-bottom: 10px; line-height: 1.3; }
+  .report-unlock-sub { font-size: clamp(13px, 3.5vw, 14px); color: var(--muted); line-height: 1.7; margin-bottom: 22px; }
+  .report-unlock-input { width: 100%; padding: 14px; background: transparent; border: 1px solid var(--border); color: var(--cream); font-family: 'Jost', sans-serif; font-size: 16px; outline: none; margin-bottom: 10px; transition: border 0.3s; -webkit-appearance: none; border-radius: 0; }
+  .report-unlock-input:focus { border-color: var(--gold); }
+  .report-unlock-input::placeholder { color: var(--muted); }
+  .report-unlock-btn { width: 100%; padding: 15px; background: var(--gold); color: var(--deep); border: none; font-family: 'Jost', sans-serif; font-size: clamp(11px, 3vw, 12px); letter-spacing: 0.3em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; -webkit-appearance: none; border-radius: 0; }
+  .report-unlock-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .report-unlock-spam { font-size: clamp(11px, 2.8vw, 12px); color: var(--muted); margin-top: 12px; line-height: 1.6; }
+  .report-unlock-spam strong { color: var(--gold-light); font-weight: 400; }
+  .report-unlock-error { font-size: 12px; color: #e07070; margin-top: 8px; min-height: 16px; }
+  .report-unlock-success { font-size: clamp(13px, 3.5vw, 14px); color: #7CB987; margin-top: 10px; line-height: 1.6; }
+
+  .report-inner { max-width: 780px; margin: 0 auto; }
+  .report-hero { text-align: center; padding: 16px 0 28px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+  .report-hero-eyebrow { font-size: clamp(9px, 2.2vw, 11px); letter-spacing: 0.45em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .report-hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(24px, 6vw, 46px); font-weight: 300; color: var(--charcoal); line-height: 1.25; }
+  .report-hero-sub { font-size: clamp(13px, 3.5vw, 14px); color: var(--muted); margin-top: 8px; }
+  .section-body { font-size: clamp(14px, 3.8vw, 16px); line-height: 1.9; color: var(--charcoal); }
+  .section-body p { margin-bottom: 14px; }
+  .section-body ul { padding-left: 20px; }
+  .section-body li { margin-bottom: 10px; }
+  .section-body strong { font-weight: 500; }
+  .section-body h3 { font-family: 'Cormorant Garamond', serif; font-size: clamp(19px, 5vw, 22px); font-weight: 400; margin: 20px 0 10px; color: var(--charcoal); }
+  .section-body a { color: #C9A96E; text-decoration: underline; }
+  .section-body a:hover { color: #2D2520; }
+
+  /* SAVE BANNER */
+  .save-banner { background: var(--deep); border: 1px solid var(--border); padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .save-banner-text { flex: 1; min-width: 200px; }
+  .save-banner-title { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 300; color: var(--gold); margin-bottom: 3px; }
+  .save-banner-sub { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .save-banner-inputs { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .save-banner-input { padding: 9px 12px; background: transparent; border: 1px solid var(--border); color: var(--cream); font-family: 'Jost', sans-serif; font-size: 14px; outline: none; border-radius: 0; -webkit-appearance: none; width: 160px; }
+  .save-banner-input:focus { border-color: var(--gold); }
+  .save-banner-input::placeholder { color: var(--muted); font-size: 12px; }
+  .save-banner-btn { padding: 9px 18px; background: var(--gold); color: var(--deep); border: none; font-family: 'Jost', sans-serif; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; white-space: nowrap; -webkit-appearance: none; border-radius: 0; }
+  .save-banner-btn:active { background: var(--gold-light); }
+  .save-banner-dismiss { font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline; white-space: nowrap; }
+  .save-banner-dismiss:hover { color: var(--gold); }
+  .save-banner-error { font-size: 12px; color: #e07070; width: 100%; margin-top: 4px; }
+  .save-banner-success { font-size: 12px; color: #7CB987; width: 100%; margin-top: 4px; }
+
+  /* TEASER */
+  .teaser-section { margin-top: 32px; padding: 28px 24px; background: var(--deep); border-radius: 2px; text-align: center; }
+  .teaser-eyebrow { font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .teaser-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(20px, 5vw, 26px); font-weight: 300; color: var(--cream); margin-bottom: 20px; line-height: 1.3; }
+  .teaser-items { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; text-align: left; }
+  .teaser-item { display: flex; gap: 12px; align-items: flex-start; }
+  .teaser-item-num { font-size: 10px; letter-spacing: 0.2em; color: var(--gold); flex-shrink: 0; margin-top: 3px; font-family: 'Cormorant Garamond', serif; font-style: italic; }
+  .teaser-item-text { font-size: clamp(13px, 3.5vw, 14px); color: var(--muted); line-height: 1.65; }
+  .teaser-btn { display: inline-block; padding: 13px 32px; background: transparent; border: 1px solid var(--gold); color: var(--gold); font-family: 'Jost', sans-serif; font-size: clamp(11px, 3vw, 12px); letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; }
+  .teaser-btn:hover, .teaser-btn:active { background: var(--gold); color: var(--deep); }
+
+  /* REPORT FOOTER */
+  .report-footer { text-align: center; padding: 24px 0 8px; border-top: 1px solid var(--border); margin-top: 16px; }
+  .report-footer-text { font-size: clamp(10px, 2.5vw, 11px); color: var(--muted); letter-spacing: 0.05em; line-height: 1.7; max-width: 560px; margin: 0 auto; }
+  .affiliate-note { font-size: 10px; color: var(--muted); text-align: center; margin-top: 12px; opacity: 0.7; }
+  .report-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+  .restart-btn { padding: 13px 32px; background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'Jost', sans-serif; font-size: clamp(10px, 2.5vw, 11px); letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; }
+  .restart-btn:active { border-color: var(--gold); color: var(--gold); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; text-shadow: 0 0 20px rgba(201,169,110,0); } 50% { opacity: 0.85; text-shadow: 0 0 40px rgba(201,169,110,0.3); } }
+  @keyframes orbPulse { 0%, 100% { opacity: 0.2; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.3); } }
+  @keyframes shimmer { 0% { transform: translateX(-200%); } 100% { transform: translateX(400%); } }
 </style>
 </head>
 <body>
-<div id="config-warning">⚠ Configure your credentials — open index.html and fill in the CONFIG object.</div>
-<header style="display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:70px;background:var(--bg2);border-bottom:1px solid var(--border);box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:100;">
-  <div style="display:flex;align-items:center;gap:16px;">
-    <div style="position:relative;flex-shrink:0;">
-      <div style="width:54px;height:64px;border-radius:12px;overflow:hidden;border:2px solid var(--gold-brd);box-shadow:0 4px 18px rgba(168,108,10,0.25);animation:genieBob 3.5s ease-in-out infinite;">
-        <img src="genie.png" style="width:100%;height:100%;object-fit:cover;object-position:top center;" alt="PG Genie"/>
-      </div>
-      <div style="position:absolute;bottom:-3px;right:-3px;width:12px;height:12px;border-radius:50%;background:var(--green);border:2px solid var(--bg2);animation:pulse 2s infinite;"></div>
+
+<!-- WELCOME -->
+<div class="screen" id="welcome">
+  <div class="welcome-glow"></div>
+  <div class="logo">Clair</div>
+  <div class="logo-tag">Beauty Intelligence</div>
+  <div class="divider"></div>
+  <div class="welcome-headline">The most personalized beauty intelligence you've ever had.</div>
+  <div class="welcome-explainer">Clair is a beauty concierge built entirely around you — your skin, your life, your budget. No brand allegiances. No sponsored answers. Ever.</div>
+  <div class="welcome-differentiators">
+    <div class="diff-item"><div class="diff-dot"></div><div class="diff-text"><strong>She remembers your skin</strong>Your profile, history, and report are saved and grow over time.</div></div>
+    <div class="diff-item"><div class="diff-dot"></div><div class="diff-text"><strong>She asks what you don't know to ask</strong>Guiding you through a clinical framework you'd never navigate alone.</div></div>
+    <div class="diff-item"><div class="diff-dot"></div><div class="diff-text"><strong>She produces a deliverable</strong>A complete Beauty Intelligence Report you keep, reference, and build on.</div></div>
+    <div class="diff-item"><div class="diff-dot"></div><div class="diff-text"><strong>She's built for you specifically</strong>Every recommendation tuned for women 35 and beyond.</div></div>
+  </div>
+  <div class="welcome-flow">
+    <div class="flow-step">
+      <div class="flow-step-num">Step 1</div>
+      <div class="flow-step-label">Quick Win</div>
+      <div class="flow-step-sub">5 questions · 2 min</div>
     </div>
-    <div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:3px;color:var(--text1);line-height:1;">PG <span style="color:var(--gold);">Genie</span></div>
-      <div style="font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--text3);">Sales Intelligence Platform</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-step-num">Step 2</div>
+      <div class="flow-step-label">Deep Analysis</div>
+      <div class="flow-step-sub">7 more · 10 min</div>
     </div>
-    <div style="width:1px;height:32px;background:var(--border);margin:0 4px;"></div>
-    <div style="display:flex;align-items:center;gap:6px;background:var(--green-bg);padding:5px 12px;border-radius:999px;border:1px solid var(--green-brd);">
-      <div style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;"></div>
-      <span style="font-size:11px;font-weight:700;color:var(--green);">Systems Online</span>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-step-num">Result</div>
+      <div class="flow-step-label">Full Report</div>
+      <div class="flow-step-sub">Yours to keep</div>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);" id="clock">--:--:--</span>
-    <button class="btn btn-ghost btn-sm" onclick="openModal('pat-modal')">⚙ Settings</button>
+  <div class="welcome-btns">
+    <button class="begin-btn" onclick="startChat()">Begin</button>
+    <button class="signin-btn" onclick="show('signin')">Sign In</button>
   </div>
-</header>
-<div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 28px;">
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-    <span class="label" style="color:var(--gold);">⚡ Research Mission</span>
-    <div id="context-pill" style="display:none;padding:3px 10px;background:var(--purple-bg);border:1px solid var(--purple-brd);border-radius:999px;font-size:10px;color:var(--purple);font-weight:700;">✦ <span id="pill-title">Saviynt</span></div>
+  <div class="disclaimer">Clair is for cosmetic guidance only — not medical advice. No brand partnerships. No sponsored recommendations.</div>
+</div>
+
+<!-- CHAT -->
+<div class="screen hidden" id="chat">
+  <div class="chat-header">
+    <div class="chat-logo">C<span>lair</span></div>
+    <div class="chat-badge">Beauty Intelligence</div>
+    <div class="chat-progress" id="progressDots">
+      <div class="progress-dot" id="d1"></div><div class="progress-dot" id="d2"></div><div class="progress-dot" id="d3"></div>
+      <div class="progress-dot" id="d4"></div><div class="progress-dot" id="d5"></div><div class="progress-dot" id="d6"></div>
+    </div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:end;">
-    <div>
-      <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;background:var(--purple);border-radius:50%;display:inline-block;"></span>My Company</div>
-      <div style="display:flex;gap:8px;"><input type="text" id="my-company" value="Saviynt" placeholder="Your company" style="flex:1;"/><input type="url" id="my-company-url" value="https://saviynt.com" placeholder="https://..." style="flex:1;"/></div>
-    </div>
-    <div>
-      <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;background:var(--gold-lt);border-radius:50%;display:inline-block;"></span>Target Company</div>
-      <div style="display:flex;gap:8px;"><input type="text" id="target-company" placeholder="e.g. Traveler's Insurance" style="flex:1;"/><input type="url" id="target-company-url" placeholder="https://..." style="flex:1;"/></div>
-    </div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn-wish" id="grantWishBtn" onclick="grantWishChime(this)">✦ Grant Wish</button>
-      <button class="btn btn-ghost" onclick="openModal('add-modal')">+ Add to List</button>
+  <div class="chat-messages" id="messages"></div>
+  <div class="chat-input-area">
+    <div class="chat-input-wrap">
+      <textarea class="chat-input" id="userInput" placeholder="Share your thoughts..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
     </div>
   </div>
 </div>
-<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--bg2);border-bottom:2px solid var(--border);">
-  <div style="padding:18px 28px;border-right:1px solid var(--border);">
-    <div class="label">Targets</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;line-height:1;color:var(--gold);margin:4px 0 2px;" id="stat-companies">—</div>
-    <div style="font-size:11px;color:var(--text3);" id="stat-companies-sub">tracked companies</div>
+
+<!-- GENERATING -->
+<div class="screen hidden" id="generating">
+  <div class="gen-glow"></div>
+  <div class="gen-logo">Clair</div>
+  <div class="gen-logo-tag">Beauty Intelligence</div>
+  <div class="gen-orbs">
+    <div class="gen-orb"></div><div class="gen-orb"></div><div class="gen-orb"></div><div class="gen-orb"></div><div class="gen-orb"></div>
   </div>
-  <div style="padding:18px 28px;border-right:1px solid var(--border);">
-    <div class="label">Research Runs</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;line-height:1;color:var(--purple);margin:4px 0 2px;" id="stat-runs">—</div>
-    <div style="font-size:11px;color:var(--text3);" id="stat-runs-sub">completed</div>
-  </div>
-  <div style="padding:18px 28px;border-right:1px solid var(--border);">
-    <div class="label">Contacts</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;line-height:1;color:var(--teal);margin:4px 0 2px;" id="stat-contacts">—</div>
-    <div style="font-size:11px;color:var(--text3);" id="stat-contacts-sub">across all companies</div>
-  </div>
-  <div style="padding:18px 28px;">
-    <div class="label">Outreach Ready</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;line-height:1;color:var(--green);margin:4px 0 2px;" id="stat-content">—</div>
-    <div style="font-size:11px;color:var(--text3);" id="stat-content-sub">outreach pieces</div>
+  <div class="gen-bar-wrap"><div class="gen-bar"></div></div>
+  <div class="gen-status" id="genStatus">Reading your skin story...</div>
+  <div class="gen-steps">
+    <div class="gen-step" id="step1"><div class="gen-step-dot"></div>Skin profile</div>
+    <div class="gen-step" id="step2"><div class="gen-step-dot"></div>Lifestyle analysis</div>
+    <div class="gen-step" id="step3"><div class="gen-step-dot"></div>Ingredient mapping</div>
+    <div class="gen-step" id="step4"><div class="gen-step-dot"></div>Product matching</div>
+    <div class="gen-step" id="step5"><div class="gen-step-dot"></div>Report composition</div>
   </div>
 </div>
-<div style="display:grid;grid-template-columns:1fr 300px;min-height:calc(100vh - 280px);">
-  <div style="padding:22px 28px;border-right:1px solid var(--border);">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="label">Target Companies</span>
-        <span id="count-badge" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;padding:2px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:999px;color:var(--text3);"></span>
-      </div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
-        <button class="ftab on" id="filter-all" onclick="setFilter('all',this)">All</button>
-        <button class="ftab" id="filter-complete" onclick="setFilter('complete',this)">Complete</button>
-        <button class="ftab" id="filter-pending" onclick="setFilter('pending',this)">Pending</button>
-        <div style="width:1px;height:16px;background:var(--border);margin:0 3px;"></div>
-        <button class="btn btn-gold btn-sm" onclick="openModal('batch-modal')">⚡ Batch Run</button>
-        <button class="btn btn-teal btn-sm" onclick="openModal('prospect-modal')">🔍 Prospect Search</button>
+
+<!-- PAYWALL -->
+<div class="screen hidden" id="paywall">
+  <div class="paywall-glow"></div>
+  <div class="paywall-box">
+    <div class="paywall-eyebrow">Clair Pro</div>
+    <div class="paywall-title">Your full Beauty Intelligence Report awaits.</div>
+    <div class="paywall-sub">Seven deeper questions. A complete picture of your skin, your lifestyle, and exactly what to do next.</div>
+    <ul class="paywall-features">
+      <li class="paywall-feature"><div class="paywall-feature-dot"></div>Complete skin profile with Fitzpatrick and barrier analysis</li>
+      <li class="paywall-feature"><div class="paywall-feature-dot"></div>Top 5 product recommendations matched to your budget</li>
+      <li class="paywall-feature"><div class="paywall-feature-dot"></div>Ingredients to seek and ingredients to avoid</li>
+      <li class="paywall-feature"><div class="paywall-feature-dot"></div>Your personal 90-day skin focus</li>
+      <li class="paywall-feature"><div class="paywall-feature-dot"></div>Email your report to keep forever</li>
+    </ul>
+    <div class="paywall-price">$29</div>
+    <div class="paywall-price-sub">per month · cancel anytime</div>
+    <button class="paywall-btn" id="paywallBtn" onclick="startCheckout()">Unlock My Full Report</button>
+    <div class="paywall-error" id="paywallError"></div>
+    <span class="paywall-skip" onclick="removeActionButtons(); goDeeper()">Continue without subscribing →</span>
+  </div>
+</div>
+
+<!-- SIGNUP -->
+<div class="screen hidden" id="signup">
+  <div class="signup-glow"></div>
+  <div class="signup-box">
+    <div class="signup-title">Save Your Results</div>
+    <div class="signup-sub">Create your Clair account to save your quick win and return anytime.</div>
+    <input class="signup-input" id="signupEmail" type="email" placeholder="Your email address" autocomplete="email" />
+    <input class="signup-input" id="signupPassword" type="password" placeholder="Create a password" autocomplete="new-password" />
+    <div class="signup-error" id="signupError"></div>
+    <button class="signup-btn" onclick="createAccount()">Create My Account</button>
+    <span class="signup-skip" onclick="skipSignup()">Skip for now — go deeper instead</span>
+  </div>
+</div>
+
+<!-- SIGNIN -->
+<div class="screen hidden" id="signin">
+  <div class="signup-glow"></div>
+  <div class="signin-box">
+    <div class="signin-title">Welcome Back</div>
+    <div class="signin-sub">Sign in to view your saved Beauty Intelligence Report.</div>
+    <input class="signin-input" id="signinEmail" type="email" placeholder="Your email address" autocomplete="email" />
+    <input class="signin-input" id="signinPassword" type="password" placeholder="Your password" autocomplete="current-password" />
+    <div class="signin-error" id="signinError"></div>
+    <button class="signin-submit-btn" onclick="signIn()">Sign In</button>
+    <span class="signin-back" onclick="show('welcome')">Back to welcome</span>
+  </div>
+</div>
+
+<!-- EMAIL CAPTURE — standalone fallback -->
+<div class="screen hidden" id="email-capture">
+  <div class="signup-glow"></div>
+  <div class="email-box">
+    <div class="email-title">Your Report Is Ready</div>
+    <div class="email-sub">Enter your email and we'll send your complete Beauty Intelligence Report straight to your inbox — free.</div>
+    <span class="email-ready-badge">✦ Ready to send</span>
+    <input class="email-input" id="emailCaptureInput" type="email" placeholder="Your email address" autocomplete="email" />
+    <div class="email-error" id="emailError"></div>
+    <div class="email-success" id="emailSuccess"></div>
+    <button class="email-send-btn" onclick="sendReportEmail()">Send My Report</button>
+    <div class="email-spam-note">Don't forget to <strong>check your spam folder</strong> if you don't see it within a few minutes.</div>
+    <span class="email-skip" onclick="show('report')">Go back</span>
+  </div>
+</div>
+
+<!-- REPORT — blurred preview with unlock overlay -->
+<div class="screen hidden" id="report">
+  <div class="report-header">
+    <div class="report-logo">C<span>lair</span></div>
+    <div class="report-meta">
+      <div class="report-meta-label">Beauty Intelligence Report</div>
+      <div class="report-meta-name" id="reportName"></div>
+    </div>
+  </div>
+  <div class="report-blur-wrap">
+    <!-- Unlock overlay -->
+    <div class="report-unlock-overlay" id="reportUnlockOverlay">
+      <div class="report-unlock-box">
+        <div class="report-unlock-eyebrow">✦ Your report is ready</div>
+        <div class="report-unlock-title">Send it to your inbox</div>
+        <div class="report-unlock-sub">Enter your email and we'll deliver your complete Beauty Intelligence Report — free, instantly.</div>
+        <input class="report-unlock-input" id="reportUnlockEmail" type="email" placeholder="Your email address" autocomplete="email" />
+        <div class="report-unlock-error" id="reportUnlockError"></div>
+        <div class="report-unlock-success" id="reportUnlockSuccess"></div>
+        <button class="report-unlock-btn" id="reportUnlockBtn" onclick="sendFromOverlay()">Send My Report</button>
+        <div class="report-unlock-spam">Don't forget to <strong>check your spam folder</strong> if it doesn't arrive within a few minutes.</div>
       </div>
     </div>
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>Company</th><th>Sector</th><th>Status</th><th>Alignment</th><th>C-Suite</th>
-          <th style="text-align:right;">Actions</th>
-        </tr>
-      </thead>
-      <tbody id="companies-tbody">
-        <tr><td colspan="6" style="padding:28px 0;">
-          <div style="display:flex;flex-direction:column;gap:10px;">
-            <div class="skel" style="height:40px;"></div>
-            <div class="skel" style="height:40px;"></div>
-            <div class="skel" style="height:40px;"></div>
+    <!-- Blurred report beneath overlay -->
+    <div class="report-body blurred" id="reportBody">
+      <div class="report-inner">
+        <div class="save-banner" id="saveBanner">
+          <div class="save-banner-text">
+            <div class="save-banner-title">Save your report</div>
+            <div class="save-banner-sub">Create a free account to access this report anytime.</div>
           </div>
-        </td></tr>
-      </tbody>
-    </table>
-  </div>
-  <div style="background:var(--bg2);display:flex;flex-direction:column;height:calc(100vh - 280px);position:sticky;top:280px;">
-    <div style="padding:16px 18px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--gold-bg) 0%,var(--bg2) 100%);flex-shrink:0;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-        <div style="width:36px;height:44px;border-radius:8px;overflow:hidden;border:2px solid var(--gold-brd);box-shadow:0 2px 10px rgba(168,108,10,0.2);flex-shrink:0;">
-          <img src="genie.png" style="width:100%;height:100%;object-fit:cover;object-position:top center;" alt="Genie"/>
+          <div class="save-banner-inputs">
+            <input class="save-banner-input" id="bannerEmail" type="email" placeholder="Email address" autocomplete="email" />
+            <input class="save-banner-input" id="bannerPassword" type="password" placeholder="Password" autocomplete="new-password" />
+            <button class="save-banner-btn" onclick="createAccountFromBanner()">Save</button>
+            <span class="save-banner-dismiss" onclick="dismissBanner()">Not now</span>
+          </div>
+          <div class="save-banner-error" id="bannerError"></div>
+          <div class="save-banner-success" id="bannerSuccess"></div>
         </div>
-        <div style="flex:1;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:var(--text1);line-height:1;">PG <span style="color:var(--gold);">Genie</span></div>
-          <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);">Mission Log</div>
+        <div class="report-hero">
+          <div class="report-hero-eyebrow">Your Personal Report</div>
+          <div class="report-hero-title" id="reportTitle"></div>
+          <div class="report-hero-sub" id="reportSub"></div>
         </div>
-        <button onclick="loadData()" style="font-size:10px;font-weight:700;color:var(--purple);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;" title="Refresh">↺</button>
+        <div id="reportContent"></div>
+        <div class="teaser-section" id="teaserSection" style="display:none;">
+          <div class="teaser-eyebrow">What We Didn't Get To</div>
+          <div class="teaser-title" id="teaserTitle">There's more to your skin story.</div>
+          <div class="teaser-items" id="teaserItems"></div>
+          <button class="teaser-btn" onclick="continueWithClair()">Continue with Clair →</button>
+        </div>
+        <div class="report-footer">
+          <div class="report-footer-text">This report was generated by Clair for cosmetic and personal care guidance only. It is not medical advice. Product availability and formulations may change — verify details with retailers before purchasing. Consult a dermatologist for medical skin concerns.</div>
+          <div class="affiliate-note">Some product links are affiliate links. Clair may earn a small commission if you purchase — at no extra cost to you. This never influences our recommendations.</div>
+          <div class="report-actions">
+            <button class="restart-btn" onclick="restart()">Start a New Consultation</button>
+          </div>
+        </div>
       </div>
-      <div style="font-size:11px;font-style:italic;color:var(--text2);line-height:1.5;padding:8px 10px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);" id="genie-status-line">Awaiting orders…</div>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:12px 14px;" id="genie-log">
-      <div style="text-align:center;padding:28px 0;color:var(--text3);font-size:12px;font-weight:600;border:1px dashed var(--border);border-radius:8px;">No missions logged yet</div>
-    </div>
-    <div style="padding:12px 14px;border-top:1px solid var(--border);background:var(--bg3);flex-shrink:0;">
-      <div class="label" style="margin-bottom:8px;">Quick Actions</div>
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <button class="btn btn-primary btn-sm" style="width:100%;text-align:left;" onclick="openModal('add-modal')">+ Add Target Company</button>
-        <button class="btn btn-gold btn-sm" style="width:100%;text-align:left;" onclick="openModal('batch-modal')">⚡ Run Batch Research</button>
-        <button class="btn btn-teal btn-sm" style="width:100%;text-align:left;" onclick="openModal('prospect-modal')">🔍 Prospect Search</button>
-      </div>
     </div>
   </div>
 </div>
-<div id="toast"></div>
-<div class="modal-overlay" id="pat-modal">
-  <div class="modal">
-    <div class="modal-title">GitHub PAT Settings</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">Enter your GitHub Personal Access Token (needs <code style="background:var(--bg3);padding:1px 5px;border-radius:4px;">repo</code> and <code style="background:var(--bg3);padding:1px 5px;border-radius:4px;">actions</code> scopes). Stored in your browser only.</p>
-    <div class="form-row"><label class="form-label">GitHub PAT</label><input type="password" id="pat-input" placeholder="ghp_..."/></div>
-    <div class="modal-btns"><button class="btn btn-danger" onclick="closeModal('pat-modal')">Cancel</button><button class="btn btn-primary" onclick="savePat()">Save</button></div>
-  </div>
-</div>
-<div class="modal-overlay" id="add-modal">
-  <div class="modal">
-    <div class="modal-title">Add Target Company</div>
-    <div class="form-row"><label class="form-label">Company Name <span>*</span></label><input type="text" id="add-name" placeholder="e.g. Traveler's Insurance"/></div>
-    <div class="form-2col">
-      <div class="form-row"><label class="form-label">Domain</label><input type="text" id="add-domain" placeholder="travelers.com"/></div>
-      <div class="form-row"><label class="form-label">Industry</label><input type="text" id="add-industry" placeholder="Insurance"/></div>
-      <div class="form-row"><label class="form-label">Ticker (SEC)</label><input type="text" id="add-ticker" placeholder="TRV"/></div>
-      <div class="form-row"><label class="form-label">Employees</label><input type="number" id="add-employees" placeholder="30000"/></div>
-    </div>
-    <div class="form-row"><label class="form-label">Status</label><select id="add-status"><option value="pending">Pending</option><option value="complete">Complete</option></select></div>
-    <div class="modal-btns"><button class="btn btn-danger" onclick="closeModal('add-modal')">Cancel</button><button class="btn btn-primary" onclick="addCompany()">Add Company</button></div>
-  </div>
-</div>
-<div class="modal-overlay" id="batch-modal">
-  <div class="modal">
-    <div class="modal-title">Run Batch Research</div>
-    <div class="form-row"><label class="form-label">Target</label><select id="batch-target"><option value="prospect">All Prospect Companies</option><option value="active">All Active Companies</option></select></div>
-    <div class="form-2col">
-      <div class="form-row"><label class="form-label">Max Companies</label><input type="number" id="batch-max" value="5" min="1" max="50"/></div>
-      <div class="form-row"><label class="form-label">Delay (seconds)</label><input type="number" id="batch-delay" value="30" min="10" max="300"/></div>
-    </div>
-    <div class="modal-btns"><button class="btn btn-danger" onclick="closeModal('batch-modal')">Cancel</button><button class="btn btn-gold" onclick="runBatch()">Start Batch</button></div>
-  </div>
-</div>
-<div class="modal-overlay" id="prospect-modal">
-  <div class="modal">
-    <div class="modal-title">Prospect Search</div>
-    <p style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:16px;line-height:1.6;">Search Apollo for CIO, CISO, and key C-suite leaders at a target company.</p>
-    <div class="form-row"><label class="form-label">Company Name <span>*</span></label><input type="text" id="ps-company" placeholder="e.g. Traveler's Insurance"/></div>
-    <div class="form-2col">
-      <div class="form-row"><label class="form-label">Company Domain</label><input type="text" id="ps-domain" placeholder="travelers.com"/></div>
-      <div class="form-row"><label class="form-label">Max Contacts</label><input type="number" id="ps-max" value="15" min="1" max="50"/></div>
-    </div>
-    <div class="form-row"><label class="form-label">Custom Keywords</label><input type="text" id="ps-keywords" placeholder="leave empty for defaults (CIO, CISO, CDO...)"/></div>
-    <div class="modal-btns"><button class="btn btn-danger" onclick="closeModal('prospect-modal')">Cancel</button><button class="btn btn-teal" onclick="searchProspects()">Search Prospects</button></div>
-  </div>
-</div>
+
 <script>
-var toastTimer;
-function openModal(id){if(id==='pat-modal'){var el=document.getElementById('pat-input');if(el)el.value=localStorage.getItem('bd_github_pat')||'';}var m=document.getElementById(id);if(m)m.classList.add('open');}
-function closeModal(id){var m=document.getElementById(id);if(m)m.classList.remove('open');}
-function showToast(msg,type){var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.className='show '+(type||'');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.className='';},3500);}
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function viewCompany(id){window.location.href='company.html?id='+id;}
-function genPyramid(id,name,domain){window.open('pyramid.html?company_id='+encodeURIComponent(id)+'&company_name='+encodeURIComponent(name)+'&company_domain='+encodeURIComponent(domain),'_blank');}
-function savePat(){var val=document.getElementById('pat-input').value.trim();if(val){localStorage.setItem('bd_github_pat',val);if(typeof CONFIG!=='undefined')CONFIG.GITHUB_PAT=val;showToast('GitHub PAT saved!','success');}else{localStorage.removeItem('bd_github_pat');if(typeof CONFIG!=='undefined')CONFIG.GITHUB_PAT='';showToast('GitHub PAT cleared','');}closeModal('pat-modal');}
-document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
-function tick(){var e=document.getElementById('clock');if(e)e.textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}tick();setInterval(tick,1000);
-document.getElementById('my-company').addEventListener('input',function(){var val=this.value.trim(),pill=document.getElementById('context-pill');if(!val){pill.style.display='none';return;}pill.style.display='';document.getElementById('pill-title').textContent=val;});
-function alignScore(name,status){var h=0;for(var i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))&0xffff;return status==='complete'?65+(h%30):30+(h%36);}
-function alignColor(s){return s>=80?'var(--green)':s>=55?'var(--gold-lt)':'var(--text3)';}
-function alignLabel(s){return s>=80?'HIGH':s>=55?'MED':'LOW';}
-function getWildcard(industry){var i=(industry||'').toLowerCase();if(i.includes('health')||i.includes('pharma'))return'CDO';if(i.includes('finance')||i.includes('insurance')||i.includes('bank'))return'CAO';if(i.includes('tech')||i.includes('software'))return'CTO';return'CDO';}
-function playGenieChime(){try{var ctx=new(window.AudioContext||window.webkitAudioContext)();[{freq:523.25,start:.00,dur:.35,gain:.28},{freq:659.25,start:.10,dur:.35,gain:.26},{freq:783.99,start:.20,dur:.40,gain:.24},{freq:987.77,start:.32,dur:.50,gain:.22},{freq:1318.5,start:.46,dur:.70,gain:.18},{freq:1567.9,start:.54,dur:.60,gain:.12}].forEach(function(n){var osc=ctx.createOscillator(),g=ctx.createGain();osc.type='sine';osc.frequency.setValueAtTime(n.freq,ctx.currentTime+n.start);g.gain.setValueAtTime(0,ctx.currentTime+n.start);g.gain.linearRampToValueAtTime(n.gain,ctx.currentTime+n.start+.02);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+n.start+n.dur);osc.connect(g);g.connect(ctx.destination);osc.start(ctx.currentTime+n.start);osc.stop(ctx.currentTime+n.start+n.dur+.1);});setTimeout(function(){ctx.close();},2000);}catch(e){}}
-function launchSparkles(btn){var rect=btn.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;['✨','⭐','💫','🌟','✦'].forEach(function(em){for(var j=0;j<2;j++){var el=document.createElement('div');el.className='sparkle';el.textContent=em;el.style.left=(cx+(Math.random()-.5)*140)+'px';el.style.top=(cy+(Math.random()-.5)*70)+'px';el.style.animationDelay=(Math.random()*.3)+'s';el.style.fontSize=(14+Math.random()*12)+'px';document.body.appendChild(el);setTimeout(function(){el.remove();},1500);}});}
-function grantWishChime(btn){playGenieChime();launchSparkles(btn);btn.classList.remove('chimed');void btn.offsetWidth;btn.classList.add('chimed');setTimeout(function(){btn.classList.remove('chimed');},600);grantWish();}
-</script>
-<script>
-const CONFIG={SUPABASE_URL:'https://axoociwagtamyepfvyeq.supabase.co',SUPABASE_ANON_KEY:'sb_publishable_cqrID5e3KxU2YONXLzTlCA_QK__Lim3',GITHUB_OWNER:'shaneearley92-rgb',GITHUB_REPO:'BD-Intelligence-Tool',GITHUB_PAT:localStorage.getItem('bd_github_pat')||''};
-const isConfigured=true;
-if(!isConfigured)document.getElementById('config-warning').style.display='block';
-try{if(isConfigured&&window.supabase)supabase=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);}catch(e){console.error(e);}
-let companies=[],currentFilter='all';
-function grantWish(){var tgt=document.getElementById('target-company').value.trim();if(!tgt){document.getElementById('target-company').style.borderColor='var(--pink)';document.getElementById('target-company').focus();return;}document.getElementById('target-company').style.borderColor='';var match=companies.find(function(c){return c.name.toLowerCase().includes(tgt.toLowerCase());});if(match)triggerResearch(match.id,match.name);else{document.getElementById('add-name').value=tgt;showToast('Target not in list — add it first','error');openModal('add-modal');}}
-async function loadData(){
-  try{
-    var[{data:cos},{data:runs},{data:contacts},{data:content}]=await Promise.all([
-      supabase.from('companies').select('*').order('created_at',{ascending:false}),
-      supabase.from('research_runs').select('id,status,company_id,created_at,actual_tokens,triggered_by,error_message').order('created_at',{ascending:false}).limit(40),
-      supabase.from('contacts').select('id,company_id'),
-      supabase.from('outreach_content').select('id'),
-    ]);
-    companies=cos||[];
-    var completedRuns=(runs||[]).filter(function(r){return r.status==='completed';}).length;
-    document.getElementById('stat-companies').textContent=companies.length||'0';
-    document.getElementById('stat-runs').textContent=completedRuns;
-    document.getElementById('stat-contacts').textContent=(contacts||[]).length;
-    document.getElementById('stat-content').textContent=(content||[]).length;
-    var nComplete=companies.filter(function(c){return c.research_status==='complete';}).length;
-    document.getElementById('stat-companies-sub').textContent=nComplete+' complete · '+(companies.length-nComplete)+' pending';
-    var failed=(runs||[]).filter(function(r){return r.status==='failed';}).length;
-    document.getElementById('stat-runs-sub').textContent='completed'+(failed?' · '+failed+' failed':'');
-    renderCompanies(companies);
-    renderGenieLog(runs||[],companies);
-  }catch(e){console.error(e);showToast('Failed to load data','error');}
+  const PAYWALL_ACTIVE = false;
+  const STRIPE_PUBLISHABLE_KEY = 'pk_test_51TESd7KelhJah2c4Eyqf4fh6CLI2MLuL41KTS2xP0TFZy16u2992Jwmip0hf04f0DiLBG9NlvQ6NhoQivEY3DdQP00CLWAuDfb';
+  const SUPABASE_URL = 'https://ruukxsypjoxvlrtgmeir.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1dWt4c3lwam94dmxydGdtZWlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxODg5MjksImV4cCI6MjA4OTc2NDkyOX0._us8Sb8qdxJc3gAbGvSIX-A4P6im4e15DnE3O3L28UA';
+
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+
+  const SYSTEM_PROMPT = `You are Clair, an elite personal beauty intelligence concierge. You are warm, sophisticated, and feel like a brilliant trusted friend who knows everything about beauty, skincare, ingredients, and wellness. You never represent any brand and all recommendations are completely independent.
+
+IMPORTANT SYSTEM INFORMATION: Clair has a full account system. When users ask about logging in, saving results, or returning, let them know they can create a free account by clicking Save My Results after their quick win, or by using the save prompt on their report. Do not tell users there is no account system.
+
+If anyone asks what makes Clair special or different, respond warmly and confidently with these truths:
+- Clair remembers your skin, not just your conversation. Your profile, history, and report are saved and grow richer over time.
+- Clair asks what you don't know to ask — guiding you through a clinical framework most women would never navigate on their own.
+- Clair produces a real deliverable — a complete Beauty Intelligence Report you keep, reference, and build on over time.
+- Clair is built specifically for women 35 and beyond — every question, recommendation, and insight is tuned for this stage of life.
+- Clair has no brand allegiances and no sponsored answers. Ever. Her recommendations come from intelligence, not incentives.
+Never compare Clair to any other product or service by name. Let Clair stand on her own.
+
+When a user begins a consultation, your very first message must be exactly this — warm, confident, and unhurried:
+
+"Welcome. I'm Clair — your personal beauty intelligence concierge. I'm here to do what no algorithm and no brand ever will: look at you as a whole person and tell you exactly what will work.
+
+Most women come to me for skin — profiling their skin type, fixing what isn't working, building a routine that actually makes sense for their age, budget, and life. But we can go wherever you need. Skincare, medspa treatments, makeup, even style and fragrance.
+
+No brand allegiances. No sponsored answers. Just honest, personalized intelligence.
+
+Let's start simply — what's your name?"
+
+Your conversation has TWO strictly defined phases. You must follow them exactly.
+
+PHASE 1 — QUICK WIN (exactly 5 questions then STOP and deliver value):
+Question 1: You have already asked their name in the opening message — receive it and warmly acknowledge it. That counts as Question 1.
+Question 2: Ask their age range — options: 35-44, 45-54, 55-64, or 65+
+Question 3: Ask their monthly skincare budget — options: under $50, $50-150, $150-300, or $300+
+Question 4: Ask their single biggest skin concern — options: fine lines and loss of firmness, dullness and uneven tone, dryness and dehydration, breakouts and congestion, or hyperpigmentation and dark spots
+Question 5: Ask them to describe their current routine in one sentence
+
+After receiving the answer to Question 5 you MUST immediately deliver the QUICK INSIGHT. Do not ask any more questions first. The QUICK INSIGHT must include:
+- A warm one paragraph explanation of what is actually happening with their specific concern given their age range
+- Exactly two or three specific product recommendations matched precisely to their stated budget with real brand names, key ingredients, and prices
+- One simple routine tip they can implement today
+
+You MUST end your Quick Insight message with this exact token on its own line with nothing after it:
+QUICK_WIN_DONE
+
+PHASE 2 — DEEP ANALYSIS (only begin if user clicks Go Deeper or says yes):
+Ask these questions one at a time. All questions are open ended — let the user respond freely in their own words. Acknowledge each answer warmly before moving to the next.
+
+Question 6: Ask where they live and what their climate is like day to day
+Question 7: Ask about their sleep quality and stress levels lately — how their lifestyle feels overall
+Question 8: Ask about their health history as it relates to their skin — any conditions, medications, or treatments that affect how their skin behaves
+Question 9: Ask about any known allergies, sensitivities, or ingredients that have caused reactions in the past
+Question 10: Ask how their skin responds to sun exposure — does it burn easily, tan, rarely burn — and how they would describe their natural skin tone
+Question 11: Ask whether their skin has felt reactive, sensitive, or easily irritated lately — whether certain products sting or their skin feels easily disrupted
+Question 12: Ask what one thing they would most love to change about their skin in the next 90 days if they could change anything at all
+
+After Question 12: Give a warm elegant closing message then write exactly: REPORT_READY
+
+CRITICAL RULES:
+- Ask ONLY ONE question per message — never two
+- After Question 5 you MUST output the Quick Insight followed by QUICK_WIN_DONE — do not ask Question 6 first
+- Never tell users there is no account or login system — there is one
+- Use the user's name only once — right when you first learn it. Never use it again after that.
+- Never use bullet points in conversation
+- All Phase 2 questions are open ended — never give multiple choice options in Phase 2
+- Always match product recommendations exactly to stated budget
+- Sound like a warm brilliant friend not a chatbot
+- Infer Fitzpatrick skin type from Question 10 without using clinical terminology
+- Infer barrier health from Question 11 without diagnosing
+- Never compare Clair to any other AI or product by name
+
+REPORT FORMAT: HTML only using h3, p, ul, li, strong, a tags with these six sections:
+1. Your Skin Profile — include inferred Fitzpatrick type, barrier health, and full lifestyle context
+2. What is Already Working
+3. The Gaps — include allergy and sensitivity flags
+4. Your Top 5 Product Recommendations — for each product create a hyperlink using this exact format: <a href="https://www.amazon.com/s?k=PRODUCT+NAME+BRAND&tag=clairbeauty-20" target="_blank">Product Name</a> — replace spaces with + in the search query. Include brand, price, key ingredients, and why it works for her specifically.
+5. Ingredients to Seek and Ingredients to Avoid
+6. Your 90-Day Focus`;
+
+  const TEASER_PROMPT = `Based on this beauty consultation conversation, generate exactly 3 personalized "unfinished threads" — specific things from her conversation that weren't fully explored in the report. These should be intriguing and specific to what she actually shared, but incomplete enough that she wants to come back to Clair to get the full answer.
+
+Format your response as JSON only, no other text:
+{
+  "title": "A short evocative sentence about there being more to discover",
+  "items": [
+    "First unfinished thread — specific, intriguing, personal to her",
+    "Second unfinished thread — specific, intriguing, personal to her",
+    "Third unfinished thread — specific, intriguing, personal to her"
+  ]
 }
-function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.ftab').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');renderCompanies(companies);}
-function renderCompanies(list){
-  var filtered=currentFilter==='all'?list:list.filter(function(c){return c.research_status===currentFilter;});
-  var badge=document.getElementById('count-badge');
-  if(badge)badge.textContent=filtered.length+(currentFilter!=='all'?' / '+list.length:'');
-  var tbody=document.getElementById('companies-tbody');
-  if(!filtered.length){tbody.innerHTML='<tr><td colspan="6" style="padding:36px 0;text-align:center;color:var(--text3);font-weight:600;font-size:13px;">No companies found — add your first target above.</td></tr>';return;}
-  tbody.innerHTML=filtered.map(function(c,idx){
-    var tagMap={complete:'tag-complete',pending:'tag-pending',running:'tag-running',error:'tag-error',stale:'tag-stale'};
-    var tagCls=tagMap[c.research_status||'pending']||'tag-pending';
-    var tagLabel=(c.research_status||'pending').charAt(0).toUpperCase()+(c.research_status||'pending').slice(1);
-    var score=alignScore(c.name,c.research_status);
-    var aColor=alignColor(score);
-    var wild=getWildcard(c.industry);
-    var delay=Math.min(idx*0.04,0.3)+'s';
-    return'<tr class="tbl-row" style="animation:fadeUp .22s ease-out '+delay+' both;" onclick="viewCompany(\''+c.id+'\')">'+
-      '<td><div style="font-weight:700;color:var(--text1);">'+esc(c.name)+'</div><div style="font-size:10px;color:var(--text3);font-family:\'DM Mono\',monospace;margin-top:1px;">'+(c.ticker?c.ticker+' · ':'')+(c.employee_count?Number(c.employee_count).toLocaleString()+' emp':(c.domain||'—'))+'</div></td>'+
-      '<td>'+(c.industry?'<span style="display:inline-block;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600;background:var(--bg3);color:var(--text2);border:1px solid var(--border);">'+esc(c.industry)+'</span>':'<span style="color:var(--text3);font-size:11px;">—</span>')+'</td>'+
-      '<td><span class="tag '+tagCls+'">'+tagLabel+'</span></td>'+
-      '<td><div class="abar-wrap"><div class="abar-track"><div class="abar-fill" style="width:'+score+'%;background:'+aColor+';"></div></div><span class="abar-label" style="color:'+aColor+';">'+alignLabel(score)+'</span></div></td>'+
-      '<td><div style="display:flex;gap:3px;"><span class="cs cs-cio">CIO</span><span class="cs cs-ciso">CISO</span><span class="cs cs-wild">'+wild+'</span></div></td>'+
-      '<td><div class="row-actions">'+
-        '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();triggerResearch(\''+c.id+'\',\''+esc(c.name)+'\')">Research</button>'+
-        '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();viewCompany(\''+c.id+'\')">View →</button>'+
-        '<button class="btn btn-gold btn-sm" onclick="event.stopPropagation();genPyramid(\''+c.id+'\',\''+esc(c.name)+'\',\''+esc(c.domain||'')+'\')" title="Pyramid">▲</button>'+
-      '</div></td>'+
-    '</tr>';
-  }).join('');
-}
-function renderGenieLog(runs,cos){
-  var logEl=document.getElementById('genie-log');
-  var statusLine=document.getElementById('genie-status-line');
-  if(!runs.length){logEl.innerHTML='<div style="text-align:center;padding:28px 0;color:var(--text3);font-size:12px;font-weight:600;border:1px dashed var(--border);border-radius:8px;">No missions logged yet</div>';statusLine.textContent='Awaiting orders…';return;}
-  var last=runs[0];
-  var lastCo=cos.find(function(c){return c.id===last.company_id;});
-  var phrases={completed:'Last mission complete —',running:'Currently researching —',failed:'Last run failed on —',pending:'Queued up —'};
-  statusLine.textContent=(phrases[last.status]||'Last seen on —')+' '+(lastCo?lastCo.name:'unknown target');
-  var dotC={completed:'var(--green)',running:'var(--pink)',failed:'var(--red)',pending:'var(--gold-lt)'};
-  var bgC={completed:'var(--green-bg)',running:'var(--pink-bg)',failed:'var(--red-bg)',pending:'var(--gold-bg)'};
-  var bdC={completed:'var(--green-brd)',running:'var(--pink-brd)',failed:'var(--red-bg)',pending:'var(--gold-brd)'};
-  var txC={completed:'var(--green)',running:'var(--pink)',failed:'var(--red)',pending:'var(--gold)'};
-  logEl.innerHTML=runs.slice(0,25).map(function(r,idx){
-    var co=cos.find(function(c){return c.id===r.company_id;});
-    var dt=new Date(r.created_at);
-    var isToday=dt.toDateString()===new Date().toDateString();
-    var timeStr=dt.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit'});
-    var dateStr=dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    var timeLabel=isToday?timeStr:dateStr+' '+timeStr;
-    var detail='';
-    if(r.status==='completed'){detail='Research complete'+(r.actual_tokens?' · '+Number(r.actual_tokens).toLocaleString()+' tokens':'');}
-    else if(r.status==='running'){detail='In progress…';}
-    else if(r.status==='failed'){detail=r.error_message?(r.error_message.substring(0,55)+'…'):'Run failed';}
-    else{detail='Queued, waiting to start';}
-    var trigger=r.triggered_by&&r.triggered_by!=='manual'?r.triggered_by:'manual';
-    var dot=dotC[r.status]||'var(--text3)';
-    var bg=bgC[r.status]||'var(--bg3)';
-    var bd=bdC[r.status]||'var(--border)';
-    var tx=txC[r.status]||'var(--text3)';
-    var delay=Math.min(idx*0.04,0.4)+'s';
-    return'<div class="glog-item" style="animation-delay:'+delay+';">'+
-      '<div class="glog-top">'+
-        '<div class="glog-dot" style="background:'+dot+';'+(r.status==='running'?'animation:pulse 1.5s infinite;':'')+'"></div>'+
-        '<span class="glog-type">'+esc(r.status)+'</span>'+
-        '<span class="glog-time">'+timeLabel+'</span>'+
-      '</div>'+
-      '<div class="glog-company">'+(co?esc(co.name):'<span style="color:var(--text3);font-weight:400;">Unknown target</span>')+'</div>'+
-      '<div class="glog-detail">'+esc(detail)+'</div>'+
-      '<div class="glog-badges">'+
-        '<span class="glog-badge" style="background:'+bg+';color:'+tx+';border:1px solid '+bd+';">'+esc(r.status)+'</span>'+
-        '<span class="glog-badge" style="background:var(--bg3);color:var(--text3);border:1px solid var(--border);">'+esc(trigger)+'</span>'+
-        (co?'<span class="glog-badge" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-brd);cursor:pointer;" onclick="viewCompany(\''+co.id+'\')">view →</span>':'')+
-      '</div>'+
-    '</div>';
-  }).join('');
-}
-async function addCompany(){var name=document.getElementById('add-name').value.trim();if(!name){showToast('Company name required','error');return;}var{error}=await supabase.from('companies').insert({name,domain:document.getElementById('add-domain').value.trim()||null,industry:document.getElementById('add-industry').value.trim()||null,ticker:document.getElementById('add-ticker').value.trim()||null,employee_count:document.getElementById('add-employees').value||null,research_status:document.getElementById('add-status').value});if(error){showToast('Error: '+error.message,'error');return;}showToast('Company added!','success');closeModal('add-modal');loadData();}
-function ensurePAT(){if(CONFIG.GITHUB_PAT)return true;var pat=prompt('Enter your GitHub Personal Access Token (Fine-grained, Actions:write permission).\nWill be saved in localStorage.');if(pat){localStorage.setItem('bd_github_pat',pat);CONFIG.GITHUB_PAT=pat;return true;}showToast('GitHub PAT required','error');return false;}
-async function triggerResearch(id,name){if(!ensurePAT())return;showToast('Triggering research for '+name+'…','');try{var res=await fetch('https://api.github.com/repos/'+CONFIG.GITHUB_OWNER+'/'+CONFIG.GITHUB_REPO+'/actions/workflows/research.yml/dispatches',{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{company_id:id}})});if(res.status===204){showToast('Wish granted — research running for '+name+'!','success');setTimeout(loadData,2000);}else showToast('GitHub error: '+res.status,'error');}catch(e){showToast('Network error: '+e.message,'error');}}
-async function runBatch(){if(!ensurePAT())return;try{var res=await fetch('https://api.github.com/repos/'+CONFIG.GITHUB_OWNER+'/'+CONFIG.GITHUB_REPO+'/actions/workflows/batch.yml/dispatches',{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{company_ids:({prospect:'all_pending',active:'all_active'})[document.getElementById('batch-target').value]||'all_pending',max_companies:document.getElementById('batch-max').value,delay_seconds:document.getElementById('batch-delay').value}})});if(res.status===204){showToast('Batch run started!','success');closeModal('batch-modal');}else showToast('GitHub error: '+res.status,'error');}catch(e){showToast('Network error: '+e.message,'error');}}
-async function searchProspects(){if(!ensurePAT())return;var company=document.getElementById('ps-company').value.trim();if(!company){showToast('Company name required','error');return;}try{var res=await fetch('https://api.github.com/repos/'+CONFIG.GITHUB_OWNER+'/'+CONFIG.GITHUB_REPO+'/actions/workflows/prospect-search.yml/dispatches',{method:'POST',headers:{'Authorization':'Bearer '+CONFIG.GITHUB_PAT,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{company_name:company,company_domain:document.getElementById('ps-domain').value.trim(),max_contacts:document.getElementById('ps-max').value,search_keywords:document.getElementById('ps-keywords').value.trim()}})});if(res.status===204){showToast('Prospect search started for '+company+'!','success');closeModal('prospect-modal');}else showToast('GitHub error: '+res.status,'error');}catch(e){showToast('Network error: '+e.message,'error');}}
-loadData();
+
+Rules:
+- Reference specific things she actually said
+- Be intriguing but incomplete — create curiosity without resolving it
+- Never be negative or alarming
+- Sound warm and personal not clinical
+- Each item should be one sentence`;
+
+  let conversationHistory = [];
+  let userName = '';
+  let questionCount = 0;
+  let isWaiting = false;
+  let quickWinContent = '';
+  let reportHTML = '';
+  let teaserData = null;
+  let currentUserId = null;
+  let generatingInterval = null;
+  let userProfile = { name: '', age_range: '', budget: '', concern: '', routine: '' };
+
+  const genMessages = ['Reading your skin story...','Reviewing your lifestyle and health context...','Identifying your optimal ingredients...','Selecting your top product matches...','Composing your personal report...','Adding the finishing details...'];
+  const genStepTimings = [0, 4000, 9000, 14000, 19000];
+
+  function startGeneratingAnimation() {
+    let msgIndex = 0;
+    const statusEl = document.getElementById('genStatus');
+    const steps = ['step1','step2','step3','step4','step5'];
+    steps.forEach(s => { const el = document.getElementById(s); if (el) el.classList.remove('visible','done'); });
+    statusEl.textContent = genMessages[0];
+    statusEl.classList.remove('fade');
+    generatingInterval = setInterval(() => {
+      statusEl.classList.add('fade');
+      setTimeout(() => { msgIndex = (msgIndex + 1) % genMessages.length; statusEl.textContent = genMessages[msgIndex]; statusEl.classList.remove('fade'); }, 600);
+    }, 3500);
+    genStepTimings.forEach((t, i) => {
+      setTimeout(() => {
+        const el = document.getElementById(steps[i]);
+        if (el) { if (i > 0) { const prev = document.getElementById(steps[i-1]); if (prev) prev.classList.add('done'); } el.classList.add('visible'); }
+      }, t);
+    });
+  }
+
+  function stopGeneratingAnimation() {
+    if (generatingInterval) { clearInterval(generatingInterval); generatingInterval = null; }
+    const steps = ['step1','step2','step3','step4','step5'];
+    steps.forEach(s => { const el = document.getElementById(s); if (el) el.classList.add('done'); });
+    const statusEl = document.getElementById('genStatus');
+    if (statusEl) { statusEl.classList.add('fade'); setTimeout(() => { statusEl.textContent = 'Your report is ready.'; statusEl.classList.remove('fade'); }, 600); }
+  }
+
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+  }
+
+  function startChat() { show('chat'); setTimeout(() => sendAI('Begin the consultation.'), 400); }
+  function dismissBanner() { const b = document.getElementById('saveBanner'); if (b) b.style.display = 'none'; }
+
+  // ─── OVERLAY EMAIL SEND ───────────────────────────────────────────────
+  async function sendFromOverlay() {
+    const email = document.getElementById('reportUnlockEmail').value.trim();
+    const errorEl = document.getElementById('reportUnlockError');
+    const successEl = document.getElementById('reportUnlockSuccess');
+    const btn = document.getElementById('reportUnlockBtn');
+    errorEl.textContent = ''; successEl.textContent = '';
+    if (!email) { errorEl.textContent = 'Please enter your email address.'; return; }
+    if (!email.includes('@')) { errorEl.textContent = 'Please enter a valid email address.'; return; }
+    btn.textContent = 'Sending...'; btn.disabled = true;
+    // Save to leads with report HTML for backup
+    try { await supabaseClient.from('leads').insert({ email, name: userName || '', report: reportHTML }); } catch(e) {}
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'send_email', email, subject: `Your Clair Beauty Intelligence Report${userName ? ', ' + userName : ''}`, html: buildEmailHTML() })
+      });
+      const data = await response.json();
+      if (data.error) { errorEl.textContent = 'Something went wrong. Please try again.'; btn.textContent = 'Send My Report'; btn.disabled = false; }
+      else {
+        successEl.textContent = '✓ Sent! Check your inbox — and your spam folder just in case.';
+        btn.textContent = 'Sent ✓';
+        setTimeout(() => {
+          document.getElementById('reportUnlockOverlay').style.display = 'none';
+          document.getElementById('reportBody').classList.remove('blurred');
+        }, 2500);
+      }
+    } catch (err) { errorEl.textContent = 'Something went wrong. Please try again.'; btn.textContent = 'Send My Report'; btn.disabled = false; }
+  }
+
+  function buildEmailHTML() {
+    const teaserEmailHTML = teaserData ? buildTeaserEmailHTML(teaserData) : '';
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;background:#FAF7F2;font-family:'Georgia',serif;"><div style="max-width:600px;margin:0 auto;padding:40px 20px;"><div style="text-align:center;padding-bottom:32px;border-bottom:1px solid rgba(201,169,110,0.3);margin-bottom:32px;"><h1 style="font-family:Georgia,serif;font-size:36px;font-weight:300;letter-spacing:0.15em;color:#C9A96E;margin:0;">Clair</h1><p style="font-size:10px;letter-spacing:0.4em;text-transform:uppercase;color:#8A7E74;margin:4px 0 0;">Beauty Intelligence</p></div><div style="text-align:center;margin-bottom:32px;"><h2 style="font-family:Georgia,serif;font-size:28px;font-weight:300;color:#2D2520;margin:0;">Your Beauty Intelligence Report</h2><p style="font-size:13px;color:#8A7E74;margin-top:8px;">Curated exclusively for ${userName || 'you'}</p></div><div style="font-size:15px;line-height:1.85;color:#2D2520;">${reportHTML}</div>${teaserEmailHTML}<div style="text-align:center;padding-top:32px;border-top:1px solid rgba(201,169,110,0.3);margin-top:32px;"><p style="font-size:10px;color:#8A7E74;line-height:1.7;">Generated by Clair for cosmetic guidance only. Not medical advice. Some links are affiliate links.</p></div></div></body></html>`;
+  }
+
+  // ─── LEGACY STANDALONE EMAIL SCREEN ───────────────────────────────────
+  async function sendReportEmail() {
+    const email = document.getElementById('emailCaptureInput').value.trim();
+    const errorEl = document.getElementById('emailError');
+    const successEl = document.getElementById('emailSuccess');
+    errorEl.textContent = ''; successEl.textContent = '';
+    if (!email) { errorEl.textContent = 'Please enter your email address.'; return; }
+    if (!email.includes('@')) { errorEl.textContent = 'Please enter a valid email address.'; return; }
+    const btn = document.querySelector('.email-send-btn');
+    btn.textContent = 'Sending...'; btn.disabled = true;
+    try { await supabaseClient.from('leads').insert({ email, name: userName || '', report: reportHTML }); } catch(e) {}
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'send_email', email, subject: `Your Clair Beauty Intelligence Report${userName ? ', ' + userName : ''}`, html: buildEmailHTML() })
+      });
+      const data = await response.json();
+      if (data.error) { errorEl.textContent = 'Something went wrong. Please try again.'; btn.textContent = 'Send My Report'; btn.disabled = false; }
+      else { successEl.textContent = '✓ Sent! Check your inbox — and your spam folder just in case.'; btn.textContent = 'Sent ✓'; }
+    } catch (err) { errorEl.textContent = 'Something went wrong. Please try again.'; btn.textContent = 'Send My Report'; btn.disabled = false; }
+  }
+
+  async function createAccountFromBanner() {
+    const email = document.getElementById('bannerEmail').value.trim();
+    const password = document.getElementById('bannerPassword').value.trim();
+    const errorEl = document.getElementById('bannerError');
+    const successEl = document.getElementById('bannerSuccess');
+    errorEl.textContent = ''; successEl.textContent = '';
+    if (!email || !password) { errorEl.textContent = 'Please enter your email and a password.'; return; }
+    if (password.length < 6) { errorEl.textContent = 'Password must be at least 6 characters.'; return; }
+    try {
+      const { data, error } = await supabaseClient.auth.signUp({ email, password });
+      if (error) { errorEl.textContent = error.message; return; }
+      if (data.user) {
+        currentUserId = data.user.id;
+        await supabaseClient.from('profiles').insert({ id: data.user.id, email, name: userName, age_range: userProfile.age_range, budget: userProfile.budget, concern: userProfile.concern, routine: userProfile.routine, quick_win: quickWinContent });
+        await saveReportToSupabase(reportHTML);
+      }
+      successEl.textContent = 'Account created! Your report is saved.';
+      setTimeout(() => dismissBanner(), 2000);
+    } catch (err) { errorEl.textContent = 'Something went wrong. Please try again.'; }
+  }
+
+  function continueWithClair() {
+    conversationHistory = []; questionCount = 0; isWaiting = false;
+    document.getElementById('messages').innerHTML = ''; updateProgress(0); show('chat');
+    const welcomeBack = `Welcome back${userName ? ', ' + userName : ''}. I have your full profile and report from our last conversation. Based on everything you shared — your skin concerns, lifestyle, and goals — I have some thoughts on where to take things next. What would you like to explore?`;
+    setTimeout(() => { conversationHistory.push({ role: 'assistant', content: welcomeBack }); addMessage(welcomeBack, 'ai'); setInputEnabled(true); document.getElementById('userInput').focus(); }, 400);
+  }
+
+  function restart() {
+    conversationHistory = []; userName = ''; questionCount = 0; isWaiting = false;
+    quickWinContent = ''; reportHTML = ''; teaserData = null; currentUserId = null;
+    if (generatingInterval) { clearInterval(generatingInterval); generatingInterval = null; }
+    userProfile = { name: '', age_range: '', budget: '', concern: '', routine: '' };
+    document.getElementById('messages').innerHTML = '';
+    ['signupEmail','signupPassword','signinEmail','signinPassword','emailCaptureInput','bannerEmail','bannerPassword'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    ['signupError','signinError','emailError','emailSuccess','paywallError','bannerError','bannerSuccess','reportUnlockError','reportUnlockSuccess'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = ''; });
+    document.getElementById('teaserSection').style.display = 'none';
+    document.getElementById('saveBanner').style.display = 'flex';
+    document.getElementById('reportUnlockOverlay').style.display = 'flex';
+    document.getElementById('reportUnlockEmail').value = '';
+    document.getElementById('reportUnlockBtn').textContent = 'Send My Report';
+    document.getElementById('reportUnlockBtn').disabled = false;
+    document.getElementById('reportBody').classList.add('blurred');
+    updateProgress(0); show('welcome');
+  }
+
+  function updateProgress(n) { for (let i = 1; i <= 6; i++) { document.getElementById('d' + i).classList.toggle('done', i <= n); } }
+
+  function addMessage(text, role) {
+    const messages = document.getElementById('messages');
+    const wrap = document.createElement('div'); wrap.className = 'msg ' + role;
+    const avatar = document.createElement('div'); avatar.className = 'msg-avatar ' + (role === 'ai' ? 'ai-avatar' : 'user-avatar');
+    avatar.textContent = role === 'ai' ? 'C' : (userName ? userName[0].toUpperCase() : 'Y');
+    const bubble = document.createElement('div'); bubble.className = 'msg-bubble';
+    bubble.innerHTML = text.replace(/\n/g, '<br>');
+    wrap.appendChild(avatar); wrap.appendChild(bubble); messages.appendChild(wrap);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function showActionButtons() {
+    const messages = document.getElementById('messages');
+    const wrap = document.createElement('div'); wrap.className = 'action-btns'; wrap.id = 'actionButtons';
+    const saveBtn = document.createElement('button'); saveBtn.className = 'action-btn primary'; saveBtn.textContent = 'Save My Results';
+    saveBtn.onclick = () => { removeActionButtons(); show('signup'); };
+    const deeperBtn = document.createElement('button'); deeperBtn.className = 'action-btn'; deeperBtn.textContent = 'Go Deeper';
+    deeperBtn.onclick = () => { removeActionButtons(); if (PAYWALL_ACTIVE) { show('paywall'); } else { goDeeper(); } };
+    wrap.appendChild(saveBtn); wrap.appendChild(deeperBtn); messages.appendChild(wrap);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function removeActionButtons() { const btns = document.getElementById('actionButtons'); if (btns) btns.remove(); }
+  function goDeeper() { show('chat'); sendAI('Yes I would like to go deeper and get my full Beauty Intelligence Report.'); }
+
+  async function startCheckout() {
+    const btn = document.getElementById('paywallBtn'); const errorEl = document.getElementById('paywallError');
+    btn.textContent = 'Preparing checkout...'; btn.disabled = true; errorEl.textContent = '';
+    try {
+      const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'create_checkout', origin: window.location.origin, customerEmail: document.getElementById('signupEmail')?.value || '' }) });
+      const session = await response.json();
+      if (session.error) { errorEl.textContent = 'Something went wrong. Please try again.'; btn.textContent = 'Unlock My Full Report'; btn.disabled = false; return; }
+      await stripe.redirectToCheckout({ sessionId: session.id });
+    } catch (err) { errorEl.textContent = 'Something went wrong. Please try again.'; btn.textContent = 'Unlock My Full Report'; btn.disabled = false; }
+  }
+
+  function showTyping() {
+    const messages = document.getElementById('messages');
+    const wrap = document.createElement('div'); wrap.className = 'typing-wrap'; wrap.id = 'typingIndicator';
+    const avatar = document.createElement('div'); avatar.className = 'msg-avatar ai-avatar'; avatar.textContent = 'C';
+    const typing = document.createElement('div'); typing.className = 'typing';
+    typing.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+    wrap.appendChild(avatar); wrap.appendChild(typing); messages.appendChild(wrap);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function removeTyping() { const t = document.getElementById('typingIndicator'); if (t) t.remove(); }
+
+  async function callClaude(messages) {
+    const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 1200, system: SYSTEM_PROMPT, messages }) });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.content[0].text;
+  }
+
+  async function generateReport() {
+    const prompt = `Based on this conversation generate a complete personalized beauty intelligence report in HTML. Use only h3, p, ul, li, strong, a tags. Make it warm, specific, and luxurious. Match all product recommendations to the user's stated budget. For each product in the Top 5 Recommendations section create an Amazon affiliate search link using this exact format: <a href="https://www.amazon.com/s?k=PRODUCT+NAME+BRAND&tag=clairbeauty-20" target="_blank">Product Name</a> replacing spaces with + signs. Include inferred Fitzpatrick skin type and barrier health. Include ingredients to seek and avoid.\n\n${conversationHistory.map(m => m.role.toUpperCase() + ': ' + m.content).join('\n\n')}`;
+    const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 3000, system: SYSTEM_PROMPT, messages: [{ role: 'user', content: prompt }] }) });
+    const data = await response.json();
+    return data.content[0].text;
+  }
+
+  async function generateTeaser() {
+    const conversationSummary = conversationHistory.map(m => m.role.toUpperCase() + ': ' + m.content).join('\n\n');
+    const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 500, system: TEASER_PROMPT, messages: [{ role: 'user', content: conversationSummary }] }) });
+    const data = await response.json();
+    try { const text = data.content[0].text.trim(); const clean = text.replace(/```json|```/g, '').trim(); return JSON.parse(clean); } catch(e) { return null; }
+  }
+
+  function renderTeaser(data) {
+    if (!data) return;
+    document.getElementById('teaserTitle').textContent = data.title || 'There\'s more to your skin story.';
+    const items = document.getElementById('teaserItems'); items.innerHTML = '';
+    (data.items || []).forEach((item, i) => {
+      const div = document.createElement('div'); div.className = 'teaser-item';
+      div.innerHTML = `<div class="teaser-item-num">${i + 1}.</div><div class="teaser-item-text">${item}</div>`;
+      items.appendChild(div);
+    });
+    document.getElementById('teaserSection').style.display = 'block';
+  }
+
+  function buildTeaserEmailHTML(data) {
+    if (!data) return '';
+    const items = (data.items || []).map((item, i) => `<p style="margin:0 0 10px;font-size:13px;color:#8A7E74;line-height:1.6;"><span style="color:#C9A96E;font-family:Georgia,serif;font-style:italic;">${i+1}.</span> ${item}</p>`).join('');
+    return `<div style="margin-top:32px;padding:28px;background:#1A1410;text-align:center;"><p style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:#C9A96E;margin:0 0 12px;">What We Didn't Get To</p><h3 style="font-family:Georgia,serif;font-size:20px;font-weight:300;color:#FAF7F2;margin:0 0 20px;line-height:1.3;">${data.title || 'There\'s more to your skin story.'}</h3><div style="text-align:left;margin-bottom:20px;">${items}</div><a href="https://clair-beauty.vercel.app" style="display:inline-block;padding:12px 28px;border:1px solid #C9A96E;color:#C9A96E;font-family:Arial,sans-serif;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;text-decoration:none;">Continue with Clair →</a></div>`;
+  }
+
+  async function saveReportToSupabase(html) {
+    if (!currentUserId) return;
+    try { await supabaseClient.from('profiles').update({ report: html, report_date: new Date().toISOString() }).eq('id', currentUserId); } catch (err) { console.log('Report save error:', err); }
+  }
+
+  async function signIn() {
+    const email = document.getElementById('signinEmail').value.trim();
+    const password = document.getElementById('signinPassword').value.trim();
+    const errorEl = document.getElementById('signinError'); errorEl.textContent = '';
+    if (!email || !password) { errorEl.textContent = 'Please enter your email and password.'; return; }
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) { errorEl.textContent = 'Incorrect email or password.'; return; }
+      currentUserId = data.user.id;
+      const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', data.user.id).single();
+      if (profile) {
+        userName = profile.name || '';
+        if (profile.report) {
+          reportHTML = profile.report;
+          document.getElementById('reportName').textContent = userName || 'Your Report';
+          document.getElementById('reportTitle').textContent = 'Your Beauty Intelligence Report';
+          document.getElementById('reportSub').textContent = 'Curated exclusively for ' + (userName || 'you') + (profile.report_date ? ' · ' + new Date(profile.report_date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '');
+          document.getElementById('reportContent').innerHTML = '<div class="section-body">' + profile.report + '</div>';
+          document.getElementById('saveBanner').style.display = 'none';
+          document.getElementById('reportUnlockOverlay').style.display = 'none';
+          document.getElementById('reportBody').classList.remove('blurred');
+          show('report');
+        } else { show('chat'); setTimeout(() => sendAI('Begin the consultation.'), 400); }
+      }
+    } catch (err) { errorEl.textContent = 'Something went wrong. Please try again.'; }
+  }
+
+  async function sendAI(userMessage) {
+    if (userMessage) conversationHistory.push({ role: 'user', content: userMessage });
+    setInputEnabled(false); showTyping();
+    try {
+      const reply = await callClaude(conversationHistory);
+      removeTyping();
+      if (reply.includes('REPORT_READY')) {
+        const clean = reply.replace('REPORT_READY', '').trim();
+        addMessage(clean, 'ai'); conversationHistory.push({ role: 'assistant', content: reply }); updateProgress(6);
+        setTimeout(() => { show('generating'); startGeneratingAnimation(); generateAndShowReport(); }, 2200);
+      } else if (reply.includes('QUICK_WIN_DONE')) {
+        const clean = reply.replace('QUICK_WIN_DONE', '').trim();
+        quickWinContent = clean; addMessage(clean, 'ai'); conversationHistory.push({ role: 'assistant', content: reply });
+        updateProgress(5); setInputEnabled(false); setTimeout(() => showActionButtons(), 600);
+      } else {
+        addMessage(reply, 'ai'); conversationHistory.push({ role: 'assistant', content: reply }); questionCount++;
+        updateProgress(Math.min(questionCount, 4));
+        if (questionCount === 1) { const first = conversationHistory.find(m => m.role === 'user' && m.content !== 'Begin the consultation.'); if (first) { const w = first.content.trim().split(' '); if (w.length <= 3) userName = w[0]; } }
+        setInputEnabled(true); document.getElementById('userInput').focus();
+      }
+    } catch (err) { removeTyping(); addMessage('Something went wrong. Please check your connection and try again.', 'ai'); setInputEnabled(true); }
+  }
+
+  async function createAccount() {
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value.trim();
+    const errorEl = document.getElementById('signupError'); errorEl.textContent = '';
+    if (!email || !password) { errorEl.textContent = 'Please enter your email and a password.'; return; }
+    if (password.length < 6) { errorEl.textContent = 'Password must be at least 6 characters.'; return; }
+    try {
+      const { data, error } = await supabaseClient.auth.signUp({ email, password });
+      if (error) { errorEl.textContent = error.message; return; }
+      if (data.user) { currentUserId = data.user.id; await supabaseClient.from('profiles').insert({ id: data.user.id, email, name: userName, age_range: userProfile.age_range, budget: userProfile.budget, concern: userProfile.concern, routine: userProfile.routine, quick_win: quickWinContent }); }
+      if (PAYWALL_ACTIVE) { show('paywall'); } else { goDeeper(); }
+    } catch (err) { errorEl.textContent = 'Something went wrong. Please try again.'; }
+  }
+
+  function skipSignup() { if (PAYWALL_ACTIVE) { show('paywall'); } else { show('chat'); goDeeper(); } }
+
+  async function generateAndShowReport() {
+    try {
+      const [html, teaser] = await Promise.all([generateReport(), generateTeaser()]);
+      reportHTML = html; teaserData = teaser;
+      stopGeneratingAnimation();
+      await new Promise(r => setTimeout(r, 1200));
+      document.getElementById('reportName').textContent = userName || 'Your Report';
+      document.getElementById('reportTitle').textContent = 'Your Beauty Intelligence Report';
+      document.getElementById('reportSub').textContent = 'Curated exclusively for ' + (userName || 'you') + ' · ' + new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      document.getElementById('reportContent').innerHTML = '<div class="section-body">' + html + '</div>';
+      renderTeaser(teaser);
+      if (currentUserId) {
+        document.getElementById('saveBanner').style.display = 'none';
+        document.getElementById('reportUnlockOverlay').style.display = 'none';
+        document.getElementById('reportBody').classList.remove('blurred');
+        await saveReportToSupabase(html);
+      }
+      show('report');
+    } catch (err) {
+      stopGeneratingAnimation();
+      document.getElementById('reportContent').innerHTML = '<p style="color:var(--muted)">There was an issue generating your report. Please try again.</p>';
+      show('report');
+    }
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('userInput'); const text = input.value.trim();
+    if (!text || isWaiting) return;
+    addMessage(text, 'user'); input.value = ''; input.style.height = 'auto'; sendAI(text);
+  }
+
+  function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+  function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; }
+  function setInputEnabled(enabled) { isWaiting = !enabled; document.getElementById('sendBtn').disabled = !enabled; document.getElementById('userInput').disabled = !enabled; }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('session_id')) { show('chat'); setTimeout(() => sendAI('Yes I would like to go deeper and get my full Beauty Intelligence Report.'), 400); window.history.replaceState({}, document.title, '/'); }
 </script>
 </body>
 </html>
